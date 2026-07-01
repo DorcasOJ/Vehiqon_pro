@@ -1,6 +1,6 @@
 package com.casdore.car_mgmt.user.service.impl;
 
-import com.casdore.car_mgmt.user.dto.EmailDetails;
+import com.casdore.car_mgmt.common.dto.EmailDetails;
 import com.casdore.car_mgmt.user.service.EmailService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

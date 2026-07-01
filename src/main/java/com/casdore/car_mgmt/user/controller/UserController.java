@@ -1,8 +1,8 @@
 package com.casdore.car_mgmt.user.controller;
 
-import com.casdore.car_mgmt.user.dto.UserRequest;
-import com.casdore.car_mgmt.user.dto.response.ApiResponse;
-import com.casdore.car_mgmt.user.dto.response.UserResponse;
+import com.casdore.car_mgmt.common.dto.UserRequest;
+import com.casdore.car_mgmt.common.dto.response.ApiResponse;
+import com.casdore.car_mgmt.common.dto.response.UserResponse;
 import com.casdore.car_mgmt.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

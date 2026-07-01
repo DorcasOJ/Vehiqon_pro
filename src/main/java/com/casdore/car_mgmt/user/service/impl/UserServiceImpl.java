@@ -1,17 +1,19 @@
 package com.casdore.car_mgmt.user.service.impl;
 
-import com.casdore.car_mgmt.user.dto.EmailDetails;
-import com.casdore.car_mgmt.user.dto.UserRequest;
-import com.casdore.car_mgmt.user.dto.response.UserResponse;
-import com.casdore.car_mgmt.user.dto.response.ApiResponse;
-import com.casdore.car_mgmt.user.entity.User;
+import com.casdore.car_mgmt.common.dto.EmailDetails;
+import com.casdore.car_mgmt.common.dto.UserRequest;
+import com.casdore.car_mgmt.common.dto.response.UserResponse;
+import com.casdore.car_mgmt.common.dto.response.ApiResponse;
+import com.casdore.car_mgmt.common.entity.User;
 import com.casdore.car_mgmt.user.repository.UserRepository;
 import com.casdore.car_mgmt.user.service.EmailService;
 import com.casdore.car_mgmt.user.service.UserService;
-import com.casdore.car_mgmt.utils.AccountUtils;
-import com.casdore.car_mgmt.utils.Status;
+import com.casdore.car_mgmt.common.utils.AccountUtils;
+import com.casdore.car_mgmt.common.enums.UserStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -23,15 +25,16 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public ApiResponse<UserResponse> createUser(UserRequest request) {
-        if(userRepository.existsByEmail(request.getEmail())) {
-            User existingUser = userRepository.findByEmail(request.getEmail());
+            Optional<User> existingUser = userRepository.findByEmail(request.getEmail());
+        if(existingUser.isPresent()) {
+            User user = existingUser.get();
             return ApiResponse.<UserResponse>builder()
                     .responseCode(AccountUtils.USER_EXIST_CODE)
                     .responseMessage(AccountUtils.USER_EXIST_MESSAGE)
                     .data(UserResponse.builder()
-                            .email(existingUser.getEmail())
-                            .phoneNumber(existingUser.getPhoneNumber())
-                            .name(existingUser.getFirstName()+ " " + existingUser.getLastName()+ " " + existingUser.getOtherName())
+                            .email(user.getEmail())
+                            .phoneNumber(user.getPhoneNumber())
+                            .name(user.getFirstName()+ " " + user.getLastName()+ " " + user.getOtherName())
                             .build())
                     .build();
         }
@@ -44,7 +47,7 @@ public class UserServiceImpl implements UserService {
                 .gender(request.getGender())
                 .phoneNumber(request.getPhoneNumber())
                 .alternativePhoneNumber(request.getAlternativePhoneNumber())
-                .status(Status.ACTIVE.name())
+                .status(UserStatus.ACTIVE.name())
                 .address(request.getAddress())
                 .build();
         User savedUser = userRepository.save(newUser);
