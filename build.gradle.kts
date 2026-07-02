@@ -25,6 +25,7 @@ dependencies {
 	implementation ("org.springframework.boot:spring-boot-starter-validation")
 	implementation ("org.postgresql:postgresql")
 	implementation("org.mapstruct:mapstruct:1.6.3")
+	implementation ("me.paulschwarz:spring-dotenv:4.0.0")
 
 	implementation("org.springframework.boot:spring-boot-starter-security")
 	implementation("io.jsonwebtoken:jjwt-api:0.12.7")

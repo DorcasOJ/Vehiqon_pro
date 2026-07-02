@@ -50,3 +50,5 @@ out/
 
 # Local configuration files that might contain passwords
 local.properties
+
+.env

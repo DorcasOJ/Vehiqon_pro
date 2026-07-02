@@ -1,0 +1,30 @@
+package com.vehiqon.car_mgmt.common.entity;
+
+import com.vehiqon.car_mgmt.common.enums.DocumentType;
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.SuperBuilder;
+
+import java.time.LocalDate;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@SuperBuilder
+@Entity
+@Table(name="documents")
+public class Documents extends BaseEntity {
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "car_id", nullable = false)
+    private Car car;
+
+    @Enumerated(EnumType.STRING)
+    private DocumentType documentType;
+
+    private String fileUrl;
+
+    private LocalDate expiryDate;}

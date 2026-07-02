@@ -1,0 +1,66 @@
+package com.vehiqon.car_mgmt.security.config;
+
+import com.vehiqon.car_mgmt.security.service.CustomerUserDetailsService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Bean;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
+
+@RequiredArgsConstructor
+public class SecurityConfig {
+//    @Bean
+//    PasswordEncoder passwordEncoder() {
+//        return new BCryptPasswordEncoder();
+//    }
+    private final CustomerUserDetailsService userDetailsService;
+
+    @Bean
+    SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
+        http
+                .csrf(AbstractHttpConfigurer::disable)
+                .cors(cors -> {})
+
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/auth/**")
+                        .permitAll()
+
+                        .requestMatchers("/admin/**")
+                        .hasRole("ADMIN")
+
+                        .requestMatchers("/api/cars/**")
+                        .hasAnyRole("USER", "ADMIN")
+
+                        .requestMatchers(
+                                "/swagger-ui/**"
+//                                "/api/**"
+                        ).permitAll()
+                        .anyRequest()
+                                .authenticated()
+                )
+                .sessionManagement(
+                        session -> session.sessionCreationPolicy(
+                                SessionCreationPolicy.STATELESS
+                        )
+                );
+
+        return http.build();
+    }
+
+    @Bean
+    PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    AuthenticationManager authenticationManager(
+            AuthenticationConfiguration configuration
+    ) throws Exception {
+        return configuration.getAuthenticationManager();
+    }
+}
