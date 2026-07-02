@@ -24,11 +24,16 @@ public class SecurityConfig {
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
         http
                 .csrf(AbstractHttpConfigurer::disable)
-                .cors(cors -> {})
+//                .cors(cors -> {})
 
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**")
-                        .permitAll()
+                        .requestMatchers(
+                                "/auth/**",
+                                "/api/auth/**",
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**",
+                                "/swagger-ui.html"
+                        ).permitAll()
 
                         .requestMatchers("/admin/**")
                         .hasRole("ADMIN")
@@ -36,13 +41,12 @@ public class SecurityConfig {
                         .requestMatchers("/api/cars/**")
                         .hasAnyRole("USER", "ADMIN")
 
-                        .requestMatchers(
-                                "/swagger-ui/**"
-//                                "/api/**"
-                        ).permitAll()
+
                         .anyRequest()
                                 .authenticated()
                 )
+//                .addFilterBefore(jwtAuthenticationFilter,
+//                        UsernamePasswordAuthenticationFilter.class)
                 .sessionManagement(
                         session -> session.sessionCreationPolicy(
                                 SessionCreationPolicy.STATELESS

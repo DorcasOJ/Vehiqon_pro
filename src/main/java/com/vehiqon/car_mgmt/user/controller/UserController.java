@@ -24,17 +24,17 @@ public class UserController {
     }
 
 
-    @Operation(
-            summary = "Create new User Account",
-            description = "Creating a new user and assigning an account ID"
-    )
-    @io.swagger.v3.oas.annotations.responses.ApiResponse(
-            responseCode = "201",
-            description = "Http Status 201 CREATED"
-    )
-    @PostMapping
-    public ResponseEntity<ApiResponse<UserResponse>> createUser(@Valid @RequestBody CreateUserRequest request) {
-
-        return ResponseEntity.ok(userService.createUser(request)) ;
-    }
+//    @Operation(
+//            summary = "Create new User Account",
+//            description = "Creating a new user and assigning an account ID"
+//    )
+//    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+//            responseCode = "201",
+//            description = "Http Status 201 CREATED"
+//    )
+//    @PostMapping
+//    public ResponseEntity<ApiResponse<UserResponse>> createUser(@Valid @RequestBody CreateUserRequest request) {
+//
+//        return ResponseEntity.ok(userService.createUser(request)) ;
+//    }
 }

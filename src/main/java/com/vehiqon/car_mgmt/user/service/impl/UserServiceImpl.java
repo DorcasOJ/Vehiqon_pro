@@ -12,6 +12,7 @@ import com.vehiqon.car_mgmt.user.repository.UserRepository;
 import com.vehiqon.car_mgmt.common.service.EmailService;
 import com.vehiqon.car_mgmt.user.service.UserService;
 import com.vehiqon.car_mgmt.common.utils.AccountUtils;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -36,15 +37,11 @@ public class UserServiceImpl implements UserService {
     private BCryptPasswordEncoder passwordEncoder;
 
     @Override
-    public ApiResponse<UserResponse> createUser(CreateUserRequest request) {
-            Optional<User> existingUser = userRepository.findByEmail(request.getEmail());
-        if(existingUser.isPresent()) {
-            User user = existingUser.get();
-            return ApiResponse.<UserResponse>builder()
-                    .responseCode(AccountUtils.USER_EXIST_CODE)
-                    .responseMessage(AccountUtils.USER_EXIST_MESSAGE)
-                    .data(userMapper.toResponse(user))
-                    .build();
+    @Transactional
+    public User createUser(CreateUserRequest request) {
+
+           if(userRepository.existsByEmail(request.getEmail())) {
+          throw new RuntimeException()
         }
 
         User newUser = userMapper.toEntity(request);
