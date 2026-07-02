@@ -1,4 +1,4 @@
-package com.casdore.car_mgmt.common.dto;
+package com.casdore.car_mgmt.common.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
