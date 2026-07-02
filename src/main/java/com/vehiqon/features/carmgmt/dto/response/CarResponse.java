@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 
 import java.util.UUID;
 
+@Deprecated
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -21,3 +22,4 @@ public class CarResponse {
     private String fuelType;
     private String transmission;
 }
+

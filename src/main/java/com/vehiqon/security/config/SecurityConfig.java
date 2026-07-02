@@ -1,5 +1,7 @@
 package com.vehiqon.security.config;
 
+import com.vehiqon.CustomAccessDeniedHandler;
+import com.vehiqon.CustomAuthenticationEntryPoint;
 import com.vehiqon.security.service.CustomerUserDetailsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -14,11 +16,12 @@ import org.springframework.security.web.SecurityFilterChain;
 
 @RequiredArgsConstructor
 public class SecurityConfig {
-//    @Bean
-//    PasswordEncoder passwordEncoder() {
-//        return new BCryptPasswordEncoder();
-//    }
+
     private final CustomerUserDetailsService userDetailsService;
+
+    private final CustomAccessDeniedHandler customAccessDeniedHandler;
+
+    private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
 
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
@@ -47,6 +50,9 @@ public class SecurityConfig {
                         session -> session.sessionCreationPolicy(
                                 SessionCreationPolicy.STATELESS
                         )
+                )  .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint(customAuthenticationEntryPoint)
+                        .accessDeniedHandler(customAccessDeniedHandler)
                 );
 
         return http.build();

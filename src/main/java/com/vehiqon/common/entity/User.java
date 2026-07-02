@@ -1,6 +1,7 @@
 package com.vehiqon.common.entity;
 
 import com.vehiqon.common.enums.Role;
+import com.vehiqon.features.carmgmt.entities.CarEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -41,7 +42,7 @@ public class User extends BaseEntity{
     private  Set<Role> roles = new HashSet<>();
 
     @OneToMany(mappedBy = "user")
-    private Set<Car> cars;
+    private Set<CarEntity> carEntities;
 
     @OneToMany(mappedBy = "user")
     private Set<Notification> notifications;

@@ -35,32 +35,22 @@ public interface UserMapper {
     List<UserResponse> toResponses(List<User> users);
 
 //    create new user
-@Mapping(target = "id", ignore = true)
-@Mapping(target = "createdAt", ignore = true)
-@Mapping(target = "updatedAt", ignore = true)
-@Mapping(target = "primaryAccountNumber", ignore = true)
-@Mapping(target = "roles", ignore = true)
-@Mapping(target = "status", ignore = true)
-@Mapping(target = "isVerified", ignore = true)
-@Mapping(target = "cars", ignore = true)
-@Mapping(target = "notifications", ignore = true)
-@Mapping(target = "auditLog", ignore = true)
-@Mapping(target = "userPlan", ignore = true)
+//@Mapping(target = "cars", ignore = true)
 @Mapping(target = "password", ignore = true)
      User toEntity(CreateUserRequest request);
 
 //    update existing user
-@Mapping(target = "id", ignore = true)
-@Mapping(target = "createdAt", ignore = true)
-@Mapping(target = "updatedAt", ignore = true)
-@Mapping(target = "primaryAccountNumber", ignore = true)
-@Mapping(target = "status", ignore = true)
-@Mapping(target = "isVerified", ignore = true)
-@Mapping(target = "roles", ignore = true)
-@Mapping(target = "cars", ignore = true)
-@Mapping(target = "notifications", ignore = true)
-@Mapping(target = "auditLog", ignore = true)
-@Mapping(target = "userPlan", ignore = true)
-@Mapping(target = "password", ignore = true)
-    void UpdateUser(UpdateUserRequest request, @MappingTarget User user);
+//@Mapping(target = "id", ignore = true)
+//@Mapping(target = "createdAt", ignore = true)
+//@Mapping(target = "updatedAt", ignore = true)
+//@Mapping(target = "primaryAccountNumber", ignore = true)
+//@Mapping(target = "status", ignore = true)
+//@Mapping(target = "isVerified", ignore = true)
+//@Mapping(target = "roles", ignore = true)
+//@Mapping(target = "cars", ignore = true)
+//@Mapping(target = "notifications", ignore = true)
+//@Mapping(target = "auditLog", ignore = true)
+//@Mapping(target = "userPlan", ignore = true)
+//@Mapping(target = "password", ignore = true)
+//    void UpdateUser(UpdateUserRequest request, @MappingTarget User user);
 }

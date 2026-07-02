@@ -3,47 +3,29 @@ package com.vehiqon.features.carmgmt.dto.request;
 import com.vehiqon.common.enums.CarStatus;
 import com.vehiqon.common.enums.FuelType;
 import com.vehiqon.common.enums.TransmissionEnum;
-import jakarta.validation.constraints.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.util.UUID;
 
 @Data
-public class CreateCarRequest {
+public class UpdateCarRequest {
 
-
-    @NotBlank(message = "Nickname is required")
+    @NotBlank
     private String nickname;
 
-    @NotBlank(message = "VIN is required")
-    private String vin;
-
-    @NotBlank(message = "PlateNumber is required")
+    @NotBlank
     private String plateNumber;
-
-    @NotNull(message = "Brand cannot be null")
-    private UUID brandId;
-
-    @NotNull(message = "Model cannot be null")
-    private UUID modelId;
-
 
     private String color;
 
-
-    @Min(1900)
-    @Max(2100)
     @NotNull
     private Integer year;
 
     private String engineNumber;
 
-
-    @NotNull(message = "Fuel type cannot be null")
     @NotNull
     private FuelType fuelType;
 
@@ -61,7 +43,10 @@ public class CreateCarRequest {
     private CarStatus status;
 
     @NotNull
-    private UUID userId;
+    private UUID brandId;
+
+    @NotNull
+    private UUID modelId;
 
     // getters/setters
 }

@@ -1,5 +1,6 @@
 package com.vehiqon.common.entity;
 
+import com.vehiqon.features.carmgmt.entities.CarEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -30,5 +31,5 @@ public class ServiceHistory extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "car_id", nullable = false )
-    private Car car;
+    private CarEntity carEntity;
 }
