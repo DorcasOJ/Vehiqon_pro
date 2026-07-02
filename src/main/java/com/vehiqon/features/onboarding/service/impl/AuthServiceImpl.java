@@ -63,6 +63,7 @@ public class AuthServiceImpl implements AuthService {
 
         String token = jwtService.generateToken(user, claims);
         LoginResponse response = loginResponseMapper.toResponse(token, user);
+
         return  ApiResponse.<LoginResponse>builder()
                 .responseCode(AccountUtils.USER_LOGIN_CODE)
                 .responseMessage(AccountUtils.USER_EXIST_MESSAGE)

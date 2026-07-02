@@ -59,6 +59,17 @@ public class GlobalExecutionHandler {
                 .body(response);
     }
 
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ApiResponse<Object>> handleException(Exception ex) {
+        ApiResponse<Object> response = ApiResponse.builder()
+                .responseCode("500")
+                .responseMessage(ex.getMessage())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(response);
+    }
+
 //    @ExceptionHandler(ResourceNotFoundException.class)
 //...
 //
