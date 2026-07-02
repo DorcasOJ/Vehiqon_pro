@@ -1,49 +1,54 @@
 package com.vehiqon.security.config;
 
+import com.vehiqon.security.jwt.JwtAuthenticationFilter;
 import com.vehiqon.security.service.CustomerUserDetailsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+@Configuration
+@EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
-//    @Bean
-//    PasswordEncoder passwordEncoder() {
-//        return new BCryptPasswordEncoder();
-//    }
+
     private final CustomerUserDetailsService userDetailsService;
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Bean
-    SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
         http
                 .csrf(AbstractHttpConfigurer::disable)
 //                .cors(cors -> {})
-
+//                .httpBasic(AbstractHttpConfigurer::disable)
+//
+//                .formLogin(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/auth/**",
                                 "/api/auth/**",
                                 "/swagger-ui/**",
-                                "/v3/api-docs/**",
-                                "/swagger-ui.html"
+                                "/swagger-ui.html",
+                                "/v3/api-docs/**"
                         ).permitAll()
 
-                        .requestMatchers("/admin/**")
-                        .hasRole("ADMIN")
+//                        .requestMatchers("/admin/**")
+//                        .hasRole("ADMIN")
+//
+//                        .requestMatchers("/api/cars/**")
+//                        .hasAnyRole("USER", "ADMIN")
 
-                        .requestMatchers("/api/cars/**")
-                        .hasAnyRole("USER", "ADMIN")
 
-
-                        .anyRequest()
-                                .authenticated()
+                        .anyRequest().authenticated()
                 )
 //                .addFilterBefore(jwtAuthenticationFilter,
 //                        UsernamePasswordAuthenticationFilter.class)
@@ -56,13 +61,14 @@ public class SecurityConfig {
         return http.build();
     }
 
+
     @Bean
-    PasswordEncoder passwordEncoder() {
+    public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
     @Bean
-    AuthenticationManager authenticationManager(
+    public AuthenticationManager authenticationManager(
             AuthenticationConfiguration configuration
     ) throws Exception {
         return configuration.getAuthenticationManager();

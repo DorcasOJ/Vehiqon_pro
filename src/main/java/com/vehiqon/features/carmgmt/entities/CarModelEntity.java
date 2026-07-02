@@ -1,6 +1,7 @@
-package com.vehiqon.common.entity;
+package com.vehiqon.features.carmgmt.entities;
 
-import com.vehiqon.carmgmt.entities.Brand;
+
+import com.vehiqon.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -17,15 +18,15 @@ import java.util.Set;
 @SuperBuilder
 @Entity
 @Table(name="models")
-public class Model extends BaseEntity{
+public class CarModelEntity extends BaseEntity {
 
     private String name;
     private String year;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "brand_id")
-    private Brand brand;
+    private BrandEntity brand;
 
     @OneToMany(mappedBy = "model")
-    private Set<Car> cars;
+    private Set<CarEntity> cars;
 }

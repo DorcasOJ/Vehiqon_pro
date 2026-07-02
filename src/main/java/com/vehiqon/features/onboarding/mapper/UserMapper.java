@@ -1,6 +1,6 @@
 package com.vehiqon.features.onboarding.mapper;
 
-import com.vehiqon.common.entity.User;
+import com.vehiqon.features.onboarding.entity.UserEntity;
 import com.vehiqon.features.onboarding.dto.CreateUserRequest;
 import com.vehiqon.features.onboarding.dto.request.UpdateUserRequest;
 import com.vehiqon.features.onboarding.dto.response.UserProfileResponse;
@@ -15,7 +15,7 @@ import java.util.List;
 public interface UserMapper {
 
 //    return from creating user
-    UserResponse toResponse(User user);
+    UserResponse toResponse(UserEntity user);
 
 //    return user profile
     @Mapping(target = "fullName",
@@ -29,10 +29,10 @@ public interface UserMapper {
                       .collect(java.util.stream.Collectors.joining(" "))
               )
             """)
-    UserProfileResponse toProfile(User user);
+    UserProfileResponse toProfile(UserEntity user);
 
 //    get list of all user
-    List<UserResponse> toResponses(List<User> users);
+    List<UserResponse> toResponses(List<UserEntity> users);
 
 //    create new user
 @Mapping(target = "id", ignore = true)
@@ -47,7 +47,7 @@ public interface UserMapper {
 @Mapping(target = "auditLog", ignore = true)
 @Mapping(target = "userPlan", ignore = true)
 @Mapping(target = "password", ignore = true)
-     User toEntity(CreateUserRequest request);
+UserEntity toEntity(CreateUserRequest request);
 
 //    update existing user
 @Mapping(target = "id", ignore = true)
@@ -62,5 +62,6 @@ public interface UserMapper {
 @Mapping(target = "auditLog", ignore = true)
 @Mapping(target = "userPlan", ignore = true)
 @Mapping(target = "password", ignore = true)
-    void UpdateUser(UpdateUserRequest request, @MappingTarget User user);
+@Mapping(target = "authorities", ignore = true)
+    void UpdateUser(UpdateUserRequest request, @MappingTarget UserEntity user);
 }

@@ -8,5 +8,5 @@ import com.vehiqon.features.onboarding.dto.response.UserResponse;
 
 public interface AuthService {
     ApiResponse<UserResponse> register(CreateUserRequest request);
-    ApiResponse<LoginResponse> register(LoginRequest request);
+    ApiResponse<LoginResponse> login(LoginRequest request);
 }

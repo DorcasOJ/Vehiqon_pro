@@ -2,7 +2,7 @@ package com.vehiqon.features.onboarding.service.impl;
 
 import com.vehiqon.common.dto.response.ApiResponse;
 import com.vehiqon.features.email.EmailDetails;
-import com.vehiqon.common.entity.User;
+import com.vehiqon.features.onboarding.entity.UserEntity;
 import com.vehiqon.common.enums.Role;
 import com.vehiqon.common.enums.UserStatus;
 import com.vehiqon.features.email.service.EmailService;
@@ -12,47 +12,46 @@ import com.vehiqon.features.onboarding.dto.response.UserResponse;
 import com.vehiqon.features.onboarding.mapper.UserMapper;
 import com.vehiqon.features.onboarding.repository.UserRepository;
 import com.vehiqon.features.onboarding.service.UserService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
 @Service
-@RequiredArgsConstructor
+//@RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
     private final UserMapper userMapper;
+    private final UserRepository userRepository;
+    private final EmailService emailService;
+    private final PasswordEncoder passwordEncoder;
 
-    @Autowired
-    UserRepository userRepository;
-
-//    @Autowired
-//    UserMapper userMapper;
-
-    @Autowired
-    EmailService emailService;
-    private BCryptPasswordEncoder passwordEncoder;
+    public UserServiceImpl(UserMapper userMapper, UserRepository userRepository, EmailService emailService, PasswordEncoder passwordEncoder) {
+        this.userMapper = userMapper;
+        this.userRepository = userRepository;
+        this.emailService = emailService;
+        this.passwordEncoder = passwordEncoder;
+    }
 
     @Override
-    public ApiResponse<UserResponse> createUser(CreateUserRequest request) {
-            Optional<User> existingUser = userRepository.findByEmail(request.getEmail());
-        if(existingUser.isPresent()) {
-            User user = existingUser.get();
-            return ApiResponse.<UserResponse>builder()
-                    .responseCode(AccountUtils.USER_EXIST_CODE)
-                    .responseMessage(AccountUtils.USER_EXIST_MESSAGE)
-                    .data(userMapper.toResponse(user))
-                    .build();
+    @Transactional
+    public UserResponse createUser(CreateUserRequest request) {
+
+        if(userRepository.existsByEmail(request.getEmail())){
+         throw new IllegalArgumentException("Email already exist");
         }
 
-        User newUser = userMapper.toEntity(request);
+        UserEntity newUser = userMapper.toEntity(request);
         newUser.setStatus(UserStatus.INACTIVE.name());
         newUser.setIsVerified(false);
         newUser.setPassword(passwordEncoder.encode(request.getPassword())); // hash password
         newUser.getRoles().add(Role.ROLE_USER);
-        User savedUser = userRepository.save(newUser);
+        UserEntity savedUser = userRepository.save(newUser);
 
 
 
@@ -66,11 +65,6 @@ public class UserServiceImpl implements UserService {
                 .build();
         emailService.sendEmailAlert(emailDetails);
 
-        return ApiResponse.<UserResponse>builder()
-                .responseCode(AccountUtils.USER_CREATION_CODE)
-                .responseMessage(AccountUtils.USER_CREATION_MESSAGE)
-                .data(userMapper.toResponse(savedUser))
-                .build();
-
+        return userMapper.toResponse(savedUser);
     }
 }

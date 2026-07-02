@@ -1,6 +1,7 @@
 package com.vehiqon.common.entity;
 
 import com.vehiqon.common.enums.SubscriptionStatus;
+import com.vehiqon.features.onboarding.entity.UserEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -31,7 +32,7 @@ public class UserSubscription extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false )
-    private User user;
+    private UserEntity user;
 
     @OneToOne(mappedBy = "userSubscription")
     private Payment payment;

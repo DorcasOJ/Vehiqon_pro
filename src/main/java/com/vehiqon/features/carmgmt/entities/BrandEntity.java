@@ -1,8 +1,6 @@
 package com.vehiqon.features.carmgmt.entities;
 
 import com.vehiqon.common.entity.BaseEntity;
-import com.vehiqon.common.entity.Car;
-import com.vehiqon.common.entity.Model;
 import jakarta.persistence.Entity;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
@@ -26,8 +24,8 @@ public class BrandEntity extends BaseEntity {
     private String name;
 
     @OneToMany(mappedBy = "brand")
-    private Set<Model> model;
+    private Set<CarModelEntity> model;
 
     @OneToMany(mappedBy = "brand")
-    private Set<Car> cars;
+    private Set<CarEntity> cars;
 }

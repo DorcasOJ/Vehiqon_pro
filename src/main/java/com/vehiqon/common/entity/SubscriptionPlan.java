@@ -1,5 +1,6 @@
 package com.vehiqon.common.entity;
 
+import com.vehiqon.features.onboarding.entity.UserEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -14,7 +15,7 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @Entity
 @Table(name="subscription_plan")
-public class SubscriptionPlan extends BaseEntity{
+public class SubscriptionPlan extends BaseEntity {
 
     private String startDate;
     private String endDate;
@@ -28,7 +29,7 @@ public class SubscriptionPlan extends BaseEntity{
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false )
-    private User user;
+    private UserEntity user;
 
     @OneToOne(mappedBy = "subscriptionPlan")
     private UserSubscription userSubscription;

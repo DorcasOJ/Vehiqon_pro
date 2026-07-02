@@ -1,9 +1,13 @@
-package com.vehiqon.common.entity;
+package com.vehiqon.features.carmgmt.entities;
 
-import com.vehiqon.carmgmt.entities.Brand;
+import com.vehiqon.common.entity.Documents;
+import com.vehiqon.common.entity.MaintenanceReminder;
+import com.vehiqon.common.entity.ServiceHistory;
+import com.vehiqon.common.entity.*;
 import com.vehiqon.common.enums.CarStatus;
 import com.vehiqon.common.enums.FuelType;
 import com.vehiqon.common.enums.TransmissionEnum;
+import com.vehiqon.features.onboarding.entity.UserEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -19,7 +23,7 @@ import java.util.Set;
 @SuperBuilder
 @Entity
 @Table(name="cars")
-public class Car extends BaseEntity{
+public class CarEntity extends BaseEntity {
 
     private String nickname;
     @Column(unique = true, nullable = false)
@@ -53,15 +57,15 @@ public class Car extends BaseEntity{
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    private UserEntity user;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "brand_id", nullable = false)
-    private Brand brand;
+    private BrandEntity brand;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "model_id", nullable = false)
-    private Model model;
+    private CarModelEntity model;
 
     @OneToMany(mappedBy = "car", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default

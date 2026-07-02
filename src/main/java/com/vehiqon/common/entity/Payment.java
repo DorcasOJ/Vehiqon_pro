@@ -18,7 +18,7 @@ import java.time.LocalDateTime;
 @SuperBuilder
 @Entity
 @Table(name="payments")
-public class Payment extends BaseEntity{
+public class Payment extends BaseEntity {
     private String reference;
     private BigDecimal amount;
     private String currency;

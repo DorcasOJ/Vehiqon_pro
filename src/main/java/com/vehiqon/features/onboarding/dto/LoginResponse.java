@@ -1,6 +1,7 @@
 package com.vehiqon.features.onboarding.dto;
 
-import com.vehiqon.carmgmt.user.dto.response.UserResponse;
+
+import com.vehiqon.features.onboarding.dto.response.UserResponse;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
