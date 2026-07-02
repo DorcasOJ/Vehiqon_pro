@@ -66,7 +66,7 @@ public class AuthServiceImpl implements AuthService {
 
         return  ApiResponse.<LoginResponse>builder()
                 .responseCode(AccountUtils.USER_LOGIN_CODE)
-                .responseMessage(AccountUtils.USER_EXIST_MESSAGE)
+                .responseMessage(AccountUtils.USER_LOGIN_MESSAGE)
                 .data(response)
                 .build();
 
