@@ -11,10 +11,12 @@ import java.util.List;
 @Mapper(componentModel = "spring")
 public interface CarMapper {
 
-    @Mapping(source = "brandId", target="brand")
-    @Mapping(source="modelId", target="model")
+//    @Mapping(source = "brandId", target="brand")
+//    @Mapping(source="modelId", target="model")
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "user", ignore = true)
+//    @Mapping(target = "brandId", ignore = true)
+//    @Mapping(target = "modelId", ignore = true)
     CarEntity toEntity(CreateCarRequest car);
 
     @Mapping(source = "brand.name", target = "brand")

@@ -61,5 +61,14 @@ public class AuthController {
                 .responseMessage(AccountUtils.SUCCESS_MESSAGE)
                 .build());
     }
+
+    @PostMapping("/logout/all")
+    public ResponseEntity<ApiResponse<Void>> logoutAll() {
+        authService.logoutAll();
+        return ResponseEntity.ok(ApiResponse.<Void>builder()
+                .responseCode(AccountUtils.SUCCESS_CODE)
+                .responseMessage(AccountUtils.SUCCESS_MESSAGE)
+                .build());
+    }
 }
 
