@@ -49,6 +49,7 @@ public class AuthServiceImpl implements AuthService {
     public ApiResponse<UserResponse> register(CreateUserRequest request) {
         UserResponse savedUser = userService.createUser(request);
         return ApiResponse.<UserResponse>builder()
+                .success(true)
                 .responseCode(AccountUtils.USER_CREATION_CODE)
                 .responseMessage(AccountUtils.USER_CREATION_MESSAGE)
                 .data(savedUser)
@@ -64,6 +65,7 @@ public class AuthServiceImpl implements AuthService {
         LoginResponse response = generateTokens(user, httpRequest);
 
         return  ApiResponse.<LoginResponse>builder()
+                .success(true)
                 .responseCode(AccountUtils.USER_LOGIN_CODE)
                 .responseMessage(AccountUtils.USER_LOGIN_MESSAGE)
                 .data(response)
@@ -134,7 +136,7 @@ public class AuthServiceImpl implements AuthService {
         } catch (LockedException ex) {
             throw new AccountLockedException(ex.getMessage());
         } catch (DisabledException ex) {
-            throw new AccountDisabledException("Your email address has not been verified.\n" +
+            throw new AccountDisabledException("Your email address has not been verified. \n" +
                     "Please verify your email before logging in.");
 //            If an account with this email exists and is not yet verified, a new verification email has been sent.
         } catch (CredentialsExpiredException ex) {
@@ -175,8 +177,8 @@ public class AuthServiceImpl implements AuthService {
 
 
     @Override
-            @Transactional
-            public ApiResponse<Void> resendVerificationEmail(
+    @Transactional
+    public ApiResponse<Void> resendVerificationEmail(
                     ResendVerificationRequest request
     ) {
 
@@ -213,6 +215,7 @@ public class AuthServiceImpl implements AuthService {
             verificationTokenRepository.saveAll(tokens);
             userService.validateUserEmail(user);
             return ApiResponse.<Void>builder()
+                    .success(true)
                     .responseCode(AccountUtils.SUCCESS_CODE)
                     .responseMessage(
                             "If an account exists with this email, a verification email has been sent."
@@ -230,6 +233,7 @@ public class AuthServiceImpl implements AuthService {
         refreshToken.setRevokedAt(LocalDateTime.now());
         refreshTokenRepository.save(refreshToken);
         return ApiResponse.<Void>builder()
+                .success(true)
                 .responseCode(AccountUtils.SUCCESS_CODE)
                 .responseMessage("Logged out Successful")
                 .build();
@@ -249,6 +253,7 @@ public class AuthServiceImpl implements AuthService {
         refreshTokenRepository.revokeAll(user);
 
         return ApiResponse.<Void>builder()
+                .success(true)
                 .responseCode(AccountUtils.SUCCESS_CODE)
                 .responseMessage("Logged out from all devices")
                 .build();
