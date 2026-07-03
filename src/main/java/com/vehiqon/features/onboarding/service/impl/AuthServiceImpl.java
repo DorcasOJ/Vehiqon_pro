@@ -1,26 +1,34 @@
 package com.vehiqon.features.onboarding.service.impl;
 
-import com.vehiqon.common.exception.InvalidCredentialsException;
+import com.vehiqon.common.enums.VerificationTokenTypeEnum;
+import com.vehiqon.common.exception.*;
 import com.vehiqon.common.utils.AccountUtils;
-import com.vehiqon.features.onboarding.dto.CreateUserRequest;
-import com.vehiqon.features.onboarding.dto.LoginResponse;
-import com.vehiqon.features.onboarding.dto.request.LoginRequest;
+import com.vehiqon.features.onboarding.dto.request.*;
+import com.vehiqon.features.onboarding.dto.response.LoginResponse;
 import com.vehiqon.features.onboarding.dto.response.UserResponse;
+import com.vehiqon.features.onboarding.entity.RefreshTokenEntity;
 import com.vehiqon.features.onboarding.entity.UserEntity;
-import com.vehiqon.features.onboarding.mapper.LoginResponseMapper;
-import com.vehiqon.features.onboarding.mapper.UserMapper;
+import com.vehiqon.features.onboarding.entity.VerificationTokenEntity;
+import com.vehiqon.features.onboarding.mapper.*;
+import com.vehiqon.features.onboarding.repository.RefreshTokenRepository;
 import com.vehiqon.features.onboarding.repository.UserRepository;
+import com.vehiqon.features.onboarding.repository.VerificationTokenRepository;
 import com.vehiqon.features.onboarding.service.AuthService;
 import com.vehiqon.common.dto.response.ApiResponse;
 import com.vehiqon.security.jwt.JwtService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.*;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.CredentialsExpiredException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.time.LocalDateTime;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -31,6 +39,8 @@ public class AuthServiceImpl implements AuthService {
     private final UserServiceImpl userService;
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
+    private final RefreshTokenRepository refreshTokenRepository;
+    private final VerificationTokenRepository verificationTokenRepository;
     private final UserRepository userRepository;
 
 
@@ -47,26 +57,66 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public ApiResponse<LoginResponse> login(LoginRequest request) {
+    public ApiResponse<LoginResponse> login(LoginRequest request, HttpServletRequest
+            httpRequest) {
         Authentication authenticate = getAuthentication(request);
         UserEntity user = (UserEntity) authenticate.getPrincipal();
-        Map<String, Object> claims = new HashMap<>();
-
-//        assert userDetail != null;
-        claims.put(
-                "roles",
-                user.getAuthorities()
-                        .stream()
-                        .map(GrantedAuthority::getAuthority)
-                        .toList()
-        );
-
-        String token = jwtService.generateToken(user, claims);
-        LoginResponse response = loginResponseMapper.toResponse(token, user);
+        LoginResponse response = generateTokens(user, httpRequest);
 
         return  ApiResponse.<LoginResponse>builder()
                 .responseCode(AccountUtils.USER_LOGIN_CODE)
                 .responseMessage(AccountUtils.USER_LOGIN_MESSAGE)
+                .data(response)
+                .build();
+
+    }
+
+    private LoginResponse generateTokens(UserEntity user,  HttpServletRequest request) {
+        try {
+            Map<String, Object> claims = new HashMap<>();
+
+            claims.put(
+                    "roles",
+                    user.getAuthorities()
+                            .stream()
+                            .map(GrantedAuthority::getAuthority)
+                            .toList()
+            );
+
+            String accessToken = jwtService.generateToken(user, claims);
+            String refreshToken = jwtService.generateRefreshToken(user);
+            RefreshTokenEntity refreshTokenEntity = jwtService.getRefreshTokenToSave(refreshToken, user, request );
+            refreshTokenRepository.save(refreshTokenEntity);
+            return loginResponseMapper.toResponse(accessToken, refreshToken, user);
+        } catch (Exception e) {
+            throw new IllegalArgumentException(e);
+        }
+    }
+
+
+    @Override
+    public ApiResponse<LoginResponse> refresh(RefreshTokenRequest request, HttpServletRequest httpRequest) {
+        RefreshTokenEntity refreshToken = refreshTokenRepository.findByToken(request.refreshToken())
+                .orElseThrow(() -> new InvalidResourceException("Refresh token not found"));
+        if(Boolean.TRUE.equals(refreshToken.getRevoked())) {
+            throw new InvalidResourceException("Refresh token has been revoked");
+        }
+
+        if(Boolean.TRUE.equals(refreshToken.getExpired())) {
+            throw new InvalidResourceException("Refresh token has expired");
+        }
+
+        if(refreshToken.getExpiresAt().isBefore(LocalDateTime.now())) {
+            refreshToken.setExpired(true);
+            refreshTokenRepository.save(refreshToken);
+            throw new InvalidResourceException("Refresh token has expired");
+        }
+
+        UserEntity user = refreshToken.getUser();
+        LoginResponse response = generateTokens(user, httpRequest);
+        return ApiResponse.<LoginResponse>builder()
+                .responseCode(AccountUtils.SUCCESS_CODE)
+                .responseMessage(AccountUtils.SUCCESS_MESSAGE)
                 .data(response)
                 .build();
 
@@ -80,13 +130,128 @@ public class AuthServiceImpl implements AuthService {
                     )
             );
         } catch (BadCredentialsException e) {
-            throw new InvalidCredentialsException("Invalid email or password");
+            throw new InvalidResourceException("Invalid email or password");
+        } catch (LockedException ex) {
+            throw new AccountLockedException(ex.getMessage());
+        } catch (DisabledException ex) {
+            throw new AccountDisabledException("Your email address has not been verified.\n" +
+                    "Please verify your email before logging in.");
+//            If an account with this email exists and is not yet verified, a new verification email has been sent.
+        } catch (CredentialsExpiredException ex) {
+            throw new com.vehiqon.common.exception.CredentialsExpiredException(ex.getMessage());
         }
-//        catch (DisabledException ex) {
-//        throw new AccountDisabledException("Your account is disabled");
-//    } catch (LockedException ex) {
-//        throw new AccountLockedException("Your account is locked");
-//    }
+    }
+
+    @Override
+    @Transactional
+    public ApiResponse<Void> verifyEmail(String token) {
+        VerificationTokenEntity verificationToken = verificationTokenRepository
+                .findByTokenAndType(
+                        token,
+                        VerificationTokenTypeEnum.EMAIL_VERIFICATION
+                )
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Invalid verification token")
+                );
+
+        if (Boolean.TRUE.equals(verificationToken.getUsed())) {
+            throw new IllegalArgumentException("Verification link has already been used.");
+        }
+
+        if (verificationToken.getExpiresAt().isBefore(LocalDateTime.now())) {
+            throw new IllegalArgumentException("Verification link has expired.");
+        }
+        UserEntity user = verificationToken.getUser();
+        user.setIsVerified(true);
+        userRepository.save(user);
+        verificationToken.setUsed(true);
+        verificationToken.setUsedAt(LocalDateTime.now());
+        verificationTokenRepository.save(verificationToken);
+        return ApiResponse.<Void>builder()
+                .responseCode(AccountUtils.SUCCESS_CODE)
+                .responseMessage("Email verified successfully.")
+                .build();
+    }
+
+
+    @Override
+            @Transactional
+            public ApiResponse<Void> resendVerificationEmail(
+                    ResendVerificationRequest request
+    ) {
+
+        Optional<UserEntity> optionalUser =
+                    userRepository.findByEmail(request.email());
+
+            if (optionalUser.isEmpty()) {
+                return ApiResponse.<Void>builder()
+                        .responseCode(AccountUtils.SUCCESS_CODE)
+                        .responseMessage(
+                                "If an account exists with this email, a verification email has been sent."
+                        )
+                        .build();
+            }
+
+            UserEntity user = optionalUser.get();
+            if (Boolean.TRUE.equals(user.getIsVerified())) {
+                return ApiResponse.<Void>builder()
+                        .responseCode(AccountUtils.SUCCESS_CODE)
+                        .responseMessage("Email is already verified.")
+                        .build();
+            }
+
+            // invalidate previous unused tokens
+            List<VerificationTokenEntity> tokens =
+                    verificationTokenRepository.findByUserAndTypeAndUsedFalse(
+                            user,
+                            VerificationTokenTypeEnum.EMAIL_VERIFICATION
+                    );
+            for (VerificationTokenEntity token : tokens) {
+                token.setUsed(true);
+                token.setUsedAt(LocalDateTime.now());
+            }
+            verificationTokenRepository.saveAll(tokens);
+            userService.validateUserEmail(user);
+            return ApiResponse.<Void>builder()
+                    .responseCode(AccountUtils.SUCCESS_CODE)
+                    .responseMessage(
+                            "If an account exists with this email, a verification email has been sent."
+                    )
+                    .build();
+        }
+
+
+    @Override
+    public ApiResponse<Void> logout(LogoutRequest request) {
+        RefreshTokenEntity refreshToken = refreshTokenRepository.findByToken(request.refreshToken())
+                .orElseThrow(() -> new TokenNotFoundException("Token not found"));
+        refreshToken.setRevoked(true);
+        refreshToken.setExpired(true);
+        refreshToken.setRevokedAt(LocalDateTime.now());
+        refreshTokenRepository.save(refreshToken);
+        return ApiResponse.<Void>builder()
+                .responseCode(AccountUtils.SUCCESS_CODE)
+                .responseMessage("Logged out Successful")
+                .build();
+    }
+
+    @Override
+    @Transactional
+    public ApiResponse<Void> logoutAll() {
+
+        Authentication authentication =
+                SecurityContextHolder.getContext()
+                        .getAuthentication();
+
+        UserEntity user =
+                (UserEntity) authentication.getPrincipal();
+
+        refreshTokenRepository.revokeAll(user);
+
+        return ApiResponse.<Void>builder()
+                .responseCode(AccountUtils.SUCCESS_CODE)
+                .responseMessage("Logged out from all devices")
+                .build();
     }
 
 

@@ -1,28 +1,40 @@
 package com.vehiqon.features.onboarding.controller;
 
 import com.vehiqon.common.dto.response.ApiResponse;
-import com.vehiqon.features.onboarding.dto.CreateUserRequest;
+import com.vehiqon.common.utils.AccountUtils;
 import com.vehiqon.features.onboarding.dto.response.UserResponse;
+import com.vehiqon.features.onboarding.entity.UserEntity;
+import com.vehiqon.features.onboarding.mapper.UserMapper;
 import com.vehiqon.features.onboarding.service.UserService;
-import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/users")
+@RequiredArgsConstructor
 @Tag(name = "Vehiqon - User Account Car Mannagement APIs")
 public class UserController {
-    @Autowired
-    UserService userService;
+
+    private final UserService userService;
+    private final UserMapper userMapper;
 
     @GetMapping
     public String get() {
         return "Hello World";
     }
 
+    @GetMapping("/me")
+    public ApiResponse<UserResponse> me(Authentication authentication) {
+        UserEntity user = (UserEntity) authentication.getPrincipal();
+        return ApiResponse.<UserResponse>builder()
+                .responseCode(AccountUtils.USER_FOUND_CODE)
+                .responseMessage(AccountUtils.USER_FOUND_MESSAGE)
+                .data(userMapper.toResponse(user))
+                .build();
+    }
+    }
 
 //    @Operation(
 //            summary = "Create new User Account",
@@ -37,4 +49,4 @@ public class UserController {
 //
 //        return ResponseEntity.ok(userService.createUser(request)) ;
 //    }
-}
+//}

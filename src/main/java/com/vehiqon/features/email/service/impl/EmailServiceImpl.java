@@ -1,6 +1,6 @@
 package com.vehiqon.features.email.service.impl;
 
-import com.vehiqon.features.email.EmailDetails;
+import com.vehiqon.features.email.dto.EmailDetails;
 import com.vehiqon.features.email.service.EmailService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

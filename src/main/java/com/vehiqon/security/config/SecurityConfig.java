@@ -1,5 +1,6 @@
 package com.vehiqon.security.config;
 
+import com.vehiqon.security.jwt.JwtAuthenticationEntryPoint;
 import com.vehiqon.security.jwt.JwtAuthenticationFilter;
 import com.vehiqon.security.service.CustomerUserDetailsService;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +25,7 @@ public class SecurityConfig {
 
     private final CustomerUserDetailsService userDetailsService;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
@@ -56,6 +58,9 @@ public class SecurityConfig {
                         session -> session.sessionCreationPolicy(
                                 SessionCreationPolicy.STATELESS
                         )
+                )
+                .exceptionHandling(
+                        ex -> ex.authenticationEntryPoint(jwtAuthenticationEntryPoint)
                 );
 
         return http.build();

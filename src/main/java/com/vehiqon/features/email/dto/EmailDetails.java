@@ -1,4 +1,4 @@
-package com.vehiqon.features.email;
+package com.vehiqon.features.email.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

@@ -1,7 +1,7 @@
 package com.vehiqon.features.onboarding.mapper;
 
 import com.vehiqon.features.onboarding.entity.UserEntity;
-import com.vehiqon.features.onboarding.dto.CreateUserRequest;
+import com.vehiqon.features.onboarding.dto.request.CreateUserRequest;
 import com.vehiqon.features.onboarding.dto.request.UpdateUserRequest;
 import com.vehiqon.features.onboarding.dto.response.UserProfileResponse;
 import com.vehiqon.features.onboarding.dto.response.UserResponse;

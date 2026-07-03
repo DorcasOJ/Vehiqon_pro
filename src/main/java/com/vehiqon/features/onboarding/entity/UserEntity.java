@@ -62,6 +62,9 @@ public class UserEntity extends BaseEntity implements UserDetails {
     @OneToMany(mappedBy = "user")
     private Set<UserSubscription> userPlan;
 
+    @OneToMany(mappedBy = "user")
+    private Set<RefreshTokenEntity> refreshTokens;
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return roles.stream()
@@ -92,6 +95,8 @@ public class UserEntity extends BaseEntity implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return isVerified;
     }
+
+
 }

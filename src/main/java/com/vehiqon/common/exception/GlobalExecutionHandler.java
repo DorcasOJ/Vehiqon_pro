@@ -31,44 +31,57 @@ public class GlobalExecutionHandler {
         return ResponseEntity.badRequest().body(response);
     }
 
-    @ExceptionHandler(ResourceAlreadyExistsException.class)
-    public ResponseEntity<ApiResponse<Object>> handleResourceAlreadyExists(
-            ResourceAlreadyExistsException ex
-    ) {
+    @ExceptionHandler(BusinessException.class)
+    public ResponseEntity<ApiResponse<Object>> handleBusiness(
+            BusinessException ex) {
 
-        ApiResponse<Object> response = ApiResponse.builder()
-                .responseCode(AccountUtils.USER_EXIST_CODE)
-                .responseMessage(ex.getMessage())
-                .build();
+        ApiResponse<Object> response =
+                ApiResponse.builder()
+                        .responseCode("99")
+                        .responseMessage(ex.getMessage())
+                        .build();
 
-        return ResponseEntity.status(HttpStatus.CONFLICT)
-                .body(response);
+        return ResponseEntity.badRequest().body(response);
     }
 
-    @ExceptionHandler(InvalidCredentialsException.class)
-    public ResponseEntity<ApiResponse<Object>> handleInvalidCredentials(
-            InvalidCredentialsException ex) {
-
-        ApiResponse<Object> response = ApiResponse.builder()
-                .responseCode(AccountUtils.INVALID_CREDENTIALS_CODE)
-                .responseMessage(ex.getMessage())
-                .build();
-
-        return ResponseEntity
-                .status(HttpStatus.UNAUTHORIZED)
-                .body(response);
-    }
-
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiResponse<Object>> handleException(Exception ex) {
-        ApiResponse<Object> response = ApiResponse.builder()
-                .responseCode("500")
-                .responseMessage(ex.getMessage())
-                .build();
-
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(response);
-    }
+//    @ExceptionHandler(ResourceAlreadyExistsException.class)
+//    public ResponseEntity<ApiResponse<Object>> handleResourceAlreadyExists(
+//            ResourceAlreadyExistsException ex
+//    ) {
+//
+//        ApiResponse<Object> response = ApiResponse.builder()
+//                .responseCode(AccountUtils.USER_EXIST_CODE)
+//                .responseMessage(ex.getMessage())
+//                .build();
+//
+//        return ResponseEntity.status(HttpStatus.CONFLICT)
+//                .body(response);
+//    }
+//
+//    @ExceptionHandler(InvalidCredentialsException.class)
+//    public ResponseEntity<ApiResponse<Object>> handleInvalidCredentials(
+//            InvalidCredentialsException ex) {
+//
+//        ApiResponse<Object> response = ApiResponse.builder()
+//                .responseCode(AccountUtils.INVALID_CREDENTIALS_CODE)
+//                .responseMessage(ex.getMessage())
+//                .build();
+//
+//        return ResponseEntity
+//                .status(HttpStatus.UNAUTHORIZED)
+//                .body(response);
+//    }
+//
+//    @ExceptionHandler(Exception.class)
+//    public ResponseEntity<ApiResponse<Object>> handleException(Exception ex) {
+//        ApiResponse<Object> response = ApiResponse.builder()
+//                .responseCode("500")
+//                .responseMessage(ex.getMessage())
+//                .build();
+//
+//        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+//                .body(response);
+//    }
 
 //    @ExceptionHandler(ResourceNotFoundException.class)
 //...

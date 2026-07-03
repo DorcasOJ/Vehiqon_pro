@@ -1,6 +1,6 @@
 package com.vehiqon.features.onboarding.mapper;
 
-import com.vehiqon.features.onboarding.dto.LoginResponse;
+import com.vehiqon.features.onboarding.dto.response.LoginResponse;
 import com.vehiqon.features.onboarding.entity.UserEntity;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,9 +15,10 @@ public class LoginResponseMapper {
 
     private final UserMapper userMapper;
 
-    public LoginResponse toResponse(String token, UserEntity user) {
+    public LoginResponse toResponse(String accessToken, String refreshToken, UserEntity user) {
         return LoginResponse.builder()
-                .accessToken(token)
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
                 .tokenType("Bearer")
                 .expiresIn(jwtExpiration)
                 .user(userMapper.toResponse(user))
