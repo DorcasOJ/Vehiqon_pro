@@ -8,6 +8,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface BrandRepository extends JpaRepository<BrandEntity, UUID> {
+public interface CarBrandRepository extends JpaRepository<BrandEntity, UUID> {
     Optional<BrandEntity> findByNameIgnoreCase(String name);
 }

@@ -1,23 +1,21 @@
 package com.vehiqon.features.carmgmt.dto.response;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.vehiqon.features.carmgmt.enums.FuelType;
+import com.vehiqon.features.carmgmt.enums.TransmissionEnum;
 
 import java.util.UUID;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-public class CarResponse {
-    private UUID id;
-    private String nickname;
-    private String vin;
-    private String plateNumber;
-    private String brand;
-    private String model;
-    private String fuelType;
-    private String transmission;
+public record CarResponse(
+        UUID id,
+        String brand,
+        String model,
+        String vin,
+        String plateNumber,
+        Integer year,
+        String color,
+        Integer mileage,
+        String engineNumber,
+        FuelType fuelType,
+        TransmissionEnum transmission
+) {
 }

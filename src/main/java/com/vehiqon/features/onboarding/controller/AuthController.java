@@ -9,6 +9,8 @@ import com.vehiqon.features.onboarding.service.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -18,40 +20,46 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/register")
-    public ApiResponse<UserResponse> register(@Valid @RequestBody CreateUserRequest request) {
-        return authService.register(request);
+    public ResponseEntity<ApiResponse<UserResponse>> register(@Valid @RequestBody CreateUserRequest request) {
+        ApiResponse<UserResponse> response = authService.register(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PostMapping("/login")
-    public ApiResponse<LoginResponse> login(@Valid @RequestBody LoginRequest request, HttpServletRequest httpRequest) {
-        System.out.println("Login endpoint reached");
-        return authService.login(request, httpRequest);
+    public ResponseEntity<ApiResponse<LoginResponse>> login(@Valid @RequestBody LoginRequest request, HttpServletRequest httpRequest) {
+        ApiResponse<LoginResponse> response = authService.login(request, httpRequest);
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/refresh")
-    public ApiResponse<LoginResponse> refreshToken(@Valid @RequestBody RefreshTokenRequest request, HttpServletRequest httpRequest) {
-        return authService.refresh(request, httpRequest);
+    public ResponseEntity<ApiResponse<LoginResponse>> refreshToken(@Valid @RequestBody RefreshTokenRequest request, HttpServletRequest httpRequest) {
+        ApiResponse<LoginResponse> response = authService.refresh(request, httpRequest);
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/verify-email")
-    public ApiResponse<Void> verifyEmail(@RequestParam String token) {
-        return authService.verifyEmail(token);
+    public ResponseEntity<ApiResponse<Void>> verifyEmail(@RequestParam String token) {
+        ApiResponse<Void> response = authService.verifyEmail(token);
+        return ResponseEntity.ok(response);
+
     }
 
     @PostMapping("/resend-verification-email")
-    public ApiResponse<Void> resendVerificationEmail(
+    public ResponseEntity<ApiResponse<Void>> resendVerificationEmail(
             @Valid @RequestBody ResendVerificationRequest request
     ) {
-        return authService.resendVerificationEmail(request);
+        ApiResponse<Void> response = authService.resendVerificationEmail(request);
+        return ResponseEntity.ok(response);
+
     }
 
     @PostMapping("/logout")
-    public ApiResponse<Void> logout(@RequestBody LogoutRequest request) {
+    public ResponseEntity<ApiResponse<Void>> logout(@RequestBody LogoutRequest request) {
         authService.logout(request);
-        return ApiResponse.<Void>builder()
+        return ResponseEntity.ok(ApiResponse.<Void>builder()
                 .responseCode(AccountUtils.SUCCESS_CODE)
                 .responseMessage(AccountUtils.SUCCESS_MESSAGE)
-                .build();
+                .build());
     }
 }
 

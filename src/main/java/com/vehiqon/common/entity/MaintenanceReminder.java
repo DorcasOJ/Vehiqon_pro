@@ -1,6 +1,6 @@
 package com.vehiqon.common.entity;
 
-import com.vehiqon.common.enums.ReminderStatus;
+import com.vehiqon.features.carmgmt.enums.ReminderStatus;
 import com.vehiqon.features.carmgmt.entities.CarEntity;
 import jakarta.persistence.*;
 import lombok.*;

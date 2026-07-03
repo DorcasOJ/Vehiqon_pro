@@ -47,6 +47,7 @@ public interface UserMapper {
 @Mapping(target = "auditLog", ignore = true)
 @Mapping(target = "userPlan", ignore = true)
 @Mapping(target = "password", ignore = true)
+@Mapping(target = "refreshTokens", ignore = true)
 UserEntity toEntity(CreateUserRequest request);
 
 //    update existing user
@@ -63,5 +64,6 @@ UserEntity toEntity(CreateUserRequest request);
 @Mapping(target = "userPlan", ignore = true)
 @Mapping(target = "password", ignore = true)
 @Mapping(target = "authorities", ignore = true)
+@Mapping(target = "refreshTokens", ignore = true)
     void UpdateUser(UpdateUserRequest request, @MappingTarget UserEntity user);
 }

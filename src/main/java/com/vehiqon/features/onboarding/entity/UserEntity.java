@@ -37,9 +37,6 @@ public class UserEntity extends BaseEntity implements UserDetails {
     private String status;
     private Boolean isVerified;
 
-
-//    @OneToMany(mappedBy = "user")
-//    private Set<UserRole> userRole; // for user role
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(
             name = "user_roles",

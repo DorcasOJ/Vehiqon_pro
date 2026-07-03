@@ -24,6 +24,7 @@ public class GlobalExecutionHandler {
                         errors.putIfAbsent(error.getField(), error.getDefaultMessage())
                         );
         ApiResponse<Map<String, String>> response = ApiResponse.<Map<String, String>>builder()
+                .success(false)
                 .responseCode(AccountUtils.VALIDATION_ERROR_CODE)
                 .responseMessage(AccountUtils.VALIDATION_ERROR_MESSAGE)
                 .data(errors)
@@ -37,6 +38,7 @@ public class GlobalExecutionHandler {
 
         ApiResponse<Object> response =
                 ApiResponse.builder()
+                        .success(false)
                         .responseCode("99")
                         .responseMessage(ex.getMessage())
                         .build();

@@ -4,9 +4,9 @@ import com.vehiqon.common.entity.Documents;
 import com.vehiqon.common.entity.MaintenanceReminder;
 import com.vehiqon.common.entity.ServiceHistory;
 import com.vehiqon.common.entity.*;
-import com.vehiqon.common.enums.CarStatus;
-import com.vehiqon.common.enums.FuelType;
-import com.vehiqon.common.enums.TransmissionEnum;
+import com.vehiqon.features.carmgmt.enums.CarStatus;
+import com.vehiqon.features.carmgmt.enums.FuelType;
+import com.vehiqon.features.carmgmt.enums.TransmissionEnum;
 import com.vehiqon.features.onboarding.entity.UserEntity;
 import jakarta.persistence.*;
 import lombok.*;
@@ -26,6 +26,7 @@ import java.util.Set;
 public class CarEntity extends BaseEntity {
 
     private String nickname;
+
     @Column(unique = true, nullable = false)
     private String vin;
 
@@ -36,21 +37,19 @@ public class CarEntity extends BaseEntity {
 
     private Integer year;
 
-    private String engineNumber;
-
     @Enumerated(EnumType.STRING)
     private FuelType fuelType;
 
     @Enumerated(EnumType.STRING)
     private TransmissionEnum transmission;
 
-    private Long odometer;
-
+    private String engineNumber;
     private LocalDate purchaseDate;
 
-    private LocalDate insuranceExpiry;
+//    private LocalDate insuranceExpiry;
 
     private LocalDate licenseExpiry;
+    private Long mileage;
 
     @Enumerated(EnumType.STRING)
     private CarStatus status;

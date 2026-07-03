@@ -1,5 +1,6 @@
 package com.vehiqon.features.carmgmt.repository;
 
+import com.vehiqon.features.carmgmt.dto.response.CarResponse;
 import com.vehiqon.features.carmgmt.entities.CarEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -10,9 +11,11 @@ import java.util.UUID;
 
 @Repository
 public interface CarRepository extends JpaRepository<CarEntity, UUID> {
-    Boolean existsByVin(String vin);
-    Boolean existsByPlateNumber(String plateNumber);
-    List<CarEntity> findByUserId(UUID userId);
-    Optional<CarEntity> findByVin(String vin);
-    Optional<CarEntity> findByPlateNumber(String plateNumber);
+    Optional<Boolean> existsByVin(String vin);
+    Optional<Boolean> existsByPlateNumber(String plateNumber);
+    Optional<Boolean> existsByEngineNumber(String engineNumber);
+
+    Optional<List<CarResponse>> findByUserId(UUID userId);
+    Optional<CarResponse> findByVin(String vin);
+    Optional<CarResponse> findByPlateNumber(String plateNumber);
 }

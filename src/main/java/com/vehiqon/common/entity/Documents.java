@@ -1,6 +1,6 @@
 package com.vehiqon.common.entity;
 
-import com.vehiqon.common.enums.DocumentType;
+import com.vehiqon.features.carmgmt.enums.DocumentType;
 import com.vehiqon.features.carmgmt.entities.CarEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
