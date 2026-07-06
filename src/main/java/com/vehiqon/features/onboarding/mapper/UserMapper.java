@@ -1,10 +1,11 @@
 package com.vehiqon.features.onboarding.mapper;
 
-import com.vehiqon.features.onboarding.entity.UserEntity;
+import com.vehiqon.common.entity.User;
 import com.vehiqon.features.onboarding.dto.request.CreateUserRequest;
 import com.vehiqon.features.onboarding.dto.request.UpdateUserRequest;
 import com.vehiqon.features.onboarding.dto.response.UserProfileResponse;
 import com.vehiqon.features.onboarding.dto.response.UserResponse;
+import com.vehiqon.features.onboarding.entity.UserEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
@@ -35,6 +36,7 @@ public interface UserMapper {
     List<UserResponse> toResponses(List<UserEntity> users);
 
 //    create new user
+//@Mapping(target = "cars", ignore = true)
 @Mapping(target = "id", ignore = true)
 @Mapping(target = "createdAt", ignore = true)
 @Mapping(target = "updatedAt", ignore = true)
@@ -50,20 +52,35 @@ public interface UserMapper {
 @Mapping(target = "refreshTokens", ignore = true)
 UserEntity toEntity(CreateUserRequest request);
 
-//    update existing user
-@Mapping(target = "id", ignore = true)
-@Mapping(target = "createdAt", ignore = true)
-@Mapping(target = "updatedAt", ignore = true)
-@Mapping(target = "primaryAccountNumber", ignore = true)
-@Mapping(target = "status", ignore = true)
-@Mapping(target = "isVerified", ignore = true)
-@Mapping(target = "roles", ignore = true)
-@Mapping(target = "cars", ignore = true)
-@Mapping(target = "notifications", ignore = true)
-@Mapping(target = "auditLog", ignore = true)
-@Mapping(target = "userPlan", ignore = true)
-@Mapping(target = "password", ignore = true)
-@Mapping(target = "authorities", ignore = true)
-@Mapping(target = "refreshTokens", ignore = true)
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "primaryAccountNumber", ignore = true)
+    @Mapping(target = "status", ignore = true)
+    @Mapping(target = "isVerified", ignore = true)
+    @Mapping(target = "roles", ignore = true)
+    @Mapping(target = "cars", ignore = true)
+    @Mapping(target = "notifications", ignore = true)
+    @Mapping(target = "auditLog", ignore = true)
+    @Mapping(target = "userPlan", ignore = true)
+    @Mapping(target = "password", ignore = true)
+    @Mapping(target = "authorities", ignore = true)
+    @Mapping(target = "refreshTokens", ignore = true)
     void UpdateUser(UpdateUserRequest request, @MappingTarget UserEntity user);
+
+//    update existing user
+//@Mapping(target = "id", ignore = true)
+//@Mapping(target = "createdAt", ignore = true)
+//@Mapping(target = "updatedAt", ignore = true)
+//@Mapping(target = "primaryAccountNumber", ignore = true)
+//@Mapping(target = "status", ignore = true)
+//@Mapping(target = "isVerified", ignore = true)
+//@Mapping(target = "roles", ignore = true)
+//@Mapping(target = "cars", ignore = true)
+//@Mapping(target = "notifications", ignore = true)
+//@Mapping(target = "auditLog", ignore = true)
+//@Mapping(target = "userPlan", ignore = true)
+//@Mapping(target = "password", ignore = true)
+//    void UpdateUser(UpdateUserRequest request, @MappingTarget User user);
 }

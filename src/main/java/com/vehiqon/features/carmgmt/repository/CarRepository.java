@@ -1,6 +1,6 @@
 package com.vehiqon.features.carmgmt.repository;
 
-import com.vehiqon.features.carmgmt.dto.response.CarResponse;
+import com.vehiqon.features.carmgmt.dto.CarDto;
 import com.vehiqon.features.carmgmt.entities.CarEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -15,7 +15,7 @@ public interface CarRepository extends JpaRepository<CarEntity, UUID> {
     Optional<Boolean> existsByPlateNumber(String plateNumber);
     Optional<Boolean> existsByEngineNumber(String engineNumber);
 
-    Optional<List<CarResponse>> findByUserId(UUID userId);
-    Optional<CarResponse> findByVin(String vin);
-    Optional<CarResponse> findByPlateNumber(String plateNumber);
+    Optional<List<CarDto.CarResponse>> findByUserId(UUID userId);
+    Optional<CarDto.CarResponse> findByVin(String vin);
+    Optional<CarDto.CarResponse> findByPlateNumber(String plateNumber);
 }

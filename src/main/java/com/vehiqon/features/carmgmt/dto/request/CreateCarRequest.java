@@ -8,6 +8,7 @@ import java.util.UUID;
 
 public record CreateCarRequest (
 
+        @NotNull(message = "UserId cannot be null") UUID userId,
     @NotNull(message = "Brand cannot be null") UUID brandId,
     @NotNull(message = "Model cannot be null") UUID modelId,
     String nickname,

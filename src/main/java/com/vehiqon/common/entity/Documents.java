@@ -1,7 +1,8 @@
 package com.vehiqon.common.entity;
 
-import com.vehiqon.features.carmgmt.enums.DocumentType;
+
 import com.vehiqon.features.carmgmt.entities.CarEntity;
+import com.vehiqon.features.carmgmt.enums.DocumentType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -21,7 +22,7 @@ import java.time.LocalDate;
 public class Documents extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "car_id", nullable = false)
-    private CarEntity car;
+    private CarEntity carEntity;
 
     @Enumerated(EnumType.STRING)
     private DocumentType documentType;

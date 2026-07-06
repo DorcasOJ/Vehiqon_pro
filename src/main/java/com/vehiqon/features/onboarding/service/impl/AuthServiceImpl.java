@@ -1,5 +1,6 @@
 package com.vehiqon.features.onboarding.service.impl;
 
+import com.sun.security.auth.UserPrincipal;
 import com.vehiqon.common.enums.VerificationTokenTypeEnum;
 import com.vehiqon.common.exception.*;
 import com.vehiqon.common.utils.AccountUtils;
@@ -26,6 +27,7 @@ import org.springframework.security.authentication.CredentialsExpiredException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -90,6 +92,10 @@ public class AuthServiceImpl implements AuthService {
             String accessToken = jwtService.generateToken(user, claims);
             String refreshToken = jwtService.generateRefreshToken(user);
             RefreshTokenEntity refreshTokenEntity = jwtService.getRefreshTokenToSave(refreshToken, user, request );
+
+            System.out.println(refreshTokenEntity.getUser());
+            System.out.println(refreshTokenEntity.getUser().getEmail());
+
             refreshTokenRepository.save(refreshTokenEntity);
             return loginResponseMapper.toResponse(accessToken, refreshToken, user);
         } catch (Exception e) {
@@ -224,6 +230,18 @@ public class AuthServiceImpl implements AuthService {
                     )
                     .build();
         }
+
+    @Override
+    public UserEntity getAuthenticatedUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new BadRequestException("User is not authenticated");
+        }
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+
+        return userRepository.findByEmail(Objects.requireNonNull(userDetails).getUsername()).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+    }
 
 
     @Override

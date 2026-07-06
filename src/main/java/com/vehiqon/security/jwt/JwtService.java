@@ -6,12 +6,15 @@ import com.vehiqon.security.config.JwtProperties;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.Map;
@@ -20,6 +23,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+//@ConfigurationPropertiesScan
 public class JwtService {
     private final JwtProperties properties;
     private SecretKey getSigningKey() {
@@ -53,6 +57,8 @@ public class JwtService {
     }
 
     public RefreshTokenEntity getRefreshTokenToSave(String refreshToken, UserEntity user, HttpServletRequest request) {
+//        System.out.println("Refresh expiration: " + properties.refreshExpiration());
+//        System.out.println("Refresh expiration: " + properties.refreshExpiration());
         return RefreshTokenEntity.builder()
                 .token(refreshToken)
                 .user(user)
@@ -61,15 +67,16 @@ public class JwtService {
                 .ipAddress(request.getRemoteAddr())
                 .expiresAt(
                         LocalDateTime.now()
-                                .plusDays(
-                                        properties.refreshExpiration() / 1000
-                                )
+//                                .plusDays(7)
+                                .plus(Duration.ofMillis(properties.refreshExpiration()))
                 )
                 .revoked(false)
                 .expired(false)
                 .build();
 
     }
+
+
     public String extractUsername(String token) {
 
         return extractClaims(token).getSubject();

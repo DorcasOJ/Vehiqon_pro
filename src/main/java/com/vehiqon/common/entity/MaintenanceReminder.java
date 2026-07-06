@@ -1,7 +1,8 @@
 package com.vehiqon.common.entity;
 
-import com.vehiqon.features.carmgmt.enums.ReminderStatus;
+
 import com.vehiqon.features.carmgmt.entities.CarEntity;
+import com.vehiqon.features.carmgmt.enums.ReminderStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -15,10 +16,10 @@ import java.time.LocalDate;
 @SuperBuilder
 @Entity
 @Table(name="maintenance_reminders")
-public class MaintenanceReminder extends BaseEntity {
+public class MaintenanceReminder extends BaseEntity{
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "car_id", nullable = false)
-    private CarEntity car;
+    private CarEntity carEntity;
 
     private String title;
 

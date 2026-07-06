@@ -13,6 +13,15 @@ import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExecutionHandler {
+    public GlobalExecutionHandler() {
+        System.out.println("GlobalExecutionHandler loaded");
+    }
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<?> runtime(RuntimeException ex) {
+        System.out.println("Runtime handler called");
+        return ResponseEntity.badRequest().body(ex.getMessage());
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponse<Map<String, String>>> handleValidation(
             MethodArgumentNotValidException ex
@@ -23,6 +32,7 @@ public class GlobalExecutionHandler {
                 .forEach(error ->
                         errors.putIfAbsent(error.getField(), error.getDefaultMessage())
                         );
+        ex.printStackTrace();
         ApiResponse<Map<String, String>> response = ApiResponse.<Map<String, String>>builder()
                 .success(false)
                 .responseCode(AccountUtils.VALIDATION_ERROR_CODE)
@@ -32,18 +42,19 @@ public class GlobalExecutionHandler {
         return ResponseEntity.badRequest().body(response);
     }
 
-    @ExceptionHandler(BusinessException.class)
+    @ExceptionHandler(BusinessException    .class)
     public ResponseEntity<ApiResponse<Object>> handleBusiness(
             BusinessException ex) {
+        ex.printStackTrace();
 
-        ApiResponse<Object> response =
-                ApiResponse.builder()
-                        .success(false)
-                        .responseCode("99")
-                        .responseMessage(ex.getMessage())
-                        .build();
+        ApiResponse<Object> response = ApiResponse.builder()
+                .success(false)
+                .responseCode("500")
+                .responseMessage(ex.getClass().getName() + ": " + ex.getMessage())
+                .build();
 
-        return ResponseEntity.badRequest().body(response);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(response);
     }
 
 //    @ExceptionHandler(ResourceAlreadyExistsException.class)

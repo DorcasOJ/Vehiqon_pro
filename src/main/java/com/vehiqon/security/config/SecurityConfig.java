@@ -1,5 +1,7 @@
 package com.vehiqon.security.config;
 
+import com.vehiqon.CustomAccessDeniedHandler;
+import com.vehiqon.CustomAuthenticationEntryPoint;
 import com.vehiqon.security.jwt.JwtAuthenticationEntryPoint;
 import com.vehiqon.security.jwt.JwtAuthenticationFilter;
 import com.vehiqon.security.service.CustomerUserDetailsService;
@@ -26,6 +28,9 @@ public class SecurityConfig {
     private final CustomerUserDetailsService userDetailsService;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+    private final CustomAccessDeniedHandler customAccessDeniedHandler;
+//    private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
+
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
@@ -47,22 +52,23 @@ public class SecurityConfig {
 
 //                        .requestMatchers("/admin/**")
 //                        .hasRole("ADMIN")
-//
 //                        .requestMatchers("/api/cars/**")
 //                        .hasAnyRole("USER", "ADMIN")
 
 
                         .anyRequest().authenticated()
                 )
-//                .addFilterBefore(jwtAuthenticationFilter,
-//                        UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(jwtAuthenticationFilter,
+                        UsernamePasswordAuthenticationFilter.class)
                 .sessionManagement(
                         session -> session.sessionCreationPolicy(
                                 SessionCreationPolicy.STATELESS
                         )
                 )
                 .exceptionHandling(
-                        ex -> ex.authenticationEntryPoint(jwtAuthenticationEntryPoint)
+                        ex -> ex
+                                .authenticationEntryPoint(jwtAuthenticationEntryPoint)
+//                                .accessDeniedHandler(customAccessDeniedHandler)
                 );
 
         return http.build();

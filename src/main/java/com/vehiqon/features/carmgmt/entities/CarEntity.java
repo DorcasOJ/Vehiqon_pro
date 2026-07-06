@@ -1,12 +1,8 @@
 package com.vehiqon.features.carmgmt.entities;
 
-import com.vehiqon.common.entity.Documents;
-import com.vehiqon.common.entity.MaintenanceReminder;
-import com.vehiqon.common.entity.ServiceHistory;
 import com.vehiqon.common.entity.*;
-import com.vehiqon.features.carmgmt.enums.CarStatus;
-import com.vehiqon.features.carmgmt.enums.FuelType;
-import com.vehiqon.features.carmgmt.enums.TransmissionEnum;
+
+import com.vehiqon.features.carmgmt.enums.*;
 import com.vehiqon.features.onboarding.entity.UserEntity;
 import jakarta.persistence.*;
 import lombok.*;
@@ -26,7 +22,6 @@ import java.util.Set;
 public class CarEntity extends BaseEntity {
 
     private String nickname;
-
     @Column(unique = true, nullable = false)
     private String vin;
 
@@ -37,44 +32,47 @@ public class CarEntity extends BaseEntity {
 
     private Integer year;
 
+    @Column(unique = true)
+    private String engineNumber;
+
     @Enumerated(EnumType.STRING)
     private FuelType fuelType;
 
     @Enumerated(EnumType.STRING)
     private TransmissionEnum transmission;
 
-    private String engineNumber;
+    private Long odometer;
+
     private LocalDate purchaseDate;
 
-//    private LocalDate insuranceExpiry;
+    private LocalDate insuranceExpiry;
 
     private LocalDate licenseExpiry;
-    private Long mileage;
 
     @Enumerated(EnumType.STRING)
     private CarStatus status;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "user_id")
     private UserEntity user;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "brand_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "brand_id")
     private BrandEntity brand;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "model_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "model_id")
     private CarModelEntity model;
 
-    @OneToMany(mappedBy = "car", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
+    @OneToMany(mappedBy = "carEntity", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<ServiceHistory> serviceHistory = new HashSet<>();
 
-    @OneToMany(mappedBy = "car", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
+    @OneToMany(mappedBy = "carEntity", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<MaintenanceReminder> maintenanceReminders = new HashSet<>();
 
-    @OneToMany(mappedBy = "car", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
+    @OneToMany(mappedBy = "carEntity", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Documents> documents = new HashSet<>();
 }

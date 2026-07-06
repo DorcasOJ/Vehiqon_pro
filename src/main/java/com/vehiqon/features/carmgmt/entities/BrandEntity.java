@@ -1,15 +1,11 @@
 package com.vehiqon.features.carmgmt.entities;
 
 import com.vehiqon.common.entity.BaseEntity;
-import jakarta.persistence.Entity;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import jakarta.persistence.*;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 
+import java.util.HashSet;
 import java.util.Set;
 
 @Getter
@@ -21,11 +17,14 @@ import java.util.Set;
 @Table(name="brands")
 public class BrandEntity extends BaseEntity {
 
+    @Column(nullable = false, unique = true)
     private String name;
 
-    @OneToMany(mappedBy = "brand")
-    private Set<CarModelEntity> model;
+    @Builder.Default
+    @OneToMany(mappedBy = "brand", cascade = CascadeType.ALL)
+    private Set<CarModelEntity> models = new HashSet<>();
 
+    @Builder.Default
     @OneToMany(mappedBy = "brand")
-    private Set<CarEntity> cars;
+    private Set<CarEntity> cars = new HashSet<>();
 }
