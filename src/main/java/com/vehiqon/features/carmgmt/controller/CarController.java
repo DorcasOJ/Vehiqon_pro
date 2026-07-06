@@ -14,13 +14,13 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/cars")
+@RequestMapping("/api/vehicle")
 @RequiredArgsConstructor
 public class CarController {
     private final CarServiceImpl carService;
     private final ApiResponseMapper apiResponseMapper;
 
-    @PostMapping
+    @PostMapping("new")
     public ResponseEntity<ApiResponse<CarResponse>> registerCar(
             @Valid @RequestBody CreateCarRequest request, Authentication authentication
             ) {

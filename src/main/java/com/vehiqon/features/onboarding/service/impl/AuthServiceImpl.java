@@ -19,6 +19,7 @@ import com.vehiqon.security.jwt.JwtService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.*;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.CredentialsExpiredException;
@@ -31,6 +32,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
 
@@ -251,6 +253,7 @@ public class AuthServiceImpl implements AuthService {
                 (UserEntity) authentication.getPrincipal();
 
         refreshTokenRepository.revokeAll(user);
+        log.info("Revoked refresh tokens for user {}",user.getEmail());
 
         return ApiResponse.<Void>builder()
                 .success(true)

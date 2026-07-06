@@ -61,7 +61,7 @@ public class JwtService {
                 .ipAddress(request.getRemoteAddr())
                 .expiresAt(
                         LocalDateTime.now()
-                                .plusSeconds(
+                                .plusDays(
                                         properties.refreshExpiration() / 1000
                                 )
                 )

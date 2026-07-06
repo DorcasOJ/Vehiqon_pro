@@ -29,6 +29,7 @@ public interface RefreshTokenRepository extends JpaRepository<RefreshTokenEntity
         t.revokedAt = CURRENT_TIMESTAMP
     where t.user = :user
       and t.revoked = false
+      AND t.expired = false
 """)
     void revokeAll(@Param("user") UserEntity user);
 }
