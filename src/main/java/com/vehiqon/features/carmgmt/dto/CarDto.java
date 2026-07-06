@@ -30,7 +30,6 @@ public class CarDto {
             TransmissionEnum transmission,
             Long odometer,
             LocalDate purchaseDate,
-//            LocalDate insuranceExpiry,
             LocalDate licenseExpiry,
             CarStatus status,
             CarBrandDto.CarBrandResponse brand,
@@ -47,7 +46,6 @@ public class CarDto {
             @NotBlank(message = "PlateNumber is required") String plateNumber,
             @NotNull(message = "Fuel type cannot be null") FuelType fuelType,
             String color,
-
             String engineNumber,
             @NotNull(message = "Transmission type cannot be null")
             TransmissionEnum transmission,
@@ -62,31 +60,19 @@ public class CarDto {
     public record UpdateCarRequest (
 
         @NotBlank String nickname,
-
         @NotBlank String plateNumber,
-
         String color,
-
+        String vin,
         @NotNull Integer year,
         String engineNumber,
-
         @NotNull FuelType fuelType,
-
         @NotNull TransmissionEnum transmission,
-
          Long odometer,
-
          LocalDate purchaseDate,
-
 //         LocalDate insuranceExpiry,
-
          LocalDate licenseExpiry,
-
          CarStatus status,
-
         @NotNull UUID brandId,
-
         @NotNull UUID modelId
-
     ){}
 }

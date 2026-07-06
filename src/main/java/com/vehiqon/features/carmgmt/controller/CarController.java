@@ -64,7 +64,7 @@ public class CarController {
     @PutMapping("{carId}")
     ResponseEntity<ApiResponse<CarDto.CarResponse>> updateCar(
             @PathVariable UUID carId,
-            @Valid @RequestBody CarDto.UpdateCarRequest request
+            @Valid @RequestBody CarDto.CreateCarRequest request
     ){
         return ResponseEntity.ok().body(ApiResponse.<CarDto.CarResponse>builder()
                 // .responseCode()
@@ -86,7 +86,7 @@ public class CarController {
 
 //    Admin APIs
 
-    @GetMapping("user/{userId}")
+    @GetMapping("users/{userId}")
     ResponseEntity<ApiResponse<List<CarDto.CarResponse>>> getAllCarByUserId(
             @PathVariable("userId") UUID userId
     ){
@@ -97,7 +97,7 @@ public class CarController {
                         .build());
     }
 
-    @GetMapping("user/{userId}/vehicle/carId")
+    @GetMapping("user/{userId}/{carId}")
     ResponseEntity<ApiResponse<CarDto.CarResponse>> getCarByUserId(
             @PathVariable("userId") UUID userId,
             @PathVariable("carId") UUID carId
@@ -110,11 +110,11 @@ public class CarController {
     }
 
 
-    @PutMapping("user/{userId}/vehicle/carId")
+    @PutMapping("user/{userId}/{carId}")
     ResponseEntity<ApiResponse<CarDto.CarResponse>> editCarByUserId(
             @PathVariable("userId") UUID userId,
             @PathVariable("carId") UUID carId,
-            @RequestBody CarDto.UpdateCarRequest request
+            @RequestBody CarDto.CreateCarRequest request
     ){
         return ResponseEntity.ok().body(ApiResponse.<CarDto.CarResponse>builder()
                 // .responseCode()

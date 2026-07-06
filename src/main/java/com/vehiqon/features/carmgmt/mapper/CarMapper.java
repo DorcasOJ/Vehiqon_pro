@@ -38,7 +38,7 @@ public interface CarMapper {
 //    @Mapping(source = "model_id", target = "model")
     CarDto.CarResponse toResponse(CarEntity car);
 
-    List<CarDto.CarResponse> toResponse(List<CarEntity> cars);
+    List<CarDto.CarResponse> toListResponse(List<CarEntity> cars);
 
     default LocalDate map(String value) {
         if (value == null || value.isBlank()) {
@@ -52,10 +52,7 @@ public interface CarMapper {
             throw new BadRequestException(
                     "Invalid date format. Expected dd-MM-yyyy.");
         }
-//        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-M-yyyy");
-//        return LocalDate.parse(value, formatter);
-    }
-
+  }
 
 
 //    public CarResponse toResponse(Car car) {
