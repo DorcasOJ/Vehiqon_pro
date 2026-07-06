@@ -45,8 +45,6 @@ public class CarEntity extends BaseEntity {
 
     private LocalDate purchaseDate;
 
-    private LocalDate insuranceExpiry;
-
     private LocalDate licenseExpiry;
 
     @Enumerated(EnumType.STRING)

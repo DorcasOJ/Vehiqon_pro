@@ -43,9 +43,6 @@ public class CarServiceImpl implements CarService {
     @Override
     public CarDto.CarResponse registerCar(CarDto.CreateCarRequest request) {
         UserEntity user = authService.getAuthenticatedUser();
-//        System.out.printf("Auth User {}", user.toString());
-//        System.out.println("gotten userrrrrrrrrrrrrrrrrrrrr");
-//        UserEntity user = userRepository.findById(request.userId()).orElseThrow(() -> new ResourceNotFoundException("User not found"));
         BrandEntity brand = brandRepository.findById(request.brandId())
                 .orElseThrow(() -> new ResourceNotFoundException("Car brand not found"));
         CarModelEntity model = modelRepository.findById(request.modelId())
@@ -53,7 +50,6 @@ public class CarServiceImpl implements CarService {
         if(!model.getBrand().getId().equals(brand.getId())) {
             throw new BadRequestException("Selected model does not belong to selected brand");
         }
-//        System.out.println("verified model and brandddddddddddddddd");
 
       validateUniqueFields(request);
 
@@ -104,17 +100,17 @@ public class CarServiceImpl implements CarService {
 
     private void validateUniqueFields(CarDto.CreateCarRequest request) {
 
-        if (carRepository.existsByVin(request.vin()).isPresent()) {
+        if (carRepository.existsByVin(request.vin())) {
             throw new BadRequestException("VIN already exists");
         }
 
-        if (carRepository.existsByPlateNumber(request.plateNumber()).isPresent()) {
+        if (carRepository.existsByPlateNumber(request.plateNumber())) {
             throw new BadRequestException("Plate number already exists");
         }
 
         if (request.engineNumber() != null
                 && !request.engineNumber().isBlank()
-                && carRepository.existsByEngineNumber(request.engineNumber()).isPresent()) {
+                && carRepository.existsByEngineNumber(request.engineNumber())) {
             throw new BadRequestException("Engine number already exists");
         }
     }

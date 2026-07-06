@@ -2,6 +2,7 @@ package com.vehiqon.features.carmgmt.controller;
 
 import com.vehiqon.common.dto.response.ApiResponse;
 import com.vehiqon.common.exception.BadRequestException;
+import com.vehiqon.common.exception.BusinessException;
 import com.vehiqon.features.carmgmt.dto.CarDto;
 import com.vehiqon.features.carmgmt.dto.request.CreateCarRequest;
 import com.vehiqon.features.carmgmt.dto.request.UpdateCarRequest;
@@ -21,6 +22,7 @@ import java.util.UUID;
 public class CarController {
 
     private final CarService carService;
+
 
     //    register a vehicle
     @PostMapping("/new")

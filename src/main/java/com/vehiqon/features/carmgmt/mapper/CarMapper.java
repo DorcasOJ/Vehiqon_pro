@@ -1,12 +1,17 @@
 package com.vehiqon.features.carmgmt.mapper;
 
+import com.vehiqon.common.exception.BadRequestException;
+import com.vehiqon.features.carmgmt.dto.CarBrandDto;
 import com.vehiqon.features.carmgmt.dto.CarDto;
 import com.vehiqon.features.carmgmt.dto.request.CreateCarRequest;
+import com.vehiqon.features.carmgmt.entities.BrandEntity;
 import com.vehiqon.features.carmgmt.entities.CarEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 
 @Mapper(componentModel = "spring")
@@ -39,8 +44,19 @@ public interface CarMapper {
         if (value == null || value.isBlank()) {
             return null;
         }
-        return LocalDate.parse(value);
+
+        try {
+            return LocalDate.parse(value,
+                    DateTimeFormatter.ofPattern("dd-MM-yyyy"));
+        } catch (DateTimeParseException e) {
+            throw new BadRequestException(
+                    "Invalid date format. Expected dd-MM-yyyy.");
+        }
+//        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-M-yyyy");
+//        return LocalDate.parse(value, formatter);
     }
+
+
 
 //    public CarResponse toResponse(Car car) {
 //        return CarResponse.builder()

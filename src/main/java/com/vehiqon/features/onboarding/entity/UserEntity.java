@@ -47,20 +47,25 @@ public class UserEntity extends BaseEntity implements UserDetails {
     @Builder.Default
     private  Set<Role> roles = new HashSet<>();
 
+    @Builder.Default
     @OneToMany(mappedBy = "user")
-    private Set<CarEntity> cars;
+    private Set<CarEntity> cars = new HashSet<>();;
 
+    @Builder.Default
     @OneToMany(mappedBy = "user")
-    private Set<Notification> notifications;
+    private Set<Notification> notifications = new HashSet<>();;
 
+    @Builder.Default
     @OneToMany(mappedBy = "user")
-    private Set<AuditLog> auditLog;
+    private Set<AuditLog> auditLog = new HashSet<>();;
 
+    @Builder.Default
     @OneToMany(mappedBy = "user")
-    private Set<UserSubscription> userPlan;
+    private Set<UserSubscription> userPlan = new HashSet<>();;
 
+    @Builder.Default
     @OneToMany(mappedBy = "user")
-    private Set<RefreshTokenEntity> refreshTokens;
+    private Set<RefreshTokenEntity> refreshTokens = new HashSet<>();;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

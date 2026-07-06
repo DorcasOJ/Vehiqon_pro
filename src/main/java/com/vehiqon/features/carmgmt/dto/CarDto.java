@@ -33,8 +33,8 @@ public class CarDto {
 //            LocalDate insuranceExpiry,
             LocalDate licenseExpiry,
             CarStatus status,
-            BrandEntity brand,
-            CarModelEntity model
+            CarBrandDto.CarBrandResponse brand,
+            CarModelDto.CarModelResponse model
     ){}
 
 
@@ -56,7 +56,6 @@ public class CarDto {
 
             String purchaseDate,
             String licenseExpiry
-
     ){
     }
 

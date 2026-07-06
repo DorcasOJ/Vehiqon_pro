@@ -11,9 +11,9 @@ import java.util.UUID;
 
 @Repository
 public interface CarRepository extends JpaRepository<CarEntity, UUID> {
-    Optional<Boolean> existsByVin(String vin);
-    Optional<Boolean> existsByPlateNumber(String plateNumber);
-    Optional<Boolean> existsByEngineNumber(String engineNumber);
+    boolean existsByVin(String vin);
+    boolean existsByPlateNumber(String plateNumber);
+    boolean existsByEngineNumber(String engineNumber);
 
     Optional<List<CarDto.CarResponse>> findByUserId(UUID userId);
     Optional<CarDto.CarResponse> findByVin(String vin);

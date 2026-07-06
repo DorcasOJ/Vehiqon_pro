@@ -1,14 +1,15 @@
 package com.vehiqon.features.carmgmt.service;
 
-import com.vehiqon.features.carmgmt.dto.response.CarBrandResponse;
-import com.vehiqon.features.carmgmt.dto.response.CarModelResponse;
+import com.vehiqon.features.carmgmt.dto.CarBrandDto;
+import com.vehiqon.features.carmgmt.dto.CarModelDto;
 
 import java.util.List;
 import java.util.UUID;
 
 
 public interface CarBrandService {
-    List<CarBrandResponse> getAllBrands();
+    List<CarBrandDto.CarBrandResponse> getAllBrands();
+    CarBrandDto.CarBrandResponse getBrandByName(String name);
 
-    List<CarModelResponse> getModelsByBrand(UUID brandId);
+    List<CarModelDto.CarModelResponse> getModelsByBrand(UUID brandId);
 }

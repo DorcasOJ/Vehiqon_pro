@@ -1,7 +1,7 @@
 package com.vehiqon.security.jwt;
 
-import com.vehiqon.ResourceNotFoundException;
 import com.vehiqon.common.exception.BadRequestException;
+import com.vehiqon.common.exception.ResourceNotFoundException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
