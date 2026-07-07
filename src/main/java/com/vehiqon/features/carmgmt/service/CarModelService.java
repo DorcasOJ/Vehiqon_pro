@@ -1,15 +1,20 @@
 package com.vehiqon.features.carmgmt.service;
 
+import com.vehiqon.features.carmgmt.dto.CarModelDto;
 import com.vehiqon.features.carmgmt.repository.CarBrandRepository;
 import com.vehiqon.features.carmgmt.repository.ModelRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.UUID;
+
 @Service
-public class CarModelService {
+public interface CarModelService {
 
-    private ModelRepository modelRepository;
+    List<CarModelDto.CarModelResponse> getAllModels();
 
-    private CarBrandRepository brandRepository;
+    List<CarModelDto.CarModelResponse> getModelsByBrand(UUID brandId);
 
+    CarModelDto.CarModelResponse getModel(UUID id);
 
 }

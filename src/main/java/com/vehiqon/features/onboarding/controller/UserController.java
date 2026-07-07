@@ -1,40 +1,53 @@
 package com.vehiqon.features.onboarding.controller;
 
 import com.vehiqon.common.dto.response.ApiResponse;
+import com.vehiqon.common.mapper.ApiResponseMapper;
 import com.vehiqon.common.utils.AccountUtils;
+import com.vehiqon.features.onboarding.dto.request.UpdateUserRequest;
 import com.vehiqon.features.onboarding.dto.response.UserResponse;
 import com.vehiqon.features.onboarding.entity.UserEntity;
 import com.vehiqon.features.onboarding.mapper.UserMapper;
 import com.vehiqon.features.onboarding.service.UserService;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
-@Tag(name = "Vehiqon - User Account Car Mannagement APIs")
+@Tag(name = "Vehiqon - User Account Car Management APIs")
 public class UserController {
 
     private final UserService userService;
     private final UserMapper userMapper;
+    private final ApiResponseMapper apiResponseMapper;
 
-    @GetMapping
-    public String get() {
-        return "Hello World";
+//    @GetMapping
+//    public String get() {
+//        return "Hello World";
+//    }
+
+    @GetMapping("/profile")
+    public ResponseEntity<ApiResponse<UserResponse>> getProfile() {
+//        UserEntity user = (UserEntity) authentication.getPrincipal();
+        return ResponseEntity.ok(
+                apiResponseMapper.toResponse(userService.getProfile())
+        );
+
     }
 
-    @GetMapping("/me")
-    public ApiResponse<UserResponse> me(Authentication authentication) {
-        UserEntity user = (UserEntity) authentication.getPrincipal();
-        return ApiResponse.<UserResponse>builder()
-                .responseCode(AccountUtils.USER_FOUND_CODE)
-                .responseMessage(AccountUtils.USER_FOUND_MESSAGE)
-                .data(userMapper.toResponse(user))
-                .build();
+    @PatchMapping("/profile")
+    public ResponseEntity<ApiResponse<UserResponse>> updateProfile(
+            @Valid @RequestBody UpdateUserRequest request
+    ) {
+        return ResponseEntity.ok(
+                apiResponseMapper.toResponse(userService.updateProfile(request))
+        );
     }
-    }
+}
 
 //    @Operation(
 //            summary = "Create new User Account",

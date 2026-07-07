@@ -20,6 +20,7 @@ public interface RefreshTokenRepository extends JpaRepository<RefreshTokenEntity
 
     Optional<List<RefreshTokenEntity>> findAllByUserAndRevokedFalse(UserEntity user);
 
+    Optional<RefreshTokenEntity> findByUser(UserEntity user );
     @Modifying
     @Transactional
     @Query("""

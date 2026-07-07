@@ -13,26 +13,25 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class UpdateUserRequest {
-    @Size(max= 50)
+//    @Size(max= 50)
     private String firstName;
 
-    @Size(max= 50)
+//    @Size(max= 50)
     private String lastName;
 
     private String address;
 
     private String gender;
 
-    @Email(message= "Invalid email address")
+//    @Email(message= "Invalid email address")
     private String email;
 
-    @Pattern(
-            regexp = "\\+?[0-9]{10,15}",
-            message="Invalid phone number"
-    )
+//    @Pattern(
+//            regexp = "\\+?[0-9]{10,15}",
+//            message="Invalid phone number"
+//    )
     private String phoneNumber;
 
-    private String alternativePhoneNumber;
 
 //    @NotBlank
 //    private String password;

@@ -16,6 +16,7 @@ import com.vehiqon.features.onboarding.repository.UserRepository;
 import com.vehiqon.features.onboarding.repository.VerificationTokenRepository;
 import com.vehiqon.features.onboarding.service.AuthService;
 import com.vehiqon.common.dto.response.ApiResponse;
+import com.vehiqon.features.onboarding.service.UserService;
 import com.vehiqon.security.jwt.JwtService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
@@ -40,7 +41,7 @@ public class AuthServiceImpl implements AuthService {
 
     private final UserMapper userMapper;
     private final LoginResponseMapper loginResponseMapper;
-    private final UserServiceImpl userService;
+    private final UserService userService;
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
     private final RefreshTokenRepository refreshTokenRepository;
@@ -89,16 +90,55 @@ public class AuthServiceImpl implements AuthService {
                             .toList()
             );
 
+
+//            System.out.println(refreshTokenEntity.getUser());
+//            System.out.println(refreshTokenEntity.getUser().getEmail());
+//            RefreshTokenEntity existing =
+//                    refreshTokenRepository.findByUser(user).
+//                            orElse(null);
+//
+//            if (existing != null) {
+//                String accessToken = jwtService.generateToken(user, claims);
+//                String refreshToken = jwtService.generateRefreshToken(user);
+//
+//                RefreshTokenEntity refreshTokenEntity = jwtService.getRefreshTokenToSave(refreshToken, user, request );
+//
+////                existing.setToken(newToken);
+////                existing.setExpiresAt(expiry);
+////                existing.setRevoked(false);
+////                existing.setExpired(false);
+//
+//                refreshTokenRepository.save(existing);
+//            } else {
+//                refreshTokenRepository.save(refreshTokenEntity);
+//            }
             String accessToken = jwtService.generateToken(user, claims);
             String refreshToken = jwtService.generateRefreshToken(user);
-            RefreshTokenEntity refreshTokenEntity = jwtService.getRefreshTokenToSave(refreshToken, user, request );
 
-            System.out.println(refreshTokenEntity.getUser());
-            System.out.println(refreshTokenEntity.getUser().getEmail());
+            RefreshTokenEntity refreshTokenEntity =
+                    jwtService.getRefreshTokenToSave(refreshToken, user, request);
 
-            refreshTokenRepository.save(refreshTokenEntity);
-            return loginResponseMapper.toResponse(accessToken, refreshToken, user);
-        } catch (Exception e) {
+            RefreshTokenEntity existing = refreshTokenRepository
+                    .findByUser(user)
+                    .orElse(null);
+
+//            if (existing != null) {
+//                existing.setToken(refreshToken);
+//                existing.setExpiresAt(refreshTokenEntity.getExpiresAt());
+//                existing.setDeviceId(refreshTokenEntity.getDeviceId());
+//                existing.setDeviceName(refreshTokenEntity.getDeviceName());
+//                existing.setIpAddress(refreshTokenEntity.getIpAddress());
+//                existing.setExpired(false);
+//                existing.setRevoked(false);
+//                existing.setRevokedAt(null);
+//
+//                refreshTokenRepository.save(existing);
+//            } else {
+//                refreshTokenRepository.save(refreshTokenEntity);
+//            }
+
+            return loginResponseMapper.toResponse(accessToken, null, user);
+           } catch (Exception e) {
             throw new IllegalArgumentException(e);
         }
     }

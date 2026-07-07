@@ -48,6 +48,12 @@ public class CarMaintenanceServiceImpl implements CarMaintenanceService {
         maintenance.setCarEntity(car);
         maintenance.setUser(user);
         maintenance.setStatus(MaintenanceStatus.valueOf(MaintenanceStatus.SCHEDULED.name()));
+        maintenance.setNotificationDate(
+                request.notificationDate() != null
+                        ? request.notificationDate()
+                        : maintenance.getDueDate().minusDays(3)
+        );
+        maintenance.setNotificationSent(false);
         return carMaintenanceMapper.toResponse(carMaintenanceRepository.save(maintenance));
 
     }

@@ -6,9 +6,7 @@ import com.vehiqon.features.onboarding.dto.request.UpdateUserRequest;
 import com.vehiqon.features.onboarding.dto.response.UserProfileResponse;
 import com.vehiqon.features.onboarding.dto.response.UserResponse;
 import com.vehiqon.features.onboarding.entity.UserEntity;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.MappingTarget;
+import org.mapstruct.*;
 
 import java.util.List;
 
@@ -35,22 +33,22 @@ public interface UserMapper {
 //    get list of all user
     List<UserResponse> toResponses(List<UserEntity> users);
 
-//    create new user
-//@Mapping(target = "cars", ignore = true)
-@Mapping(target = "id", ignore = true)
-@Mapping(target = "createdAt", ignore = true)
-@Mapping(target = "updatedAt", ignore = true)
-@Mapping(target = "primaryAccountNumber", ignore = true)
-@Mapping(target = "roles", ignore = true)
-@Mapping(target = "status", ignore = true)
-@Mapping(target = "isVerified", ignore = true)
-@Mapping(target = "cars", ignore = true)
-@Mapping(target = "notifications", ignore = true)
-@Mapping(target = "auditLog", ignore = true)
-@Mapping(target = "userPlan", ignore = true)
-@Mapping(target = "password", ignore = true)
-@Mapping(target = "refreshTokens", ignore = true)
-UserEntity toEntity(CreateUserRequest request);
+    //    create new user
+    //@Mapping(target = "cars", ignore = true)
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "primaryAccountNumber", ignore = true)
+    @Mapping(target = "roles", ignore = true)
+    @Mapping(target = "status", ignore = true)
+    @Mapping(target = "isVerified", ignore = true)
+    @Mapping(target = "cars", ignore = true)
+    @Mapping(target = "notifications", ignore = true)
+    @Mapping(target = "auditLog", ignore = true)
+    @Mapping(target = "userPlan", ignore = true)
+    @Mapping(target = "password", ignore = true)
+    @Mapping(target = "refreshTokens", ignore = true)
+    UserEntity toEntity(CreateUserRequest request);
 
 
     @Mapping(target = "id", ignore = true)
@@ -67,7 +65,14 @@ UserEntity toEntity(CreateUserRequest request);
     @Mapping(target = "password", ignore = true)
     @Mapping(target = "authorities", ignore = true)
     @Mapping(target = "refreshTokens", ignore = true)
-    void UpdateUser(UpdateUserRequest request, @MappingTarget UserEntity user);
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    void updateEntity(
+            UpdateUserRequest request,
+            @MappingTarget UserEntity user
+    );
+
+//
+//    void UpdateUser(UpdateUserRequest request, @MappingTarget UserEntity user);
 
 //    update existing user
 //@Mapping(target = "id", ignore = true)
