@@ -6,8 +6,7 @@ import com.vehiqon.features.carmgmt.dto.CarDto;
 import com.vehiqon.features.carmgmt.dto.request.CreateCarRequest;
 import com.vehiqon.features.carmgmt.entities.BrandEntity;
 import com.vehiqon.features.carmgmt.entities.CarEntity;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
+import org.mapstruct.*;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -34,6 +33,23 @@ public interface CarMapper {
     @Mapping(source = "licenseExpiry", target = "licenseExpiry")
     CarEntity toEntity(CarDto.CreateCarRequest car);
 
+
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "user", ignore = true)
+    @Mapping(target = "brand", ignore = true)
+    @Mapping(target = "model", ignore = true)
+    @Mapping(target = "serviceHistory", ignore = true)
+    @Mapping(target = "documents", ignore = true)
+    @Mapping(target = "maintenanceReminders", ignore = true)
+    @Mapping(target = "id", ignore = true)
+    @Mapping(source = "licenseExpiry", target = "licenseExpiry")
+    @Mapping(source = "purchaseDate", target = "purchaseDate")
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    void updateEntity(CarDto.UpdateCarRequest request,
+                      @MappingTarget CarEntity entity);
+
+
 //    @Mapping(source = "brand_id", target = "brand")
 //    @Mapping(source = "model_id", target = "model")
     CarDto.CarResponse toResponse(CarEntity car);
@@ -44,7 +60,6 @@ public interface CarMapper {
         if (value == null || value.isBlank()) {
             return null;
         }
-
         try {
             return LocalDate.parse(value,
                     DateTimeFormatter.ofPattern("dd-MM-yyyy"));

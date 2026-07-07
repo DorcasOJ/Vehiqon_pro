@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
-
 public class CarServiceImpl implements CarService {
     private final AuthService authService;
     private final CarRepository carRepository;
@@ -84,7 +83,7 @@ public class CarServiceImpl implements CarService {
     }
 
     @Override
-    public CarDto.CarResponse update(UUID carId, CarDto.CreateCarRequest request) {
+    public CarDto.CarResponse update(UUID carId, CarDto.UpdateCarRequest request) {
         UserEntity user = authService.getAuthenticatedUser();
 
         CarEntity car = carRepository.findByIdAndUser(carId, user)
@@ -100,20 +99,22 @@ public class CarServiceImpl implements CarService {
             throw new BadRequestException("Selected model does not belong to the selected brand");
         }
 
-        car.setBrand(brand);
-        car.setModel(model);
-        car.setPlateNumber(request.plateNumber());
-        car.setVin(request.vin());
-        car.setVin(request.color());
-        car.setNickname(request.nickname());
-        car.setVin(request.year().toString());
-        car.setStatus(request.status());
-        car.setVin(request.transmission().name().toUpperCase());
-        car.setVin(request.fuelType().name());
-        car.setVin(request.purchaseDate());
-        car.setVin(request.licenseExpiry());
-        car.setVin( request.odometer().toString());
-        car.setEngineNumber(request.engineNumber());
+//
+//        car.setPlateNumber(request.plateNumber());
+//        car.setVin(request.vin());
+//        car.setVin(request.color());
+//        car.setNickname(request.nickname());
+//        car.setVin(request.year().toString());
+//        car.setStatus(request.status());
+//        car.setVin(request.transmission().name().toUpperCase());
+//        car.setVin(request.fuelType().name());
+//        car.setVin(String.valueOf(request.purchaseDate()));
+//        car.setVin(String.valueOf(request.licenseExpiry()));
+//        car.setVin( request.odometer().toString());
+//        car.setEngineNumber(request.engineNumber());
+        carMapper.updateEntity(request, car);
+//        car.setBrand(brand);
+//        car.setModel(model);
 
         return carMapper.toResponse(carRepository.save(car));
 
@@ -153,7 +154,7 @@ public class CarServiceImpl implements CarService {
     }
 
     @Override
-    public CarDto.CarResponse updateUserCar(UUID userId, UUID carId, CarDto.CreateCarRequest request) {
+    public CarDto.CarResponse updateUserCar(UUID userId, UUID carId, CarDto.UpdateCarRequest request) {
         UserEntity user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
@@ -181,8 +182,8 @@ public class CarServiceImpl implements CarService {
         car.setStatus(request.status());
         car.setVin(request.transmission().name().toUpperCase());
         car.setVin(request.fuelType().name());
-        car.setVin(request.purchaseDate());
-        car.setVin(request.licenseExpiry());
+        car.setVin(String.valueOf(request.purchaseDate()));
+        car.setVin(String.valueOf(request.licenseExpiry()));
         car.setVin( request.odometer().toString());
         car.setEngineNumber(request.engineNumber());
 
@@ -191,7 +192,7 @@ public class CarServiceImpl implements CarService {
     }
 
 
-    private void validateUniqueFields(CarDto.CreateCarRequest request) {
+    private void validateUniqueFields(CarDto.CarRequest request) {
 
         if (carRepository.existsByVin(request.vin())) {
             throw new BadRequestException("VIN already exists");

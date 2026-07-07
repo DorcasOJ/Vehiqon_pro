@@ -54,25 +54,30 @@ public class CarDto {
             String purchaseDate,
             String licenseExpiry,
             CarStatus status
-    ){
+    )  implements CarRequest {
     }
 
-    public record UpdateCarRequest (
+    public record UpdateCarRequest  (
 
-        @NotBlank String nickname,
-        @NotBlank String plateNumber,
+        String nickname,
+        String plateNumber,
         String color,
         String vin,
-        @NotNull Integer year,
+        Integer year,
         String engineNumber,
-        @NotNull FuelType fuelType,
-        @NotNull TransmissionEnum transmission,
+        FuelType fuelType,
+        TransmissionEnum transmission,
          Long odometer,
-         LocalDate purchaseDate,
-//         LocalDate insuranceExpiry,
-         LocalDate licenseExpiry,
+         String purchaseDate,
+         String licenseExpiry,
          CarStatus status,
-        @NotNull UUID brandId,
-        @NotNull UUID modelId
-    ){}
+        UUID brandId,
+        UUID modelId
+    )  implements CarRequest {}
+
+    public interface CarRequest {
+        String vin();
+        String plateNumber();
+        String engineNumber();
+    }
 }

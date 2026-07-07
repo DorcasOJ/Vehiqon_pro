@@ -11,12 +11,12 @@ public interface CarService {
     CarDto.CarResponse registerCar(CarDto.CreateCarRequest request);
     List<CarDto.CarResponse> getMyCars();
     CarDto.CarResponse getCar( UUID carId);
-    CarDto.CarResponse update(UUID carId, CarDto.CreateCarRequest request);
+    CarDto.CarResponse update(UUID carId, CarDto.UpdateCarRequest request);
 //    void deleteCar(UUID carId);
 
     // Admin operations
     List<CarDto.CarResponse> getCarsByUser(UUID userId);
     CarDto.CarResponse getUserCar(UUID userId, UUID carId);
-    CarDto.CarResponse updateUserCar(UUID userId, UUID carId, CarDto.CreateCarRequest request);
+    CarDto.CarResponse updateUserCar(UUID userId, UUID carId, CarDto.UpdateCarRequest request);
 
 }

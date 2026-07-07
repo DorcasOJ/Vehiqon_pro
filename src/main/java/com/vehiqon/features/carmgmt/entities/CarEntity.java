@@ -68,7 +68,7 @@ public class CarEntity extends BaseEntity {
 
     @Builder.Default
     @OneToMany(mappedBy = "carEntity", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<MaintenanceReminder> maintenanceReminders = new HashSet<>();
+    private Set<MaintenanceReminderEntity> maintenanceReminders = new HashSet<>();
 
     @Builder.Default
     @OneToMany(mappedBy = "carEntity", cascade = CascadeType.ALL, orphanRemoval = true)

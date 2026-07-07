@@ -49,7 +49,7 @@ public class CarAdminController {
     ResponseEntity<ApiResponse<CarDto.CarResponse>> editCarByUserId(
             @PathVariable("userId") UUID userId,
             @PathVariable("carId") UUID carId,
-            @RequestBody CarDto.CreateCarRequest request
+            @RequestBody CarDto.UpdateCarRequest request
     ){
         return ResponseEntity.ok().body(ApiResponse.<CarDto.CarResponse>builder()
                 // .responseCode()
