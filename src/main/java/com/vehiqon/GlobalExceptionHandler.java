@@ -13,7 +13,9 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.time.DateTimeException;
 import java.time.Instant;
+import java.time.format.DateTimeParseException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -56,6 +58,23 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(response);
     }
+
+    @ExceptionHandler(DateTimeParseException.class)
+    public ResponseEntity<ApiResponse<Object>> handleBusiness(
+            DateTimeException ex) {
+        ex.printStackTrace();
+
+        ApiResponse<Object> response = ApiResponse.builder()
+                .success(false)
+                .responseCode("500")
+//                ex.getClass().getName() + ": " +
+                .responseMessage( ex.getMessage())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(response);
+    }
+
 
 //    @ExceptionHandler(ResourceNotFoundException.class)
 //    public ResponseEntity<ApiError> handleNotFound(

@@ -5,10 +5,8 @@ public enum MaintenanceStatus {
 //    COMPLETED,
 //    OVERDUE;
     SCHEDULED,
-
+    IN_PROGRESS,
     COMPLETED,
-
     CANCELLED,
-
     MISSED
 }

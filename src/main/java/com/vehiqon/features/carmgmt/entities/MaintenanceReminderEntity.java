@@ -36,6 +36,7 @@ public class MaintenanceReminderEntity extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private MaintenanceType type;
     private LocalDate dueDate;
+
     @Enumerated(EnumType.STRING)
     private MaintenanceStatus status;
     private LocalDate appointmentDate;

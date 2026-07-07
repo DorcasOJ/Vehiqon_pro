@@ -35,20 +35,19 @@ public class CarMaintenanceServiceImpl implements CarMaintenanceService {
         UserEntity user = authService.getAuthenticatedUser();
         CarEntity car = carRepository.findByIdAndUser(request.carId(), user)
                 .orElseThrow(() -> new ResourceNotFoundException("Car not found"));
-        if (LocalDate.parse(request.appointmentDate(), DateTimeFormatter.ofPattern("dd-MM-yyy"))
+        if (request.appointmentDate()
                 .isBefore(LocalDate.now())) {
             throw new BadRequestException("Appointment date cannot be in the past");
         }
         if(carMaintenanceRepository.existsByCarEntityAndAppointmentDateAndAppointmentTime(
-                car, LocalDate.parse(request.appointmentDate(), DateTimeFormatter.ofPattern("dd-MM-yyy")),
-                LocalTime.parse(request.appointmentTime())
-        )) {
+                car, request.appointmentDate(),
+                request.appointmentTime())) {
             throw new BadRequestException("A maintenance appointment already exists for this time");
         }
         MaintenanceReminderEntity maintenance = carMaintenanceMapper.toEntity(request);
         maintenance.setCarEntity(car);
         maintenance.setUser(user);
-        maintenance.setStatus(MaintenanceStatus.SCHEDULED);
+        maintenance.setStatus(MaintenanceStatus.valueOf(MaintenanceStatus.SCHEDULED.name()));
         return carMaintenanceMapper.toResponse(carMaintenanceRepository.save(maintenance));
 
     }
