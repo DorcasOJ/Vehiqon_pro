@@ -11,7 +11,7 @@ import org.springframework.web.client.RestClient;
 public class NombaAuthServiceImpl implements NombaAuthService {
 
     private final RestClient restClient;
-    private final NombaProperties properties
+    private final NombaProperties properties;
 
     @Override
     public String getAccessToken() {
