@@ -32,5 +32,5 @@ public interface CarMaintenanceRepository extends JpaRepository<MaintenanceRemin
             LocalTime appointmentTime
     );
 
-    List<MaintenanceReminderEntity> findAllByNotificationSentFalseAndNotificationDateLessThanEqual(LocalDateTime dateTime);
+    List<MaintenanceReminderEntity> findAllByNotificationSentFalseAndNotificationDateLessThanEqual(LocalDate dateTime);
 }

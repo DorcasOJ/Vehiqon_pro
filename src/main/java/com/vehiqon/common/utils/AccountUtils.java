@@ -9,7 +9,7 @@ public class AccountUtils {
     public static final String VALIDATION_ERROR_CODE= "401";
     public static final String UNAUTHORIZED_ERROR_CODE= "401";
     public static final String INVALID_CREDENTIALS_CODE = "005";
-    public static final String SUCCESS_CODE = "006";
+    public static final String SUCCESS_CODE = "200";
 
 
     public static final String SUCCESS_MESSAGE = "Success";

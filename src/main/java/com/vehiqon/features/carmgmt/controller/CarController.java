@@ -34,10 +34,8 @@ public class CarController {
         System.out.println("registering new car");
 
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.<CarDto.CarResponse>builder()
-                        .success(true)
-                        .data(carService.registerCar(request))
-                        .build());
+                .body(apiResponseMapper.toResponse(carService.registerCar(request))
+                );
     }
 
 //    get list of users vehicles
@@ -45,10 +43,7 @@ public class CarController {
     ResponseEntity<ApiResponse<List<CarDto.CarResponse>>> getCarByUserId(
     ){
         return ResponseEntity.ok()
-                .body(ApiResponse.<List<CarDto.CarResponse>>builder()
-                        .success(true)
-                        .data(carService.getMyCars())
-                .build());
+                .body(apiResponseMapper.toResponse(carService.getMyCars()));
     }
 
 //    get one vehicle of a vehicle
@@ -57,10 +52,7 @@ public class CarController {
             @PathVariable UUID carId
     ){
         return ResponseEntity.ok()
-                .body(ApiResponse.<CarDto.CarResponse>builder()
-                        .success(true)
-                        .data(carService.getCar(carId))
-                        .build());
+                .body(apiResponseMapper.toResponse(carService.getCar(carId)));
     }
 
     @PutMapping("{carId}")
