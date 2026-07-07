@@ -25,8 +25,8 @@ public class MaintenanceReminderScheduler {
     private final EmailService emailService;
     private final EmailResponseMapper emailResponseMapper;
 
-    @Scheduled(cron = "0 * * * * *") // Every minute
-//    @Scheduled(cron = "0 0 8 * * *") // Every day at 8:00 AM
+//    @Scheduled(cron = "0 * * * * *") // Every minute
+    @Scheduled(cron = "0 0 8 * * *") // Every day at 8:00 AM
     @Transactional
     public void sendMaintenanceReminders() {
         List<MaintenanceReminderEntity> reminders = carMaintenanceRepository.findAllByNotificationSentFalseAndNotificationDateLessThanEqual(

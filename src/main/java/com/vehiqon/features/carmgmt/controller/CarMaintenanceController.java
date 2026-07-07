@@ -64,7 +64,7 @@ public class CarMaintenanceController {
         );
     }
 
-    @PutMapping("/{id}")
+    @PatchMapping("/{id}")
     public ResponseEntity<ApiResponse<CarMaintenanceDto.MaintenanceResponse>> update(
             @PathVariable UUID id,
             @Valid @RequestBody CarMaintenanceDto.UpdateMaintenanceRequest request
