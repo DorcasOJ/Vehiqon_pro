@@ -50,8 +50,8 @@ public class SecurityConfig {
                                 "/v3/api-docs/**"
                         ).permitAll()
 
-//                        .requestMatchers("/admin/**")
-//                        .hasRole("ADMIN")
+                        .requestMatchers("/api/admin/**")
+                        .hasRole("ADMIN")
 //                        .requestMatchers("/api/cars/**")
 //                        .hasAnyRole("USER", "ADMIN")
 

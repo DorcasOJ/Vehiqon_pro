@@ -36,6 +36,7 @@ public class AdminSeeder {
                     .email(adminEmail)
                     .password(passwordEncoder.encode(adminPassword))
                     .status(UserStatus.ACTIVE.name())
+                    .isVerified(true)
                     .build();
             admin.getRoles().add(Role.ROLE_ADMIN);
             userRepository.save(admin);

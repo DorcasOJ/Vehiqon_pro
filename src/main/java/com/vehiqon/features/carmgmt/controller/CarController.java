@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.UUID;
 
-@RequestMapping("/api/vehicle")
+@RequestMapping("/api/vehicles")
 @AllArgsConstructor
 @RestController
 public class CarController {
@@ -81,46 +81,5 @@ public class CarController {
 //
 //        return ResponseEntity.noContent().build();
 //    }
-
-
-
-//    Admin APIs
-
-    @GetMapping("users/{userId}")
-    ResponseEntity<ApiResponse<List<CarDto.CarResponse>>> getAllCarByUserId(
-            @PathVariable("userId") UUID userId
-    ){
-        return ResponseEntity.ok()
-                .body(ApiResponse.<List<CarDto.CarResponse>>builder()
-                        .success(true)
-                        .data(carService.getCarsByUser(userId))
-                        .build());
-    }
-
-    @GetMapping("user/{userId}/{carId}")
-    ResponseEntity<ApiResponse<CarDto.CarResponse>> getCarByUserId(
-            @PathVariable("userId") UUID userId,
-            @PathVariable("carId") UUID carId
-    ){
-        return ResponseEntity.ok()
-                .body(ApiResponse.<CarDto.CarResponse>builder()
-                        .success(true)
-                        .data(carService.getUserCar(userId, carId))
-                        .build());
-    }
-
-
-    @PutMapping("user/{userId}/{carId}")
-    ResponseEntity<ApiResponse<CarDto.CarResponse>> editCarByUserId(
-            @PathVariable("userId") UUID userId,
-            @PathVariable("carId") UUID carId,
-            @RequestBody CarDto.CreateCarRequest request
-    ){
-        return ResponseEntity.ok().body(ApiResponse.<CarDto.CarResponse>builder()
-                // .responseCode()
-                .data(carService.updateUserCar(userId, carId, request))
-                .build());
-    }
-
 
 }

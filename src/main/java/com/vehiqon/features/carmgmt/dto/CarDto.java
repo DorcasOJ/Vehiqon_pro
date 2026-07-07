@@ -51,9 +51,9 @@ public class CarDto {
             TransmissionEnum transmission,
             @PositiveOrZero Long odometer,
             @Min(1900) @Max(2100) Integer year,
-
             String purchaseDate,
-            String licenseExpiry
+            String licenseExpiry,
+            CarStatus status
     ){
     }
 
