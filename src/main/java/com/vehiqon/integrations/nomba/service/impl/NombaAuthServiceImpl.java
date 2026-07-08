@@ -51,6 +51,7 @@ public class NombaAuthServiceImpl implements NombaAuthService {
     @Override
     public NombaDto.NombaTokenResponse refreshToken(String refreshToken) {
         Map<String, String> body = Map.of(
+                "grant_type", "refresh_token",
                 "refresh_token", refreshToken
         );
 

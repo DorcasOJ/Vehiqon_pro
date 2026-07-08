@@ -2,6 +2,7 @@ package com.vehiqon.features.wallet.service.impl;
 
 import com.vehiqon.common.exception.BadRequestException;
 import com.vehiqon.common.exception.ResourceNotCreatedException;
+import com.vehiqon.common.exception.ResourceNotFoundException;
 import com.vehiqon.features.onboarding.entity.UserEntity;
 import com.vehiqon.features.onboarding.service.AuthService;
 import com.vehiqon.features.wallet.entity.VirtualAccountEntity;
@@ -28,7 +29,7 @@ public class VirtualAccountServiceImpl implements VirtualAccountService{
 
 
     @Override
-    public NombaDto.VirtualAccountResponse.Data getPrimaryAccount() {
+    public NombaDto.VirtualAccountResponse.Data getVirtualAccount() {
         UserEntity user = authService.getAuthenticatedUser();
         return nombaMapper.toVirtualAccResponse(
                 virtualAccountRepository.findByUser(user).orElseThrow(
@@ -36,6 +37,23 @@ public class VirtualAccountServiceImpl implements VirtualAccountService{
                 )
         );
     }
+
+    @Override
+    @Transactional
+    public NombaDto.VirtualAccountResponse.Data updateVirtualAccountName(NombaDto.UpdateVirtualAccountName request) {
+        UserEntity user = authService.getAuthenticatedUser();
+        VirtualAccountEntity existing = virtualAccountRepository.findByUser(user).orElseThrow(() -> new ResourceNotFoundException("Virtual account not found. " +
+                "Kindly request for a virtual account"));
+
+        NombaDto.UpdateVirtualAccountResponse updateResponse = nombaClient.updateVirtualAccountName(request, existing.getAccountNumber());
+        if (updateResponse == null || updateResponse.data() == null) {
+            throw new BadRequestException("Unable to update virtual account.");
+        }
+//        update local db
+        existing.setAccountName(request.accountName());
+        return nombaMapper.toVirtualAccResponse(virtualAccountRepository.save(existing));
+    }
+
 
     @Override
     @Transactional
@@ -62,5 +80,6 @@ public class VirtualAccountServiceImpl implements VirtualAccountService{
 
         return nombaMapper.toVirtualAccResponse( virtualAccountRepository.save(account));
     }
+
 
 }

@@ -1,6 +1,7 @@
 package com.vehiqon.integrations.nomba.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.constraints.NotNull;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -61,28 +62,46 @@ public class NombaDto {
                 String bankAccountNumber,
                 String bankAccountName,
                 String currency,
-                Boolean active
+                Boolean expired
         ) {
 
-        }
-
-        public record RefreshTokenRequest(
-                String refresh_token
-        ) {
-        }
-
-        public record RefreshTokenResponse(
-                String code,
-                String description,
-                Data data
-        ) {
-
-            public record Data(
-                    String access_token,
-                    String refresh_token,
-                    Instant expiresAt
-            ) {
-            }
         }
     }
+
+
+    public record UpdateVirtualAccountName(
+            @NotNull(message = "Virtual account name cannot be specified")
+            String accountName
+    ) {
+    }
+
+    public record UpdateVirtualAccountResponse(
+            String code,
+            String description,
+            Data data
+    ) {
+        public record Data(
+                String updated
+        ) {}
+    }
+
+    public record RefreshTokenRequest(
+            String refresh_token
+    ) {
+    }
+
+    public record RefreshTokenResponse(
+            String code,
+            String description,
+            Data data
+    ) {
+
+        public record Data(
+                String access_token,
+                String refresh_token,
+                Instant expiresAt
+        ) {
+        }
+    }
+
 }

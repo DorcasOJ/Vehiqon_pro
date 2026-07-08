@@ -29,4 +29,18 @@ public class NombaClient {
                 .retrieve()
                 .body(NombaDto.VirtualAccountResponse.class);
     }
+
+    public NombaDto.UpdateVirtualAccountResponse updateVirtualAccountName(
+            NombaDto.UpdateVirtualAccountName request, String accountNumber ) {
+
+        return restClient.put()
+                .uri(properties.getBaseUrl() + "/v1/accounts/virtual/"+ accountNumber )
+                .header(HttpHeaders.AUTHORIZATION,
+                        "Bearer " + nombaTokenService.getValidAccessToken())
+                .header("accountId", properties.getAccountId())
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(request)
+                .retrieve()
+                .body(NombaDto.UpdateVirtualAccountResponse.class);
+    }
 }

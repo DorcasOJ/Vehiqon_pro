@@ -28,7 +28,7 @@ public interface NombaMapper {
     @Mapping(target = "accountName", source = "bankAccountName")
     @Mapping(target = "bankName", source = "bankName")
     @Mapping(target = "accountHolderId", source = "accountHolderId")
-    @Mapping(target = "active", constant = "true")
+    @Mapping(target = "expired", constant = "false")
     VirtualAccountEntity toVirtualAccEntity(NombaDto.VirtualAccountResponse.Data response);
 
     @Mapping(target = "id", ignore = true)

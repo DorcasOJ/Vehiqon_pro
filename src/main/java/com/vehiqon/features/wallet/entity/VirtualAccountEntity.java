@@ -36,5 +36,5 @@ public class VirtualAccountEntity extends BaseEntity {
     private String accountHolderId;
 
     @Builder.Default
-    private Boolean active = true;
+    private Boolean expired = false;
 }

@@ -62,4 +62,6 @@ public class NombaTokenServiceImpl implements NombaTokenService {
     private boolean isExpiringSoon(NombaTokenEntity entity) {
         return Instant.now().isAfter(entity.getExpiresAt().minus(Duration.ofMinutes(5)));
     }
+
+
 }
