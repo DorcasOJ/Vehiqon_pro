@@ -47,6 +47,7 @@ public interface UserMapper {
     @Mapping(target = "userPlan", ignore = true)
     @Mapping(target = "password", ignore = true)
     @Mapping(target = "refreshTokens", ignore = true)
+    @Mapping(target = "virtualAccount", ignore = true)
     UserEntity toEntity(CreateUserRequest request);
 
 
@@ -64,6 +65,7 @@ public interface UserMapper {
     @Mapping(target = "password", ignore = true)
     @Mapping(target = "authorities", ignore = true)
     @Mapping(target = "refreshTokens", ignore = true)
+    @Mapping(target = "virtualAccount", ignore = true)
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void updateEntity(
             UpdateUserRequest request,

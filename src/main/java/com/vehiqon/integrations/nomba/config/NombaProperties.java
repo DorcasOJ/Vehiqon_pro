@@ -13,6 +13,7 @@ public class NombaProperties {
     private String baseUrl;
     private String clientId;
     private String clientSecret;
+    private String subAccountId;
     private String accountId;
     private String webhookSigningKey;
 }

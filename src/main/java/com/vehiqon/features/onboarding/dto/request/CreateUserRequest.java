@@ -22,6 +22,8 @@ public class CreateUserRequest {
     @Size(max= 50)
     private String lastName;
 
+    private String bvn;
+
     private String address;
 
     @NotBlank

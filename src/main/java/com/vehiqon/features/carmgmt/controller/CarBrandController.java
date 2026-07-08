@@ -5,6 +5,7 @@ import com.vehiqon.common.mapper.ApiResponseMapper;
 import com.vehiqon.features.carmgmt.dto.CarBrandDto;
 import com.vehiqon.features.carmgmt.dto.CarModelDto;
 import com.vehiqon.features.carmgmt.service.CarBrandService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.repository.query.Param;
@@ -20,6 +21,7 @@ import java.util.UUID;
 @RequestMapping("/api/brands")
 @AllArgsConstructor
 @RestController
+@SecurityRequirement(name = "bearerAuth")
 public class CarBrandController {
     private final CarBrandService brandService;
     private final ApiResponseMapper apiResponseMapper;

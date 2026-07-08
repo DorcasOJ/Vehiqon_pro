@@ -3,6 +3,7 @@ package com.vehiqon.features.carmgmt.controller;
 import com.vehiqon.common.dto.response.ApiResponse;
 import com.vehiqon.features.carmgmt.dto.CarDto;
 import com.vehiqon.features.carmgmt.service.CarService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -15,6 +16,7 @@ import java.util.UUID;
 @RequestMapping("/api/admin/vehicles")
 @AllArgsConstructor
 @RestController
+@SecurityRequirement(name = "bearerAuth")
 public class CarAdminController {
 
     private final CarService carService;

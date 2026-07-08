@@ -4,6 +4,7 @@ import com.vehiqon.common.dto.response.ApiResponse;
 import com.vehiqon.common.mapper.ApiResponseMapper;
 import com.vehiqon.features.carmgmt.dto.CarModelDto;
 import com.vehiqon.features.carmgmt.service.CarModelService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,6 +18,7 @@ import java.util.UUID;
 @RequestMapping("/api/models")
 @AllArgsConstructor
 @RestController
+@SecurityRequirement(name = "bearerAuth")
 public class CarModelController {
     private final CarModelService carModelService;
     private final ApiResponseMapper apiResponseMapper;

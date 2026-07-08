@@ -4,6 +4,7 @@ import com.vehiqon.common.dto.response.ApiResponse;
 import com.vehiqon.common.mapper.ApiResponseMapper;
 import com.vehiqon.features.carmgmt.dto.CarMaintenanceDto;
 import com.vehiqon.features.carmgmt.service.CarMaintenanceService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +18,7 @@ import java.util.UUID;
 @RequestMapping("/api/maintenance")
 @AllArgsConstructor
 @RestController
+@SecurityRequirement(name = "bearerAuth")
 public class CarMaintenanceController {
     private final CarMaintenanceService maintenanceService;
     private final ApiResponseMapper apiResponseMapper;

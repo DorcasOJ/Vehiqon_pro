@@ -1,5 +1,9 @@
 package com.vehiqon.integrations.nomba.service;
 
+import com.vehiqon.integrations.nomba.dto.NombaDto;
+
 public interface NombaAuthService {
-    String getAccessToken();
+    NombaDto.NombaTokenResponse issueToken();
+    NombaDto.NombaTokenResponse refreshToken(String refreshToken);
+//    NombaDto.VirtualAccountResponse createVirtualAccount(UserEntity user);
 }

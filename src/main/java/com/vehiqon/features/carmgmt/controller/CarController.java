@@ -8,6 +8,7 @@ import com.vehiqon.features.carmgmt.dto.CarDto;
 import com.vehiqon.features.carmgmt.dto.request.CreateCarRequest;
 import com.vehiqon.features.carmgmt.dto.request.UpdateCarRequest;
 import com.vehiqon.features.carmgmt.service.CarService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -20,6 +21,7 @@ import java.util.UUID;
 @RequestMapping("/api/vehicles")
 @AllArgsConstructor
 @RestController
+@SecurityRequirement(name = "bearerAuth")
 public class CarController {
 
     private final CarService carService;

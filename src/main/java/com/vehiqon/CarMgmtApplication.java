@@ -14,27 +14,27 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 @SpringBootApplication
-@OpenAPIDefinition(
-		info = @Info(
-				title = "The Vehiqon App",
-				description = "Bankend Rest APIs for Vehiqon",
-				version = "v1.0",
-				contact = @Contact(
-						name="Dorcas OJ",
-//						email = "hello@mail.com",
-						url="https://github.com/DorcasOJ/mini-java-projects/tree/cas-bank/src/main/resources"
-				),
-				license = @License(
-						name = "Vehiqon",
-						url = "https://github.com/DorcasOJ/mini-java-projects/"
-				)
-
-		),
-		externalDocs = @ExternalDocumentation(
-				description = "The Vehiqon App Documentation",
-				url = "https://github.com/DorcasOJ/mini-java-projects/"
-		)
-)
+//@OpenAPIDefinition(
+//		info = @Info(
+//				title = "The Vehiqon App",
+//				description = "Bankend Rest APIs for Vehiqon",
+//				version = "v1.0",
+//				contact = @Contact(
+//						name="Dorcas OJ",
+////						email = "hello@mail.com",
+//						url="https://github.com/DorcasOJ/mini-java-projects/tree/cas-bank/src/main/resources"
+//				),
+//				license = @License(
+//						name = "Vehiqon",
+//						url = "https://github.com/DorcasOJ/mini-java-projects/"
+//				)
+//
+//		),
+//		externalDocs = @ExternalDocumentation(
+//				description = "The Vehiqon App Documentation",
+//				url = "https://github.com/DorcasOJ/mini-java-projects/"
+//		)
+//)
 @EnableConfigurationProperties(JwtProperties.class)
 @EnableScheduling
 public class CarMgmtApplication {

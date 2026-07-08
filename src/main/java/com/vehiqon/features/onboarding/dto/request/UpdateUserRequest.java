@@ -31,6 +31,7 @@ public class UpdateUserRequest {
 //            message="Invalid phone number"
 //    )
     private String phoneNumber;
+    private String bvn;
 
 
 //    @NotBlank

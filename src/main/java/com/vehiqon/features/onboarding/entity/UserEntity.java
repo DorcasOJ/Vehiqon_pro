@@ -6,6 +6,7 @@ import com.vehiqon.common.entity.AuditLog;
 import com.vehiqon.common.entity.BaseEntity;
 import com.vehiqon.common.entity.UserSubscription;
 import com.vehiqon.common.enums.Role;
+import com.vehiqon.features.wallet.entity.VirtualAccountEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -31,6 +32,7 @@ public class UserEntity extends BaseEntity implements UserDetails {
     private String gender;
     private String address;
     private String primaryAccountNumber;
+    private String bvn;
     private String email;
     private String password;
     private String phoneNumber;
@@ -46,6 +48,9 @@ public class UserEntity extends BaseEntity implements UserDetails {
     @Column(name = "role")
     @Builder.Default
     private  Set<Role> roles = new HashSet<>();
+
+    @OneToOne(mappedBy = "user")
+    private VirtualAccountEntity virtualAccount;
 
     @Builder.Default
     @OneToMany(mappedBy = "user")
