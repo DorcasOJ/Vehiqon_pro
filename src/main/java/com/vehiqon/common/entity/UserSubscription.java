@@ -3,11 +3,10 @@ package com.vehiqon.common.entity;
 import com.vehiqon.common.enums.SubscriptionStatus;
 import com.vehiqon.features.onboarding.entity.UserEntity;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
+
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -15,25 +14,24 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 @SuperBuilder
 @Entity
-@Table(name="payments")
+@Table(name="user_subscriptions")
 public class UserSubscription extends BaseEntity {
 
-    private String startDate;
-    private String endDate;
+//    private String startDate;
+    private String expiryDate;
     private String renewalType;
     private String paymentReference;
 
     @Enumerated(EnumType.STRING)
     private SubscriptionStatus status;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "subscription_plan_id", nullable = false )
-    private SubscriptionPlan subscriptionPlan;
+    @Builder.Default
+    private Boolean autoRenew = Boolean.TRUE;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false )
-    private UserEntity user;
+    @Column(name = "subscription_plan_id", nullable = false)
+    private UUID subscriptionPlanId;
 
-    @OneToOne(mappedBy = "userSubscription")
-    private Payment payment;
+    @Column(name = "user_id", nullable = false)
+    private UUID userId;
+
 }

@@ -6,6 +6,7 @@ import com.vehiqon.features.onboarding.dto.request.*;
 import com.vehiqon.features.onboarding.dto.response.LoginResponse;
 import com.vehiqon.features.onboarding.dto.response.UserResponse;
 import com.vehiqon.features.onboarding.service.AuthService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
+@Tag(name = "Registration & Authentication")
 @RequiredArgsConstructor
 public class AuthController {
     private final AuthService authService;
@@ -52,6 +54,10 @@ public class AuthController {
         return ResponseEntity.ok(response);
 
     }
+
+//    @PutMapping("/change-password")
+//    @PostMapping("/forgot-password")
+//    @PostMapping("/reset-password")
 
     @PostMapping("/logout")
     public ResponseEntity<ApiResponse<Void>> logout(@RequestBody LogoutRequest request) {

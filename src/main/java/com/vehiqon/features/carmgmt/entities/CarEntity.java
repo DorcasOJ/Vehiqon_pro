@@ -11,6 +11,7 @@ import lombok.experimental.SuperBuilder;
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -50,27 +51,14 @@ public class CarEntity extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private CarStatus status;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "user_id")
-    private UserEntity user;
+    @Column(name = "user_id", nullable = false)
+    private UUID userId;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "brand_id")
-    private BrandEntity brand;
+    @Column(name = "car_brand_id", nullable = false)
+    private UUID carBrandId;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "model_id")
-    private CarModelEntity model;
+    @Column(name = "car_model_id", nullable = false)
+    private UUID carModelId;
 
-    @Builder.Default
-    @OneToMany(mappedBy = "carEntity", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<ServiceHistory> serviceHistory = new HashSet<>();
 
-    @Builder.Default
-    @OneToMany(mappedBy = "carEntity", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<MaintenanceReminderEntity> maintenanceReminders = new HashSet<>();
-
-    @Builder.Default
-    @OneToMany(mappedBy = "carEntity", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<Documents> documents = new HashSet<>();
 }

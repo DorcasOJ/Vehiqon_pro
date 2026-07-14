@@ -7,8 +7,6 @@ import com.vehiqon.features.carmgmt.dto.CarModelDto;
 import com.vehiqon.features.carmgmt.service.CarBrandService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.AllArgsConstructor;
-import lombok.RequiredArgsConstructor;
-import org.springframework.data.repository.query.Param;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -46,7 +44,7 @@ public class CarBrandController {
     public ResponseEntity<ApiResponse<List<CarModelDto.CarModelResponse>>> getModels
             ( @PathVariable UUID brandId) {
         return ResponseEntity.ok(
-               apiResponseMapper.toResponse(brandService.getModelsByBrand(brandId))
+               apiResponseMapper.toResponse(brandService.getModelsByBrandId(brandId))
         );
     }
 

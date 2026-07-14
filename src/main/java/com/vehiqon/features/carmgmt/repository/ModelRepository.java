@@ -7,5 +7,5 @@ import java.util.List;
 import java.util.UUID;
 
 public interface ModelRepository extends JpaRepository<CarModelEntity, UUID> {
-    List<CarModelEntity> findByBrandId(UUID brandId);
+    List<CarModelEntity> findByCarBrandId(UUID brandId);
 }

@@ -43,25 +43,21 @@ public class JwtService {
                 .compact();
     }
 
-    public String generateRefreshToken(UserEntity userEntity) {
+    public RefreshTokenEntity generateRefreshTokenToSave(UserEntity userEntity, HttpServletRequest request) {
         Date now = new Date();
         Date expiry = new Date(
                 now.getTime() + properties.refreshExpiration()
         );
-        return Jwts.builder()
+        String refreshToken = Jwts.builder()
                 .subject(userEntity.getUsername())
                 .issuedAt(now)
                 .expiration(expiry)
                 .signWith(getSigningKey())
                 .compact();
-    }
 
-    public RefreshTokenEntity getRefreshTokenToSave(String refreshToken, UserEntity user, HttpServletRequest request) {
-//        System.out.println("Refresh expiration: " + properties.refreshExpiration());
-//        System.out.println("Refresh expiration: " + properties.refreshExpiration());
         return RefreshTokenEntity.builder()
                 .token(refreshToken)
-                .user(user)
+                .userId(userEntity.getId())
                 .deviceName(request.getHeader("User-Agent"))
                 .deviceId(UUID.randomUUID().toString())
                 .ipAddress(request.getRemoteAddr())

@@ -16,7 +16,7 @@ public class VerificationTokenMapper {
                             .type(
                                     VerificationTokenTypeEnum.EMAIL_VERIFICATION
                             )
-                            .user(user)
+                            .userId(user.getId())
                             .expiresAt(
                                     LocalDateTime.now().plusHours(24)
                             )

@@ -32,7 +32,7 @@ public class VirtualAccountServiceImpl implements VirtualAccountService{
     public NombaDto.VirtualAccountResponse.Data getVirtualAccount() {
         UserEntity user = authService.getAuthenticatedUser();
         return nombaMapper.toVirtualAccResponse(
-                virtualAccountRepository.findByUser(user).orElseThrow(
+                virtualAccountRepository.findByUserId(user.getId()).orElseThrow(
                         () -> new BadRequestException("No account found. Kindly request for a wallet account")
                 )
         );
@@ -42,7 +42,7 @@ public class VirtualAccountServiceImpl implements VirtualAccountService{
     @Transactional
     public NombaDto.VirtualAccountResponse.Data updateVirtualAccountName(NombaDto.UpdateVirtualAccountName request) {
         UserEntity user = authService.getAuthenticatedUser();
-        VirtualAccountEntity existing = virtualAccountRepository.findByUser(user).orElseThrow(() -> new ResourceNotFoundException("Virtual account not found. " +
+        VirtualAccountEntity existing = virtualAccountRepository.findByUserId(user.getId()).orElseThrow(() -> new ResourceNotFoundException("Virtual account not found. " +
                 "Kindly request for a virtual account"));
 
         NombaDto.UpdateVirtualAccountResponse updateResponse = nombaClient.updateVirtualAccountName(request, existing.getAccountNumber());
@@ -59,7 +59,7 @@ public class VirtualAccountServiceImpl implements VirtualAccountService{
     @Transactional
     public NombaDto.VirtualAccountResponse.Data createVirtualAccount() {
         UserEntity user = authService.getAuthenticatedUser();
-        Optional<VirtualAccountEntity> existing = virtualAccountRepository.findByUser(user);
+        Optional<VirtualAccountEntity> existing = virtualAccountRepository.findByUserId(user.getId());
         if(existing.isPresent()) {
             return nombaMapper.toVirtualAccResponse(existing.get());
         }
@@ -76,7 +76,7 @@ public class VirtualAccountServiceImpl implements VirtualAccountService{
 
         }
         VirtualAccountEntity account = nombaMapper.toVirtualAccEntity(virtualAccount.data());
-        account.setUser(user);
+        account.setUserId(user.getId());
 
         return nombaMapper.toVirtualAccResponse( virtualAccountRepository.save(account));
     }

@@ -6,6 +6,8 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 
+import java.util.UUID;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -14,25 +16,24 @@ import lombok.experimental.SuperBuilder;
 @Table(name="virtual_accounts")
 @Entity
 public class VirtualAccountEntity extends BaseEntity {
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false, unique = true)
-    private UserEntity user;
+    @Column(name = "user_id", nullable = false, unique = true)
+    private UUID userId;
 
-    @Column(nullable = false, unique = true)
+    @Column(name = "account_number", nullable = false, unique = true)
     private String accountNumber;
 
-    @Column(nullable = false, unique = true)
+    @Column(name = "account_reference", nullable = false, unique = true)
     private String accountReference;
 
-    @Column(nullable = false)
+    @Column(name = "account_name", nullable = false)
     private String accountName;
 
-//    private String bankCode;
-
+    @Column(name = "bank_name")
     private String bankName;
 
     private String currency;
 
+    @Column(name = "account_holder_id")
     private String accountHolderId;
 
     @Builder.Default

@@ -7,26 +7,22 @@ import lombok.experimental.SuperBuilder;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
+@Entity
+@Table(name = "car_models")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@SuperBuilder
-@Entity
-@Table(name="models")
+@Builder
 public class CarModelEntity extends BaseEntity {
 
     @Column(nullable = false)
     private String name;
 
-    private String year;
+//    private String year;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "brand_id")
-    private BrandEntity brand;
-
-    @Builder.Default
-    @OneToMany(mappedBy = "model")
-    private Set<CarEntity> cars = new HashSet<>();
+    @Column(name = "car_brand_id", nullable = false)
+    private UUID carBrandId;
 }

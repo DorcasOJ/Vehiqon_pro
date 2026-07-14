@@ -1,17 +1,10 @@
 package com.vehiqon.features.carmgmt.dto;
 
 
-import com.vehiqon.features.carmgmt.entities.BrandEntity;
-import com.vehiqon.features.carmgmt.entities.CarModelEntity;
 import com.vehiqon.features.carmgmt.enums.*;
 import jakarta.validation.constraints.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
-import java.util.List;
 import java.util.UUID;
 
 public class CarDto {
@@ -32,15 +25,34 @@ public class CarDto {
             LocalDate purchaseDate,
             LocalDate licenseExpiry,
             CarStatus status,
-            CarBrandDto.CarBrandResponse brand,
-            CarModelDto.CarModelResponse model
+            CarBrandDto.CarBrandResponse carBrand,
+            CarModelDto.CarModelResponse carModel
+    ){}
+
+
+    public record CarEntityResponse(
+            UUID id,
+            String nickname,
+            String vin,
+            String plateNumber,
+            String color,
+            Integer year,
+            String engineNumber,
+            FuelType fuelType,
+            TransmissionEnum transmission,
+            Long odometer,
+            LocalDate purchaseDate,
+            LocalDate licenseExpiry,
+            CarStatus status,
+            UUID carBrandId,
+            UUID carModelId
     ){}
 
 
     public record CreateCarRequest (
 //            @NotNull(message = "UserId cannot be null") UUID userId,
-            @NotNull(message = "Brand cannot be null") UUID brandId,
-            @NotNull(message = "Model cannot be null") UUID modelId,
+            @NotNull(message = "Brand cannot be null") UUID carBrandId,
+            @NotNull(message = "Model cannot be null") UUID carModelId,
             String nickname,
             @NotBlank(message = "VIN is required") String vin,
             @NotBlank(message = "PlateNumber is required") String plateNumber,
@@ -71,13 +83,16 @@ public class CarDto {
          String purchaseDate,
          String licenseExpiry,
          CarStatus status,
-        UUID brandId,
-        UUID modelId
+        UUID carBrandId,
+        UUID carModelId
     )  implements CarRequest {}
 
     public interface CarRequest {
         String vin();
         String plateNumber();
         String engineNumber();
+        UUID carBrandId();
+        UUID carModelId();
+
     }
 }

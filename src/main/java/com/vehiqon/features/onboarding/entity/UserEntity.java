@@ -27,16 +27,27 @@ import java.util.Set;
 @Entity
 @Table(name="users")
 public class UserEntity extends BaseEntity implements UserDetails {
+    @Column(name = "first_name")
     private String firstName;
+
+    @Column(name = "last_name")
     private String lastName;
     private String gender;
     private String address;
-    private String primaryAccountNumber;
+
     private String bvn;
+
+    @Column(nullable = false, unique = true)
     private String email;
+
+    @Column(nullable = false)
     private String password;
+
+    @Column(name = "phone_number")
     private String phoneNumber;
     private String status;
+
+    @Column(name = "is_verified")
     private Boolean isVerified;
 
     @ElementCollection(fetch = FetchType.EAGER)
@@ -48,29 +59,29 @@ public class UserEntity extends BaseEntity implements UserDetails {
     @Column(name = "role")
     @Builder.Default
     private  Set<Role> roles = new HashSet<>();
-
-    @OneToOne(mappedBy = "user")
-    private VirtualAccountEntity virtualAccount;
-
-    @Builder.Default
-    @OneToMany(mappedBy = "user")
-    private Set<CarEntity> cars = new HashSet<>();;
-
-    @Builder.Default
-    @OneToMany(mappedBy = "user")
-    private Set<Notification> notifications = new HashSet<>();;
-
-    @Builder.Default
-    @OneToMany(mappedBy = "user")
-    private Set<AuditLog> auditLog = new HashSet<>();;
-
-    @Builder.Default
-    @OneToMany(mappedBy = "user")
-    private Set<UserSubscription> userPlan = new HashSet<>();;
-
-    @Builder.Default
-    @OneToMany(mappedBy = "user")
-    private Set<RefreshTokenEntity> refreshTokens = new HashSet<>();;
+//
+//    @OneToOne(mappedBy = "user")
+//    private VirtualAccountEntity virtualAccount;
+//
+//    @Builder.Default
+//    @OneToMany(mappedBy = "user")
+//    private Set<CarEntity> cars = new HashSet<>();;
+//
+//    @Builder.Default
+//    @OneToMany(mappedBy = "user")
+//    private Set<Notification> notifications = new HashSet<>();;
+//
+//    @Builder.Default
+//    @OneToMany(mappedBy = "user")
+//    private Set<AuditLog> auditLog = new HashSet<>();;
+//
+//    @Builder.Default
+//    @OneToMany(mappedBy = "user")
+//    private Set<UserSubscription> userPlan = new HashSet<>();;
+//
+//    @Builder.Default
+//    @OneToMany(mappedBy = "user")
+//    private Set<RefreshTokenEntity> refreshTokens = new HashSet<>();;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -102,8 +113,8 @@ public class UserEntity extends BaseEntity implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return isVerified;
+        return Boolean.TRUE.equals(isVerified);
+//        return isVerified;
     }
-
 
 }

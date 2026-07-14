@@ -1,7 +1,8 @@
 package com.vehiqon.features.email.mapper;
 
 
-import com.vehiqon.features.carmgmt.entities.MaintenanceReminderEntity;
+import com.vehiqon.features.carmgmt.dto.CarMaintenanceDto;
+import com.vehiqon.features.carmgmt.dto.response.MaintenanceReminderResponse;
 import com.vehiqon.features.email.dto.EmailDetails;
 import com.vehiqon.features.onboarding.entity.UserEntity;
 import org.springframework.stereotype.Component;
@@ -22,7 +23,7 @@ public class EmailResponseMapper {
                 .build();
     }
 
-    public EmailDetails maintenanceReminderEmail(UserEntity user, MaintenanceReminderEntity reminderEntity) {
+    public EmailDetails maintenanceReminderEmail(MaintenanceReminderResponse reminderEntity) {
 
         String body = """
             Hello %s,
@@ -47,37 +48,31 @@ public class EmailResponseMapper {
             Vehiqon
             """
                 .formatted(
-                        user.getFirstName(),
-                        reminderEntity.getType(),
-                        reminderEntity.getAppointmentDate().toString(),
-                        reminderEntity.getAppointmentTime().toString(),
-                        reminderEntity.getCarEntity().getBrand().getName(),
-                        reminderEntity.getCarEntity().getModel().getName()
+                        reminderEntity.firstName(),
+                        reminderEntity.type(),
+                        reminderEntity.appointmentDate().toString(),
+                        reminderEntity.appointmentTime().toString(),
+                        reminderEntity.carBrandName(),
+                        reminderEntity.carModelName()
                 );
 
-//         Your vehicle is due for" + reminderEntity.getType().name() +
-//                " on " + reminderEntity.getDueDate().toString() +
-//                " at " + reminderEntity.getWorkshop() +
-//                ".\n Kindly reach out to us on " + reminderEntity.getAppointmentDate() +
-//                " by " + reminderEntity.getAppointmentDate().toString())
-
         return EmailDetails.builder()
-                .recipient(user.getEmail())
-                .subject("Vehicle Maintenance Reminder -" + reminderEntity.getType().name())
+                .recipient(reminderEntity.email())
+                .subject("Vehicle Maintenance Reminder -" + reminderEntity.type().name())
                 .messageBody(body)
                 .build();
     }
 
-    public EmailDetails toAccountCreationResponse(UserEntity savedUser) {
-
-           return EmailDetails.builder()
-                   .recipient(savedUser.getEmail())
-                   .subject("Account Creation")
-                   .messageBody("Congratulations your Account have been successfully created.\n" +
-                           "Your Primary Account Details:\n" +
-                           "Account Name: " + savedUser.getFirstName() + " " + savedUser.getLastName() + "\n" +
-                           "Account NUBAN:" + savedUser.getPrimaryAccountNumber())
-                   .build();
-
-        }
+//    public EmailDetails toAccountCreationResponse(UserEntity savedUser) {
+//
+//           return EmailDetails.builder()
+//                   .recipient(savedUser.getEmail())
+//                   .subject("Account Creation")
+//                   .messageBody("Congratulations your Account have been successfully created.\n" +
+//                           "Your Primary Account Details:\n" +
+//                           "Account Name: " + savedUser.getFirstName() + " " + savedUser.getLastName() + "\n" +
+//                           "Account NUBAN:" + savedUser.getPrimaryAccountNumber())
+//                   .build();
+//
+//        }
     }

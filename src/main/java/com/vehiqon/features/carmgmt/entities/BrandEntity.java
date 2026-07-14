@@ -14,17 +14,17 @@ import java.util.Set;
 @AllArgsConstructor
 @SuperBuilder
 @Entity
-@Table(name="brands")
+@Table(name="car_brands")
 public class BrandEntity extends BaseEntity {
 
     @Column(nullable = false, unique = true)
     private String name;
 
-    @Builder.Default
-    @OneToMany(mappedBy = "brand", cascade = CascadeType.ALL)
-    private Set<CarModelEntity> models = new HashSet<>();
-
-    @Builder.Default
-    @OneToMany(mappedBy = "brand")
-    private Set<CarEntity> cars = new HashSet<>();
+//    @Builder.Default
+//    @OneToMany(mappedBy = "brand", cascade = CascadeType.ALL)
+//    private Set<CarModelEntity> models = new HashSet<>();
+//
+//    @Builder.Default
+//    @OneToMany(mappedBy = "brand")
+//    private Set<CarEntity> cars = new HashSet<>();
 }

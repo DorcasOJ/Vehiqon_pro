@@ -12,6 +12,7 @@ import com.vehiqon.common.enums.UserStatus;
 import com.vehiqon.features.email.service.EmailService;
 import com.vehiqon.features.onboarding.dto.request.CreateUserRequest;
 import com.vehiqon.features.onboarding.dto.response.UserResponse;
+import com.vehiqon.features.onboarding.entity.VerificationTokenEntity;
 import com.vehiqon.features.onboarding.mapper.UserMapper;
 import com.vehiqon.features.onboarding.repository.UserRepository;
 import com.vehiqon.features.onboarding.repository.VerificationTokenRepository;
@@ -55,7 +56,7 @@ public class UserServiceImpl implements UserService {
 
         UserEntity newUser = userMapper.toEntity(request);
         newUser.setStatus(UserStatus.ACTIVE.name());
-        newUser.setIsVerified(true);
+        newUser.setIsVerified(false);
         newUser.setPassword(passwordEncoder.encode(request.getPassword())); // hash password
         newUser.getRoles().add(Role.ROLE_USER);
         UserEntity savedUser = userRepository.save(newUser);
@@ -68,7 +69,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public void validateUserEmail(UserEntity savedUser) {
         String token = UUID.randomUUID().toString();
-        verificationTokenRepository.save( verificationTokenMapper.emailTokenToSave(savedUser, token));
+        verificationTokenRepository.save(verificationTokenMapper.emailTokenToSave(savedUser, token));
         String url = verificationLink+ token;
         emailService.sendEmailAlert(emailResponseMapper.toVerifyEmailResponse(savedUser, url));
 //        emailService.sendEmailAlert(emailResponseMapper.toAccountCreationResponse(savedUser));

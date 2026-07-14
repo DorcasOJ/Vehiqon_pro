@@ -11,7 +11,9 @@ import lombok.experimental.SuperBuilder;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -21,34 +23,38 @@ import java.time.LocalTime;
 @Entity
 @Table(name="maintenance_reminders")
 public class MaintenanceReminderEntity extends BaseEntity {
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "car_id", nullable = false)
-    private CarEntity carEntity;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    private UserEntity user;
+    @Column(name = "car_id", nullable = false)
+    private UUID carId;
 
     private String title;
 
     @Column(length = 1200)
     private String description;
+
     @Enumerated(EnumType.STRING)
     private MaintenanceType type;
-    private LocalDate dueDate;
 
     @Enumerated(EnumType.STRING)
     private MaintenanceStatus status;
+
     private LocalDate appointmentDate;
+
     private LocalTime appointmentTime;
+
     private Integer odometer;
+
     private BigDecimal estimatedCost;
+
     private String workshop;
 
+    @Column(columnDefinition = "TEXT")
     private String notes;
 
     @Builder.Default
     private Boolean notificationSent = false;
+
     private LocalDate notificationDate;
 
+    private LocalDateTime notificationSentAt;
+    private LocalDate dueDate;
 }

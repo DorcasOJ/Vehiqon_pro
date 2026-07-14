@@ -3,6 +3,7 @@ package com.vehiqon.features.carmgmt.service.impl;
 import com.vehiqon.common.exception.BadRequestException;
 import com.vehiqon.common.exception.ResourceNotFoundException;
 import com.vehiqon.features.carmgmt.dto.CarMaintenanceDto;
+import com.vehiqon.features.carmgmt.dto.response.MaintenanceReminderResponse;
 import com.vehiqon.features.carmgmt.entities.CarEntity;
 import com.vehiqon.features.carmgmt.entities.MaintenanceReminderEntity;
 import com.vehiqon.features.carmgmt.enums.MaintenanceStatus;
@@ -33,20 +34,20 @@ public class CarMaintenanceServiceImpl implements CarMaintenanceService {
     @Override
     public CarMaintenanceDto.MaintenanceResponse create(CarMaintenanceDto.CreateMaintenanceRequest request) {
         UserEntity user = authService.getAuthenticatedUser();
-        CarEntity car = carRepository.findByIdAndUser(request.carId(), user)
+        CarEntity car = carRepository.findByIdAndUserId(request.carId(), user.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Car not found"));
         if (request.appointmentDate()
                 .isBefore(LocalDate.now())) {
             throw new BadRequestException("Appointment date cannot be in the past");
         }
-        if(carMaintenanceRepository.existsByCarEntityAndAppointmentDateAndAppointmentTime(
-                car, request.appointmentDate(),
+        if(carMaintenanceRepository.existsByCarIdAndAppointmentDateAndAppointmentTime(
+                car.getId(), request.appointmentDate(),
                 request.appointmentTime())) {
             throw new BadRequestException("A maintenance appointment already exists for this time");
         }
         MaintenanceReminderEntity maintenance = carMaintenanceMapper.toEntity(request);
-        maintenance.setCarEntity(car);
-        maintenance.setUser(user);
+        maintenance.setCarId(car.getId());
+//        maintenance.setUserId(user.getId());
         maintenance.setStatus(MaintenanceStatus.valueOf(MaintenanceStatus.SCHEDULED.name()));
         maintenance.setNotificationDate(
                 request.notificationDate() != null
@@ -60,36 +61,35 @@ public class CarMaintenanceServiceImpl implements CarMaintenanceService {
 
     @Override
     @Transactional
-    public List<CarMaintenanceDto.MaintenanceResponse> getMyMaintenance() {
+    public List<MaintenanceReminderResponse> getMyMaintenance() {
         UserEntity user = authService.getAuthenticatedUser();
-        return carMaintenanceRepository.findAllByUser(user).stream()
-                .map(carMaintenanceMapper::toResponse)
-                .toList();
+       return carMaintenanceRepository.findAllMaintenanceReminderByUserId(user.getId()).orElseThrow(() -> new ResourceNotFoundException("Maintenance Reminder not found for user"));
     }
 
     @Override
-    public List<CarMaintenanceDto.MaintenanceResponse> getCarMaintenance(UUID carId) {
+    public List<MaintenanceReminderResponse> getCarMaintenance(UUID carId) {
         UserEntity user = authService.getAuthenticatedUser();
-        CarEntity car = carRepository.findByIdAndUser(carId, user)
+        CarEntity car = carRepository.findByIdAndUserId(carId, user.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Car not found"));
-        return carMaintenanceRepository.findAllByCarEntityAndUser(car, user)
-                .stream().map(carMaintenanceMapper::toResponse)
-                .toList();
+        return carMaintenanceRepository.findMaintenanceReminderByCarId(car.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Maintenance not found"));
+
+
     }
 
     @Override
-    public CarMaintenanceDto.MaintenanceResponse getMaintenance(UUID id) {
+    public MaintenanceReminderResponse getMaintenance(UUID id) {
         UserEntity user = authService.getAuthenticatedUser();
-        MaintenanceReminderEntity maintenance = carMaintenanceRepository.findByIdAndUser(id, user)
+        return carMaintenanceRepository.findMaintenanceReminderByUserId(user.getId(), id)
                 .orElseThrow(() -> new ResourceNotFoundException("Maintenance not found"));
-        return carMaintenanceMapper.toResponse(maintenance);
+
 
     }
 
     @Override
     public CarMaintenanceDto.MaintenanceResponse update(UUID id, CarMaintenanceDto.UpdateMaintenanceRequest request) {
         UserEntity user = authService.getAuthenticatedUser();
-        MaintenanceReminderEntity maintenance = carMaintenanceRepository.findByIdAndUser(id, user)
+        MaintenanceReminderEntity maintenance = carMaintenanceRepository.findByIdAndUserId(id, user.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Maintenance not found"));
         if(request.appointmentTime() != null &&
                 request.appointmentDate().isBefore(LocalDate.now())) {
@@ -105,7 +105,7 @@ public class CarMaintenanceServiceImpl implements CarMaintenanceService {
     @Override
     public void cancel(UUID id) {
         UserEntity user = authService.getAuthenticatedUser();
-        MaintenanceReminderEntity maintenance = carMaintenanceRepository.findByIdAndUser(id, user)
+        MaintenanceReminderEntity maintenance = carMaintenanceRepository.findByIdAndUserId(id, user.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Maintenance not found"));
         if(maintenance.getStatus() == MaintenanceStatus.COMPLETED) {
             throw new BadRequestException("Completed maintenance cannot be cancelled");
@@ -118,7 +118,7 @@ public class CarMaintenanceServiceImpl implements CarMaintenanceService {
     @Override
     public CarMaintenanceDto.MaintenanceResponse complete(UUID id) {
         UserEntity user = authService.getAuthenticatedUser();
-        MaintenanceReminderEntity maintenance = carMaintenanceRepository.findByIdAndUser(id, user)
+        MaintenanceReminderEntity maintenance = carMaintenanceRepository.findByIdAndUserId(id, user.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Maintenance not found"));
         maintenance.setStatus(MaintenanceStatus.COMPLETED);
 

@@ -26,11 +26,9 @@ public class WalletController {
 
     @PostMapping("/virtual-account")
     public ApiResponse<NombaDto.VirtualAccountResponse.Data> create() {
-
         return apiResponseMapper.toResponse(
                virtualAccountService.createVirtualAccount()
         );
-
     }
 
     @GetMapping("/virtual-account")

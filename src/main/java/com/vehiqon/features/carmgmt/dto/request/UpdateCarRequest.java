@@ -44,10 +44,10 @@ public class UpdateCarRequest {
     private CarStatus status;
 
     @NotNull
-    private UUID brandId;
+    private UUID carBrandId;
 
     @NotNull
-    private UUID modelId;
+    private UUID carModelId;
 
     // getters/setters
 }

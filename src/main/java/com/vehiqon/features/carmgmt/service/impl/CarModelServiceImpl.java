@@ -3,7 +3,7 @@ package com.vehiqon.features.carmgmt.service.impl;
 import com.vehiqon.common.exception.ResourceNotFoundException;
 import com.vehiqon.features.carmgmt.dto.CarModelDto;
 import com.vehiqon.features.carmgmt.entities.BrandEntity;
-import com.vehiqon.features.carmgmt.mapper.CarModelMapper;
+import com.vehiqon.features.carmgmt.mapper.CarBrandModelMapper;
 import com.vehiqon.features.carmgmt.repository.CarBrandRepository;
 import com.vehiqon.features.carmgmt.repository.CarModelRepository;
 import com.vehiqon.features.carmgmt.service.CarModelService;
@@ -19,26 +19,26 @@ public class CarModelServiceImpl implements CarModelService {
 
     private final CarModelRepository carModelRepository;
     private final CarBrandRepository brandRepository;
-    private final CarModelMapper carModelMapper;
+    private final CarBrandModelMapper carBrandModelMapper;
 
     @Override
     public List<CarModelDto.CarModelResponse> getAllModels() {
         return carModelRepository.findAll().stream()
-                .map(carModelMapper::toResponse)
+                .map(carBrandModelMapper::toCarModelResponse)
                 .toList();
     }
 
     @Override
     public List<CarModelDto.CarModelResponse> getModelsByBrand(UUID brandId) {
         BrandEntity brand = brandRepository.findById(brandId).orElseThrow(() -> new ResourceNotFoundException("Brand not found"));
-        return carModelRepository.findAllByBrand(brand).stream()
-                .map(carModelMapper::toResponse)
+        return carModelRepository.findAllByCarBrandId(brand.getId()).stream()
+                .map(carBrandModelMapper::toCarModelResponse)
                 .toList();
     }
 
     @Override
     public CarModelDto.CarModelResponse getModel(UUID id) {
-        return carModelMapper.toResponse(
+        return carBrandModelMapper.toCarModelResponse(
                 carModelRepository.findById(id).orElseThrow(() ->
                         new ResourceNotFoundException("Model not found"))
         );

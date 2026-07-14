@@ -15,22 +15,25 @@ import java.util.UUID;
 
 @Repository
 public interface RefreshTokenRepository extends JpaRepository<RefreshTokenEntity, UUID> {
-    Optional<RefreshTokenEntity> findByToken(String token);
-    Optional<List<RefreshTokenEntity>> findAllByUser(UserEntity user);
 
-    Optional<List<RefreshTokenEntity>> findAllByUserAndRevokedFalse(UserEntity user);
+    Optional<RefreshTokenEntity> findByToken(String token); // refresh
+    Optional<List<RefreshTokenEntity>> findAllByUserId(UUID userId); // all
+    Optional<List<RefreshTokenEntity>> findAllByUserIdAndRevokedFalse(UUID userId);
+    Optional<RefreshTokenEntity> findByUserIdAndRevokedFalse(UUID userId);
 
-    Optional<RefreshTokenEntity> findByUser(UserEntity user );
+//    Optional<RefreshTokenEntity> findFirstByUserId(UUID userId);
+
     @Modifying
     @Transactional
     @Query("""
-    update RefreshTokenEntity t
-    set t.revoked = true,
-        t.expired = true,
-        t.revokedAt = CURRENT_TIMESTAMP
-    where t.user = :user
-      and t.revoked = false
-      AND t.expired = false
-""")
-    void revokeAll(@Param("user") UserEntity user);
-}
+        UPDATE RefreshTokenEntity t
+        SET t.revoked = true,
+            t.expired = true,
+            t.revokedAt = CURRENT_TIMESTAMP
+        WHERE t.userId = :userId
+          AND t.revoked = false
+          AND t.expired = false
+    """)
+    void revokeAll(@Param("userId") UUID userId);
+    }
+

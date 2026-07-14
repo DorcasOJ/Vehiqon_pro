@@ -1,11 +1,10 @@
 package com.vehiqon.features.carmgmt.scheduler;
 
-import com.vehiqon.features.carmgmt.entities.MaintenanceReminderEntity;
+import com.vehiqon.features.carmgmt.dto.CarMaintenanceDto;
+import com.vehiqon.features.carmgmt.dto.response.MaintenanceReminderResponse;
 import com.vehiqon.features.carmgmt.repository.CarMaintenanceRepository;
-import com.vehiqon.features.email.dto.EmailDetails;
 import com.vehiqon.features.email.mapper.EmailResponseMapper;
 import com.vehiqon.features.email.service.EmailService;
-import com.vehiqon.features.onboarding.entity.UserEntity;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,8 +12,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
@@ -29,22 +28,23 @@ public class MaintenanceReminderScheduler {
     @Scheduled(cron = "0 0 8 * * *") // Every day at 8:00 AM
     @Transactional
     public void sendMaintenanceReminders() {
-        List<MaintenanceReminderEntity> reminders = carMaintenanceRepository.findAllByNotificationSentFalseAndNotificationDateLessThanEqual(
+        Optional<List<MaintenanceReminderResponse>> dueNotifications = carMaintenanceRepository.findDueNotifications(
                 LocalDate.now()
         );
-        for (MaintenanceReminderEntity reminderEntity : reminders) {
-            try {
-                UserEntity user = reminderEntity.getCarEntity().getUser();
 
-                emailService.sendEmailAlert(emailResponseMapper.maintenanceReminderEmail(user,reminderEntity));
-                reminderEntity.setNotificationSent(true);
-            } catch (Exception e) {
-                log.error("Failed to send reminder {}",
-                        reminderEntity.getId(),
-                        e);
+        if(dueNotifications.isPresent()) {
+            List<MaintenanceReminderResponse> reminders = dueNotifications.get();
+            for (MaintenanceReminderResponse reminder : reminders) {
+                try {
+                    emailService.sendEmailAlert(emailResponseMapper.maintenanceReminderEmail(reminder));
+                    carMaintenanceRepository.markNotificationSent(reminder.id());
+                } catch (Exception e) {
+                    log.error("Failed to send reminder {}",
+                            reminder.id(),
+                            e);
+                }
             }
+            log.info("Attempted Sending {} maintenance reminders", reminders.size());
         }
-        carMaintenanceRepository.saveAll(reminders);
-        log.info("Attempted Sending {} maintenance reminders", reminders.size());
     }
 }

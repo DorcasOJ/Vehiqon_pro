@@ -10,4 +10,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface NombaTokenRepository extends JpaRepository<NombaTokenEntity, Long> {
+
+    Optional<NombaTokenEntity> findTopByOrderByExpiresAtDesc();
+    boolean existsByBusinessId(String businessId);
 }

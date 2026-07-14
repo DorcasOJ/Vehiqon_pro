@@ -1,0 +1,66 @@
+
+INSERT INTO subscription_plans (
+    id,
+    name,
+    description,
+    price,
+    currency,
+    billing_cycle,
+    max_cars,
+    maintenance_reminders,
+    priority_support,
+    roadside_assistance,
+    analytics,
+    active,
+    created_at,
+    updated_at
+)
+VALUES
+(
+    gen_random_uuid(),
+    'Basic',
+    'Perfect for individual car owners with one vehicle.',
+    0.00,
+    'NGN',
+    'MONTHLY',
+    1,
+    TRUE,
+    FALSE,
+    FALSE,
+    FALSE,
+    TRUE,
+    NOW(),
+    NOW()
+),
+(
+    gen_random_uuid(),
+    'Gold',
+    'Ideal for families or users managing multiple vehicles.',
+    30000.00,
+    'NGN',
+    'MONTHLY',
+    3,
+    TRUE,
+    TRUE,
+    FALSE,
+    TRUE,
+    TRUE,
+    NOW(),
+    NOW()
+),
+(
+    gen_random_uuid(),
+    'Platinum',
+    'Premium plan with unlimited vehicle management and exclusive support.',
+    100000.00,
+    'NGN',
+    'MONTHLY',
+    999,
+    TRUE,
+    TRUE,
+    TRUE,
+    TRUE,
+    TRUE,
+    NOW(),
+    NOW()
+);

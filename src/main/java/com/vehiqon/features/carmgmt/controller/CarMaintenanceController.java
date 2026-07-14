@@ -3,6 +3,7 @@ package com.vehiqon.features.carmgmt.controller;
 import com.vehiqon.common.dto.response.ApiResponse;
 import com.vehiqon.common.mapper.ApiResponseMapper;
 import com.vehiqon.features.carmgmt.dto.CarMaintenanceDto;
+import com.vehiqon.features.carmgmt.dto.response.MaintenanceReminderResponse;
 import com.vehiqon.features.carmgmt.service.CarMaintenanceService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
@@ -35,7 +36,7 @@ public class CarMaintenanceController {
     }
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<CarMaintenanceDto.MaintenanceResponse>>> getMyMaintenance() {
+    public ResponseEntity<ApiResponse<List<MaintenanceReminderResponse>>> getMyMaintenance() {
         return ResponseEntity.ok(
                 apiResponseMapper.toResponse(
                         maintenanceService.getMyMaintenance()
@@ -44,7 +45,7 @@ public class CarMaintenanceController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<CarMaintenanceDto.MaintenanceResponse>> getMaintenance(
+    public ResponseEntity<ApiResponse<MaintenanceReminderResponse>> getMaintenance(
             @PathVariable UUID id
             ) {
         return ResponseEntity.ok(
@@ -56,7 +57,7 @@ public class CarMaintenanceController {
     }
 
     @GetMapping("/car/{carId}")
-    public ResponseEntity<ApiResponse<List<CarMaintenanceDto.MaintenanceResponse>>> getCarMaintenance(
+    public ResponseEntity<ApiResponse<List<MaintenanceReminderResponse>>> getCarMaintenance(
             @PathVariable UUID carId
     ) {
         return ResponseEntity.ok(

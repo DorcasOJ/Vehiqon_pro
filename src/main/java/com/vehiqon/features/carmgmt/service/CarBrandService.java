@@ -11,5 +11,5 @@ public interface CarBrandService {
     List<CarBrandDto.CarBrandResponse> getAllBrands();
     CarBrandDto.CarBrandResponse getBrandByName(String name);
 
-    List<CarModelDto.CarModelResponse> getModelsByBrand(UUID brandId);
+    List<CarModelDto.CarModelResponse> getModelsByBrandId(UUID brandId);
 }

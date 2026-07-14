@@ -3,12 +3,14 @@ package com.vehiqon.features.carmgmt.service.impl;
 import com.vehiqon.common.exception.BadRequestException;
 import com.vehiqon.common.exception.ResourceNotFoundException;
 import com.vehiqon.features.carmgmt.dto.CarDto;
-import com.vehiqon.features.carmgmt.dto.request.CreateCarRequest;
+import com.vehiqon.features.carmgmt.dto.response.CarDetailsResponse;
 import com.vehiqon.features.carmgmt.entities.BrandEntity;
 import com.vehiqon.features.carmgmt.entities.CarEntity;
 import com.vehiqon.features.carmgmt.entities.CarModelEntity;
-import com.vehiqon.features.carmgmt.enums.TransmissionEnum;
+import com.vehiqon.features.carmgmt.enums.CarStatus;
+import com.vehiqon.features.carmgmt.mapper.CarBrandModelMapper;
 import com.vehiqon.features.carmgmt.mapper.CarMapper;
+import com.vehiqon.features.carmgmt.mapper.CarResponseMapper;
 import com.vehiqon.features.carmgmt.repository.CarBrandRepository;
 import com.vehiqon.features.carmgmt.repository.CarModelRepository;
 import com.vehiqon.features.carmgmt.repository.CarRepository;
@@ -29,76 +31,71 @@ public class CarServiceImpl implements CarService {
     private final CarModelRepository modelRepository;
     private final UserRepository userRepository;
     private final CarMapper carMapper;
+    private final CarResponseMapper carResponseMapper;
 
 
-    public CarServiceImpl(AuthService authService, CarRepository carRepository, CarBrandRepository brandRepository, CarModelRepository modelRepository, UserRepository userRepository, CarMapper carMapper) {
+    public CarServiceImpl(AuthService authService, CarRepository carRepository, CarBrandRepository brandRepository, CarModelRepository modelRepository, UserRepository userRepository, CarMapper carMapper, CarBrandModelMapper carBrandModelMapper, CarResponseMapper carResponseMapper) {
         this.authService = authService;
         this.carRepository = carRepository;
         this.brandRepository = brandRepository;
         this.modelRepository = modelRepository;
         this.userRepository = userRepository;
         this.carMapper = carMapper;
+        this.carResponseMapper = carResponseMapper;
     }
 
     @Override
     public CarDto.CarResponse registerCar(CarDto.CreateCarRequest request) {
         UserEntity user = authService.getAuthenticatedUser();
-        BrandEntity brand = brandRepository.findById(request.brandId())
+        BrandEntity brand = brandRepository.findById(request.carBrandId())
                 .orElseThrow(() -> new ResourceNotFoundException("Car brand not found"));
-        CarModelEntity model = modelRepository.findById(request.modelId())
+        CarModelEntity model = modelRepository.findById(request.carModelId())
                 .orElseThrow(() -> new ResourceNotFoundException("Model not found"));
-        if(!model.getBrand().getId().equals(brand.getId())) {
+        if(!model.getCarBrandId().equals(brand.getId())) {
             throw new BadRequestException("Selected model does not belong to selected brand");
         }
 
-      validateUniqueFields(request);
+        validateUniqueFields(request);
 
         CarEntity carMapping = carMapper.toEntity(request);
-        carMapping.setUser(user);
-        carMapping.setBrand(brand);
-        carMapping.setModel(model);
-        return carMapper.toResponse(carRepository.save(carMapping));
-
+        carMapping.setUserId(user.getId());
+        carMapping.setCarBrandId(brand.getId());
+        carMapping.setCarModelId(model.getId());
+        carMapping.setStatus(CarStatus.ACTIVE);
+        return carResponseMapper.toResponse(carMapper.toResponse(carRepository.save(carMapping)));
     }
 
 
     @Override
-    public List<CarDto.CarResponse> getMyCars() {
+    public List<CarDetailsResponse> getMyCars() {
         UserEntity user = authService.getAuthenticatedUser();
 
-        return carRepository.findAllByUser(user)
-                .stream()
-                .flatMap(entity -> carMapper.toListResponse(entity).stream())
-                .toList();
+        return carRepository.findCarsDetailsByUserId(user.getId()).orElseThrow(() -> new ResourceNotFoundException("Cars not found"));
+//        return carRepository.findAllByUserId(user.getId())
+//                .stream()
+//                .map(carMapper::toResponse)
+//                .map(carResponseMapper::toResponse)
+//                .flatMap(entity -> carMapper.toListResponse(entity).stream())
+//                .toList();
     }
 
     @Override
-    public CarDto.CarResponse getCar(UUID carId) {
+    public CarDetailsResponse getCar(UUID carId) {
         UserEntity user = authService.getAuthenticatedUser();
 
-        CarEntity car = carRepository.findByIdAndUser(carId, user)
+        return carRepository.findCarDetails(carId, user.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Car not found"));
 
-        return carMapper.toResponse(car);
     }
 
     @Override
     public CarDto.CarResponse update(UUID carId, CarDto.UpdateCarRequest request) {
         UserEntity user = authService.getAuthenticatedUser();
 
-        CarEntity car = carRepository.findByIdAndUser(carId, user)
+        CarEntity car = carRepository.findByIdAndUserId(carId, user.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Car not found"));
 
-        BrandEntity brand = brandRepository.findById(request.brandId())
-                .orElseThrow(() -> new ResourceNotFoundException("Brand not found"));
-
-        CarModelEntity model = modelRepository.findById(request.modelId())
-                .orElseThrow(() -> new ResourceNotFoundException("Model not found"));
-
-        if (!model.getBrand().getId().equals(brand.getId())) {
-            throw new BadRequestException("Selected model does not belong to the selected brand");
-        }
-
+        validateUpdateFields(request, car);
 //
 //        car.setPlateNumber(request.plateNumber());
 //        car.setVin(request.vin());
@@ -116,7 +113,8 @@ public class CarServiceImpl implements CarService {
 //        car.setBrand(brand);
 //        car.setModel(model);
 
-        return carMapper.toResponse(carRepository.save(car));
+        return carResponseMapper.toResponse(carMapper.toResponse(carRepository.save(car))
+        );
 
     }
 
@@ -132,25 +130,21 @@ public class CarServiceImpl implements CarService {
 
 
     @Override
-    public List<CarDto.CarResponse> getCarsByUser(UUID userId) {
+    public List<CarDetailsResponse> getCarsByUser(UUID userId) {
         UserEntity user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        return carRepository.findAllByUser(user)
-                .stream()
-                .flatMap(entity -> carMapper.toListResponse(entity).stream())
-                .toList();
+        return carRepository.findCarsDetailsByUserId(user.getId()).orElseThrow(() -> new ResourceNotFoundException("Cars not found"));
     }
 
     @Override
-    public CarDto.CarResponse getUserCar(UUID userId, UUID carId) {
+    public CarDetailsResponse getUserCar(UUID userId, UUID carId) {
         UserEntity user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        CarEntity car = carRepository.findByIdAndUser(carId, user)
+        return carRepository.findCarDetails(carId, user.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Car not found"));
 
-        return carMapper.toResponse(car);
     }
 
     @Override
@@ -158,51 +152,67 @@ public class CarServiceImpl implements CarService {
         UserEntity user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        CarEntity car = carRepository.findByIdAndUser(carId, user)
+        CarEntity car = carRepository.findByIdAndUserId(carId, user.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Car not found"));
+//
+//        BrandEntity brand = brandRepository.findById(request.carBrandId())
+//                .orElseThrow(() -> new ResourceNotFoundException("Car brand not found"));
+//
+//        CarModelEntity model = modelRepository.findById(request.carModelId())
+//                .orElseThrow(() -> new ResourceNotFoundException("Car model not found"));
+//
+//        if (!model.getCarBrandId().equals(brand.getId())) {
+//            throw new BadRequestException("Selected model does not belong to the selected brand");
+//        }
+        validateUpdateFields(request, car);
 
-        BrandEntity brand = brandRepository.findById(request.brandId())
-                .orElseThrow(() -> new ResourceNotFoundException("Car brand not found"));
+//       car.setCarBrandId(brand.getId());
+//        car.setCarModelId(model.getId());
+//        car.setPlateNumber(request.plateNumber());
+//        car.setVin(request.vin());
+//        car.setVin(request.color());
+//        car.setNickname(request.nickname());
+//        car.setVin(request.year().toString());
+//        car.setStatus(request.status());
+//        car.setVin(request.transmission().name().toUpperCase());
+//        car.setVin(request.fuelType().name());
+//        car.setVin(String.valueOf(request.purchaseDate()));
+//        car.setVin(String.valueOf(request.licenseExpiry()));
+//        car.setVin( request.vin());
+//        car.setEngineNumber(request.engineNumber());
+        carMapper.updateEntity(request, car);
 
-        CarModelEntity model = modelRepository.findById(request.modelId())
-                .orElseThrow(() -> new ResourceNotFoundException("Car model not found"));
-
-        if (!model.getBrand().getId().equals(brand.getId())) {
-            throw new BadRequestException("Selected model does not belong to the selected brand");
-        }
-        validateUniqueFields(request);
-
-        car.setBrand(brand);
-        car.setModel(model);
-        car.setPlateNumber(request.plateNumber());
-        car.setVin(request.vin());
-        car.setVin(request.color());
-        car.setNickname(request.nickname());
-        car.setVin(request.year().toString());
-        car.setStatus(request.status());
-        car.setVin(request.transmission().name().toUpperCase());
-        car.setVin(request.fuelType().name());
-        car.setVin(String.valueOf(request.purchaseDate()));
-        car.setVin(String.valueOf(request.licenseExpiry()));
-        car.setVin( request.odometer().toString());
-        car.setEngineNumber(request.engineNumber());
-
-        return carMapper.toResponse(carRepository.save(car));
+        CarEntity savedCar = carRepository.save(car);
+        return carResponseMapper.toResponse(carMapper.toResponse(savedCar));
 
     }
 
+    private void validateUpdateFields(CarDto.CarRequest request, CarEntity car ){
+        BrandEntity brand = brandRepository.findById(
+                        request.carBrandId() != null ? request.carBrandId() : car.getCarBrandId())
+                .orElseThrow(() -> new ResourceNotFoundException("Brand not found"));
+
+        CarModelEntity model = modelRepository.findById(
+                        request.carModelId() != null ? request.carModelId() : car.getCarModelId() )
+                .orElseThrow(() -> new ResourceNotFoundException("Model not found"));
+
+        if (!model.getCarBrandId().equals(brand.getId())) {
+            throw new BadRequestException("Selected model does not belong to the selected brand");
+        }
+
+        validateUniqueFields(request);
+    }
 
     private void validateUniqueFields(CarDto.CarRequest request) {
-
-        if (carRepository.existsByVin(request.vin())) {
+        if (request.vin() != null && carRepository.existsByVin(request.vin())) {
             throw new BadRequestException("VIN already exists");
         }
 
-        if (carRepository.existsByPlateNumber(request.plateNumber())) {
+        if (request.plateNumber() != null && carRepository.existsByPlateNumber(request.plateNumber())) {
             throw new BadRequestException("Plate number already exists");
         }
 
-        if (request.engineNumber() != null
+        if (request.engineNumber() != null && request.engineNumber() != null
                 && !request.engineNumber().isBlank()
                 && carRepository.existsByEngineNumber(request.engineNumber())) {
             throw new BadRequestException("Engine number already exists");

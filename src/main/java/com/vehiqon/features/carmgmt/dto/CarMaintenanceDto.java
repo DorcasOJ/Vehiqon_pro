@@ -7,10 +7,10 @@ import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
-import org.springframework.format.annotation.DateTimeFormat;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.UUID;
 
@@ -40,6 +40,7 @@ public class CarMaintenanceDto {
             @JsonFormat(pattern = "dd-MM-yyyy")
 //            @DateTimeFormat(pattern = "dd-MM-yyyy")
             LocalDate notificationDate,
+            LocalDateTime notificationSentAt,
             @PositiveOrZero(message = "Odometer cannot be negative")
             Integer odometer,
             @PositiveOrZero(message = "Estimated cost cannot be negative")
@@ -53,23 +54,23 @@ public class CarMaintenanceDto {
 
             UUID id,
             UUID carId,
-            String carNickname,
-            String brand,
-            String model,
             String title,
+            String description,
             MaintenanceType type,
             MaintenanceStatus status,
             LocalDate appointmentDate,
             LocalTime appointmentTime,
             LocalDate notificationDate,
+            LocalDateTime notificationSentAt,
             LocalDate dueDate,
             Integer odometer,
             BigDecimal estimatedCost,
             String workshop,
-
             String notes
 
     ) {}
+
+
 
     public record UpdateMaintenanceRequest(
             String title,
@@ -79,6 +80,7 @@ public class CarMaintenanceDto {
             LocalDate appointmentDate,
             LocalTime appointmentTime,
             LocalDate notificationDate,
+            LocalDateTime notificationSentAt,
             LocalDate dueDate,
            Integer odometer,
             BigDecimal estimatedCost,

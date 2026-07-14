@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
 @SecurityRequirement(name = "bearerAuth")
-@Tag(name = "Vehiqon - User Account Car Management APIs")
+@Tag(name = "User Profile")
 public class UserController {
 
     private final UserService userService;

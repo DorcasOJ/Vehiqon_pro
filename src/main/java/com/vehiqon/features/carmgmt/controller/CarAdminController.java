@@ -1,7 +1,9 @@
 package com.vehiqon.features.carmgmt.controller;
 
 import com.vehiqon.common.dto.response.ApiResponse;
+import com.vehiqon.common.mapper.ApiResponseMapper;
 import com.vehiqon.features.carmgmt.dto.CarDto;
+import com.vehiqon.features.carmgmt.dto.response.CarDetailsResponse;
 import com.vehiqon.features.carmgmt.service.CarService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
@@ -20,43 +22,40 @@ import java.util.UUID;
 public class CarAdminController {
 
     private final CarService carService;
+    private final ApiResponseMapper apiResponseMapper;
 
 //    Admin APIs
 
     @GetMapping("users/{userId}")
-    ResponseEntity<ApiResponse<List<CarDto.CarResponse>>> getAllCarByUserId(
+    ResponseEntity<ApiResponse<List<CarDetailsResponse>>> getAllCarByUserId(
             @PathVariable("userId") UUID userId
     ){
         return ResponseEntity.ok()
-                .body(ApiResponse.<List<CarDto.CarResponse>>builder()
-                        .success(true)
-                        .data(carService.getCarsByUser(userId))
-                        .build());
+                .body(apiResponseMapper.toResponse(carService.getCarsByUser(userId))
+                );
+
     }
 
     @GetMapping("users/{userId}/{carId}")
-    ResponseEntity<ApiResponse<CarDto.CarResponse>> getCarByUserId(
+    ResponseEntity<ApiResponse<CarDetailsResponse>> getCarByUserId(
             @PathVariable("userId") UUID userId,
             @PathVariable("carId") UUID carId
     ){
         return ResponseEntity.ok()
-                .body(ApiResponse.<CarDto.CarResponse>builder()
-                        .success(true)
-                        .data(carService.getUserCar(userId, carId))
-                        .build());
+                .body(apiResponseMapper.toResponse(carService.getUserCar(userId, carId))
+                );
     }
 
 
-    @PutMapping("users/{userId}/{carId}")
+    @PatchMapping("users/{userId}/{carId}")
     ResponseEntity<ApiResponse<CarDto.CarResponse>> editCarByUserId(
             @PathVariable("userId") UUID userId,
             @PathVariable("carId") UUID carId,
-            @RequestBody CarDto.UpdateCarRequest request
+            @Valid @RequestBody CarDto.UpdateCarRequest request
     ){
-        return ResponseEntity.ok().body(ApiResponse.<CarDto.CarResponse>builder()
-                // .responseCode()
-                .data(carService.updateUserCar(userId, carId, request))
-                .build());
+        return ResponseEntity.ok().body(apiResponseMapper.toResponse(carService.updateUserCar(userId, carId, request))
+        );
+
     }
 
 

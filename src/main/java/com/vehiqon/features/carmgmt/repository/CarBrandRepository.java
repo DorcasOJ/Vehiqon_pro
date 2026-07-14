@@ -12,4 +12,5 @@ import java.util.UUID;
 @Repository
 public interface CarBrandRepository extends JpaRepository<BrandEntity, UUID> {
     Optional<BrandEntity> findByNameIgnoreCase(String name);
+    boolean existsByNameIgnoreCase(String name);
    }

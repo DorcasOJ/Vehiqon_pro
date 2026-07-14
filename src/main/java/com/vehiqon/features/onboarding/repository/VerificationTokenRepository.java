@@ -12,6 +12,13 @@ import java.util.UUID;
 
 @Repository
 public interface VerificationTokenRepository extends JpaRepository<VerificationTokenEntity, UUID> {
+
+
+//    List<VerificationTokenEntity> findByUserAndTypeAndUsedFalse(
+//            UserEntity user,
+//            VerificationTokenTypeEnum type
+//    );
+
     Optional<VerificationTokenEntity> findByToken(String token);
 
     Optional<VerificationTokenEntity> findByTokenAndType(
@@ -19,8 +26,14 @@ public interface VerificationTokenRepository extends JpaRepository<VerificationT
             VerificationTokenTypeEnum type
     );
 
-    List<VerificationTokenEntity> findByUserAndTypeAndUsedFalse(
-            UserEntity user,
+    List<VerificationTokenEntity> findByUserIdAndTypeAndUsedFalse(
+            UUID userId,
             VerificationTokenTypeEnum type
     );
+
+    List<VerificationTokenEntity> findByUserId(UUID userId);
+
+    boolean existsByToken(String token);
+
+    void deleteByUserId(UUID userId);
 }

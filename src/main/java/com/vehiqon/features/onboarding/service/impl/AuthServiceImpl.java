@@ -90,54 +90,16 @@ public class AuthServiceImpl implements AuthService {
                             .toList()
             );
 
+            RefreshTokenEntity refreshTokenEntity =  refreshTokenRepository.findByUserIdAndRevokedFalse(user.getId()).
+                            orElse(null);
+            if (refreshTokenEntity == null) {
+                refreshTokenEntity = jwtService.generateRefreshTokenToSave(user, request);
+                refreshTokenRepository.save(refreshTokenEntity);
 
-//            System.out.println(refreshTokenEntity.getUser());
-//            System.out.println(refreshTokenEntity.getUser().getEmail());
-//            RefreshTokenEntity existing =
-//                    refreshTokenRepository.findByUser(user).
-//                            orElse(null);
-//
-//            if (existing != null) {
-//                String accessToken = jwtService.generateToken(user, claims);
-//                String refreshToken = jwtService.generateRefreshToken(user);
-//
-//                RefreshTokenEntity refreshTokenEntity = jwtService.getRefreshTokenToSave(refreshToken, user, request );
-//
-////                existing.setToken(newToken);
-////                existing.setExpiresAt(expiry);
-////                existing.setRevoked(false);
-////                existing.setExpired(false);
-//
-//                refreshTokenRepository.save(existing);
-//            } else {
-//                refreshTokenRepository.save(refreshTokenEntity);
-//            }
+            }
             String accessToken = jwtService.generateToken(user, claims);
-            String refreshToken = jwtService.generateRefreshToken(user);
 
-            RefreshTokenEntity refreshTokenEntity =
-                    jwtService.getRefreshTokenToSave(refreshToken, user, request);
-
-            RefreshTokenEntity existing = refreshTokenRepository
-                    .findByUser(user)
-                    .orElse(null);
-
-//            if (existing != null) {
-//                existing.setToken(refreshToken);
-//                existing.setExpiresAt(refreshTokenEntity.getExpiresAt());
-//                existing.setDeviceId(refreshTokenEntity.getDeviceId());
-//                existing.setDeviceName(refreshTokenEntity.getDeviceName());
-//                existing.setIpAddress(refreshTokenEntity.getIpAddress());
-//                existing.setExpired(false);
-//                existing.setRevoked(false);
-//                existing.setRevokedAt(null);
-//
-//                refreshTokenRepository.save(existing);
-//            } else {
-//                refreshTokenRepository.save(refreshTokenEntity);
-//            }
-
-            return loginResponseMapper.toResponse(accessToken, null, user);
+            return loginResponseMapper.toResponse(accessToken, refreshTokenEntity.getToken(), user);
            } catch (Exception e) {
             throw new IllegalArgumentException(e);
         }
@@ -162,7 +124,7 @@ public class AuthServiceImpl implements AuthService {
             throw new InvalidResourceException("Refresh token has expired");
         }
 
-        UserEntity user = refreshToken.getUser();
+        UserEntity user = userRepository.findById(refreshToken.getUserId()).orElseThrow(() -> new ResourceNotFoundException("user does not exist"));
         LoginResponse response = generateTokens(user, httpRequest);
         return ApiResponse.<LoginResponse>builder()
                 .responseCode(AccountUtils.SUCCESS_CODE)
@@ -205,13 +167,13 @@ public class AuthServiceImpl implements AuthService {
                 );
 
         if (Boolean.TRUE.equals(verificationToken.getUsed())) {
-            throw new IllegalArgumentException("Verification link has already been used.");
+            throw new IllegalArgumentException("Verification link has already been used");
         }
 
         if (verificationToken.getExpiresAt().isBefore(LocalDateTime.now())) {
-            throw new IllegalArgumentException("Verification link has expired.");
+            throw new IllegalArgumentException("Verification link has expired");
         }
-        UserEntity user = verificationToken.getUser();
+        UserEntity user = userRepository.findById(verificationToken.getUserId()).orElseThrow(() -> new ResourceNotFoundException("User not found"));
         user.setIsVerified(true);
         userRepository.save(user);
         verificationToken.setUsed(true);
@@ -252,8 +214,8 @@ public class AuthServiceImpl implements AuthService {
 
             // invalidate previous unused tokens
             List<VerificationTokenEntity> tokens =
-                    verificationTokenRepository.findByUserAndTypeAndUsedFalse(
-                            user,
+                    verificationTokenRepository.findByUserIdAndTypeAndUsedFalse(
+                            user.getId(),
                             VerificationTokenTypeEnum.EMAIL_VERIFICATION
                     );
             for (VerificationTokenEntity token : tokens) {
@@ -310,7 +272,7 @@ public class AuthServiceImpl implements AuthService {
         UserEntity user =
                 (UserEntity) authentication.getPrincipal();
 
-        refreshTokenRepository.revokeAll(user);
+        refreshTokenRepository.revokeAll(user.getId());
         log.info("Revoked refresh tokens for user {}",user.getEmail());
 
         return ApiResponse.<Void>builder()

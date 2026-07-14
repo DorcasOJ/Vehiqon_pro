@@ -18,7 +18,7 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @SuperBuilder
 @Entity
-@Table(name="documents")
+@Table(name="car_documents")
 public class Documents extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "car_id", nullable = false)
