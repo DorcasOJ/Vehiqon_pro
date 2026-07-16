@@ -8,6 +8,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
+import java.util.UUID;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -15,18 +17,23 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @Entity
 @Table(name="audit_logs")
-public class AuditLog extends BaseEntity {
+public class AuditLogEntity extends BaseEntity {
     @Column(nullable = false)
     private String action;
 
     @Column(nullable = false)
     private String entity;
 
-    private String entityId;
+    private String userAgent;
+    private String description;
+
+    private String status;
+
+    @Column(name = "entity_id")
+    private UUID entityId;
 
     private String ipAddress;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    private UserEntity user;
+    @Column(name = "user_id")
+    private UUID userId;
 }

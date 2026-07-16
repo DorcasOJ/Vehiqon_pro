@@ -23,6 +23,18 @@ public class EmailResponseMapper {
                 .build();
     }
 
+    public EmailDetails toResetPassword(UserEntity user, String url) {
+
+        return EmailDetails.builder()
+                .recipient(user.getEmail())
+                .subject("Vehiqon -- Reset Your Password")
+                .messageBody("Click the link below to reset your password\n" +
+                        "This link expires in 15 minutes\n" + url + "\n" +
+                        "If you did not reset your password, you can safely ignore this email."
+                )
+                .build();
+    }
+
     public EmailDetails maintenanceReminderEmail(MaintenanceReminderResponse reminderEntity) {
 
         String body = """

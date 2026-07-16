@@ -31,10 +31,9 @@ public interface NombaMapper {
     @Mapping(target = "expired", constant = "false")
     VirtualAccountEntity toVirtualAccEntity(NombaDto.VirtualAccountResponse.Data response);
 
-    @Mapping(target = "id", ignore = true)
-
-    @Mapping(target = "updatedAt", ignore = true)
-    @Mapping(target = "createdAt", ignore = true)
-    NombaTokenEntity toTokenEntity(NombaDto.NombaTokenResponse.TokenResponseData  response);
+//    @Mapping(target = "id", ignore = true)
+//    @Mapping(target = "updatedAt", ignore = true)
+//    @Mapping(target = "createdAt", ignore = true)
+//    NombaTokenEntity toTokenEntity(NombaDto.NombaTokenResponse.TokenResponseData  response);
 
 }

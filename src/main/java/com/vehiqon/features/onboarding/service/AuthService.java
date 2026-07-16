@@ -9,17 +9,21 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 
 public interface AuthService {
-    ApiResponse<UserResponse> register(CreateUserRequest request);
-    ApiResponse<LoginResponse> login(LoginRequest request, HttpServletRequest httpServletRequest);
+    UserResponse register(UserDto.CreateUserRequest request, HttpServletRequest httpServletRequest);
+    LoginResponse login(AuthDto.LoginRequest request, HttpServletRequest httpServletRequest);
 
-    ApiResponse<LoginResponse> refresh(RefreshTokenRequest request, HttpServletRequest httpRequest);
+    LoginResponse refresh(AuthDto.RefreshTokenRequest request, HttpServletRequest httpRequest);
 
-    ApiResponse<Void> logout(LogoutRequest request);
-    ApiResponse<Void> logoutAll();
+    String logout(AuthDto.LogoutRequest request, HttpServletRequest httpServletRequest);
+    String logoutAll(HttpServletRequest httpServletRequest);
 
-    ApiResponse<Void> verifyEmail(String token);
+    String verifyEmail(String token, HttpServletRequest httpServletRequest);
 
-    ApiResponse<Void> resendVerificationEmail(@Valid ResendVerificationRequest request);
+    String resendVerificationEmail( AuthDto.ResendVerificationRequest request, HttpServletRequest httpServletRequest);
 
     UserEntity getAuthenticatedUser();
+
+    String changePassword(AuthDto.ChangePasswordRequest request, HttpServletRequest httpServletRequest);
+    String forgotPassword(AuthDto.ForgotPasswordRequest request, HttpServletRequest httpServletRequest );
+    String resetPassword(AuthDto.ResetPasswordRequest request, HttpServletRequest httpServletRequest);
 }

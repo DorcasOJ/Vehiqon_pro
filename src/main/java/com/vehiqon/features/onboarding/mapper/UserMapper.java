@@ -2,6 +2,7 @@ package com.vehiqon.features.onboarding.mapper;
 
 import com.vehiqon.features.onboarding.dto.request.CreateUserRequest;
 import com.vehiqon.features.onboarding.dto.request.UpdateUserRequest;
+import com.vehiqon.features.onboarding.dto.request.UserDto;
 import com.vehiqon.features.onboarding.dto.response.UserProfileResponse;
 import com.vehiqon.features.onboarding.dto.response.UserResponse;
 import com.vehiqon.features.onboarding.entity.UserEntity;
@@ -46,7 +47,7 @@ public interface UserMapper {
     @Mapping(target = "password", ignore = true)
 //    @Mapping(target = "refreshTokens", ignore = true)
 //    @Mapping(target = "virtualAccount", ignore = true)
-    UserEntity toEntity(CreateUserRequest request);
+    UserEntity toEntity(UserDto.CreateUserRequest request);
 
 
     @Mapping(target = "id", ignore = true)
@@ -65,7 +66,7 @@ public interface UserMapper {
 //    @Mapping(target = "virtualAccount", ignore = true)
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void updateEntity(
-            UpdateUserRequest request,
+            UserDto.UpdateUserRequest request,
             @MappingTarget UserEntity user
     );
 

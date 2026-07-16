@@ -3,6 +3,7 @@ package com.vehiqon.features.wallet.service.impl;
 import com.vehiqon.common.exception.BadRequestException;
 import com.vehiqon.common.exception.ResourceNotCreatedException;
 import com.vehiqon.common.exception.ResourceNotFoundException;
+import com.vehiqon.common.service.TokenEncryptionService;
 import com.vehiqon.features.onboarding.entity.UserEntity;
 import com.vehiqon.features.onboarding.service.AuthService;
 import com.vehiqon.features.wallet.entity.VirtualAccountEntity;
@@ -26,6 +27,7 @@ public class VirtualAccountServiceImpl implements VirtualAccountService{
     private final AuthService authService;
     private  final NombaMapper nombaMapper;
     private final VirtualAccountRepository virtualAccountRepository;
+    private final TokenEncryptionService tokenEncryptionService;
 
 
     @Override
@@ -64,7 +66,7 @@ public class VirtualAccountServiceImpl implements VirtualAccountService{
             return nombaMapper.toVirtualAccResponse(existing.get());
         }
 
-        String accountRef = "VEHIQON_" + user.getId();
+        String accountRef = "VEHIQON_" + tokenEncryptionService.encryptToken(user.getId().toString());
         String userName = user.getFirstName()+ " " + user.getLastName();
         NombaDto.CreateVirtualAccountRequest request =
                 new NombaDto.CreateVirtualAccountRequest(

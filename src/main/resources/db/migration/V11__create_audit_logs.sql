@@ -5,9 +5,7 @@ CREATE TABLE IF NOT EXISTS audit_logs (
     entity VARCHAR(255) NOT NULL,
     entity_id VARCHAR(255),
     ip_address VARCHAR(255),
-
     user_id UUID,
-
     created_at TIMESTAMP,
     updated_at TIMESTAMP,
 

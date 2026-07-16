@@ -1,12 +1,7 @@
 package com.vehiqon.features.onboarding.entity;
 
-import com.vehiqon.features.carmgmt.entities.CarEntity;
-import com.vehiqon.common.entity.Notification;
-import com.vehiqon.common.entity.AuditLog;
 import com.vehiqon.common.entity.BaseEntity;
-import com.vehiqon.common.entity.UserSubscription;
 import com.vehiqon.common.enums.Role;
-import com.vehiqon.features.wallet.entity.VirtualAccountEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -16,7 +11,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 @Getter

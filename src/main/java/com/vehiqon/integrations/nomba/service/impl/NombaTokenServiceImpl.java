@@ -1,5 +1,8 @@
 package com.vehiqon.integrations.nomba.service.impl;
 
+import com.vehiqon.common.exception.BadRequestException;
+import com.vehiqon.common.service.TokenEncryptionService;
+import com.vehiqon.common.utils.GenerateOrHashTokenUtils;
 import com.vehiqon.features.wallet.mapper.NombaMapper;
 import com.vehiqon.integrations.nomba.dto.NombaDto;
 import com.vehiqon.integrations.nomba.entity.NombaTokenEntity;
@@ -10,10 +13,13 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Base64;
 import java.util.Optional;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -22,6 +28,8 @@ public class NombaTokenServiceImpl implements NombaTokenService {
     private final NombaTokenRepository nombaTokenRepository;
     private final NombaAuthService nombaAuthService;
     private final NombaMapper nombaMapper;
+    private final GenerateOrHashTokenUtils tokenGenerator;
+    private final TokenEncryptionService tokenEncryptionService;
 
     @Override
     @Transactional
@@ -34,12 +42,12 @@ public class NombaTokenServiceImpl implements NombaTokenService {
         if(isExpiringSoon(nombaToken)){
             return refresh(nombaToken);
         }
-        return nombaToken.getAccessToken();
+        return tokenEncryptionService.decryptToken(nombaToken.getAccessToken());
     }
 
     private String refresh(NombaTokenEntity nombaToken) {
         try {
-            NombaDto.NombaTokenResponse nombaTokenResponse = nombaAuthService.refreshToken(nombaToken.getRefreshToken());
+            NombaDto.NombaTokenResponse nombaTokenResponse = nombaAuthService.refreshToken(tokenEncryptionService.decryptToken( nombaToken.getRefreshToken()));
             saveNombaToken(nombaTokenResponse);
             return nombaTokenResponse.data().accessToken();
         } catch (Exception ex) {
@@ -54,8 +62,13 @@ public class NombaTokenServiceImpl implements NombaTokenService {
     }
 
     private void saveNombaToken(NombaDto.NombaTokenResponse nombaTokenResponse) {
-        NombaTokenEntity tokenEntity = nombaMapper.toTokenEntity(nombaTokenResponse.data());
-        tokenEntity.setId(TOKEN_ID);
+        NombaTokenEntity tokenEntity = NombaTokenEntity.builder()
+                .accessToken(tokenEncryptionService.encryptToken(nombaTokenResponse.data().accessToken()))
+                .refreshToken(tokenEncryptionService.encryptToken(nombaTokenResponse.data().refreshToken()))
+                .businessId(tokenEncryptionService.encryptToken(nombaTokenResponse.data().businessId()))
+                .expiresAt(nombaTokenResponse.data().expiresAt())
+                .id(TOKEN_ID)
+                .build();
         nombaTokenRepository.save(tokenEntity);
     }
 
@@ -64,4 +77,13 @@ public class NombaTokenServiceImpl implements NombaTokenService {
     }
 
 
+    private String hashToken(String rawToken) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(rawToken.getBytes(StandardCharsets.UTF_8));
+            return Base64.getEncoder().encodeToString(hash);
+        } catch (NoSuchAlgorithmException e) {
+            throw new BadRequestException(e.getMessage());
+        }
+    }
 }

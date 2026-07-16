@@ -1,5 +1,7 @@
 package com.vehiqon.common.utils;
 
+import jakarta.servlet.http.HttpServletRequest;
+
 public class AccountUtils {
     public static final String USER_EXIST_CODE = "001";
     public static final String USER_CREATION_CODE = "002";
@@ -21,4 +23,29 @@ public class AccountUtils {
     public static final String USER_CREATION_MESSAGE = "Account has been successfully created.\n A verification email has been sent to your email.\n Please verify your email.";
     public static final String USER_NOT_FOUND_MESSAGE = "User Account Found";
     public static final String VALIDATION_ERROR_MESSAGE= "VALIDATION_FAILED";
+    
+    
+//    public static final String password_changed_action = "PASSWORD_CHANGED";
+//    public static final String user_registered_action = "USER_REGISTERED";
+//    public static final String user_login_action = "USER_LOGGED_IN";
+//    public static final String user_logout_action = "USER_LOGGED_OUT";
+//    public static final String user_logout_all_action = "USER_LOGGED_OUT_ALL";
+//    public static final String password_reset_action = "PASSWORD_RESET";
+//    public static final String token_refreshed_action = "TOKEN_REFRESHED";
+//    public static final String email_verified_action = "EMAIL_VERIFIED";
+    public static final String password_changed_description = "User Changed Password";
+    public static final String password_reset_requested_description = "Password Reset Requested Via Forgot Password";
+    public static final String user_email_verified_description = "User Email Verified";
+    public static final String user_requested_email_verification_description = "User Requested Email Verification Token";
+    public static final String user_registered_description = "User Registered";
+    public static final String user_login_description = "User Logged In";
+    public static final String user_logout_description = "User Logged Out";
+    public static final String user_logout_all_description = "User Logged Out On All Devices ";
+    public static final String password_reset_description = "User Reset Password";
+    public static final String token_refreshed_description = "User Refreshed Login Token";
+    public static final String email_verified_description = "User Email Verified";
+    public static final String user_entity = "USER";
+    public static final String admin_entity = "ADMIN";
+
+
 }

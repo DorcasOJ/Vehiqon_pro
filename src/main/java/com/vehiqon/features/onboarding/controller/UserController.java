@@ -4,6 +4,7 @@ import com.vehiqon.common.dto.response.ApiResponse;
 import com.vehiqon.common.mapper.ApiResponseMapper;
 import com.vehiqon.common.utils.AccountUtils;
 import com.vehiqon.features.onboarding.dto.request.UpdateUserRequest;
+import com.vehiqon.features.onboarding.dto.request.UserDto;
 import com.vehiqon.features.onboarding.dto.response.UserResponse;
 import com.vehiqon.features.onboarding.entity.UserEntity;
 import com.vehiqon.features.onboarding.mapper.UserMapper;
@@ -43,7 +44,7 @@ public class UserController {
 
     @PatchMapping("/profile")
     public ResponseEntity<ApiResponse<UserResponse>> updateProfile(
-            @Valid @RequestBody UpdateUserRequest request
+            @Valid @RequestBody UserDto.UpdateUserRequest request
     ) {
         return ResponseEntity.ok(
                 apiResponseMapper.toResponse(userService.updateProfile(request))

@@ -1,6 +1,7 @@
 package com.vehiqon.features.onboarding.controller;
 
 import com.vehiqon.common.dto.response.ApiResponse;
+import com.vehiqon.common.mapper.ApiResponseMapper;
 import com.vehiqon.common.utils.AccountUtils;
 import com.vehiqon.features.onboarding.dto.request.*;
 import com.vehiqon.features.onboarding.dto.response.LoginResponse;
@@ -20,61 +21,80 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class AuthController {
     private final AuthService authService;
+    private final ApiResponseMapper apiResponseMapper;
 
     @PostMapping("/register")
-    public ResponseEntity<ApiResponse<UserResponse>> register(@Valid @RequestBody CreateUserRequest request) {
-        ApiResponse<UserResponse> response = authService.register(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    public ResponseEntity<ApiResponse<UserResponse>> register(@Valid @RequestBody UserDto.CreateUserRequest request,
+                                                              HttpServletRequest httpServletRequest) {
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(
+                apiResponseMapper.toResponse(authService.register(request, httpServletRequest))
+        );
     }
 
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<LoginResponse>> login(@Valid @RequestBody LoginRequest request, HttpServletRequest httpRequest) {
-        ApiResponse<LoginResponse> response = authService.login(request, httpRequest);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<ApiResponse<LoginResponse>> login(@Valid @RequestBody AuthDto.LoginRequest request, HttpServletRequest httpRequest) {
+        return ResponseEntity.ok(apiResponseMapper.toResponse(authService.login(request, httpRequest)));
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<ApiResponse<LoginResponse>> refreshToken(@Valid @RequestBody RefreshTokenRequest request, HttpServletRequest httpRequest) {
-        ApiResponse<LoginResponse> response = authService.refresh(request, httpRequest);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<ApiResponse<LoginResponse>> refreshToken(@Valid @RequestBody AuthDto.RefreshTokenRequest request, HttpServletRequest httpRequest) {
+        return ResponseEntity.ok(apiResponseMapper.toResponse(authService.refresh(request, httpRequest)));
     }
 
     @GetMapping("/verify-email")
-    public ResponseEntity<ApiResponse<Void>> verifyEmail(@RequestParam String token) {
-        ApiResponse<Void> response = authService.verifyEmail(token);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<ApiResponse<String>> verifyEmail(@RequestParam String token, HttpServletRequest httpServletRequest) {
+        return ResponseEntity.ok(apiResponseMapper.toResponse( authService.verifyEmail(token, httpServletRequest)));
 
     }
 
     @PostMapping("/resend-verification-email")
-    public ResponseEntity<ApiResponse<Void>> resendVerificationEmail(
-            @Valid @RequestBody ResendVerificationRequest request
+    public ResponseEntity<ApiResponse<String>> resendVerificationEmail(
+            @Valid @RequestBody AuthDto.ResendVerificationRequest request,
+            HttpServletRequest httpServletRequest
     ) {
-        ApiResponse<Void> response = authService.resendVerificationEmail(request);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(apiResponseMapper.toResponse(authService.resendVerificationEmail(request, httpServletRequest)));
 
     }
 
-//    @PutMapping("/change-password")
-//    @PostMapping("/forgot-password")
-//    @PostMapping("/reset-password")
+    @PutMapping("/change-password")
+    public ResponseEntity<ApiResponse<String>> changePassword(
+            @Valid @RequestBody AuthDto.ChangePasswordRequest request, HttpServletRequest httpServletRequest) {
+        return ResponseEntity.ok(apiResponseMapper.toResponse(authService.changePassword(request, httpServletRequest)));
+
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<ApiResponse<String>> forgotPassword(
+            @Valid @RequestBody AuthDto.ForgotPasswordRequest request,
+            HttpServletRequest httpServletRequest
+    ) {
+        return ResponseEntity.ok(apiResponseMapper.toResponse(authService.forgotPassword(request, httpServletRequest)));
+    }
+
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<ApiResponse<String>> resetPassword(
+            @Valid @RequestBody AuthDto.ResetPasswordRequest request,
+            HttpServletRequest httpServletRequest
+    ) {
+        return ResponseEntity.ok(apiResponseMapper.toResponse(authService.resetPassword(request, httpServletRequest)));
+    }
+
 
     @PostMapping("/logout")
-    public ResponseEntity<ApiResponse<Void>> logout(@RequestBody LogoutRequest request) {
-        authService.logout(request);
-        return ResponseEntity.ok(ApiResponse.<Void>builder()
-                .responseCode(AccountUtils.SUCCESS_CODE)
-                .responseMessage(AccountUtils.SUCCESS_MESSAGE)
-                .build());
+    public ResponseEntity<ApiResponse<String>> logout(@RequestBody AuthDto.LogoutRequest request, HttpServletRequest httpServletRequest) {
+        return ResponseEntity.ok(
+                apiResponseMapper.toResponse( authService.logout(request, httpServletRequest))
+        );
     }
 
     @PostMapping("/logout/all")
-    public ResponseEntity<ApiResponse<Void>> logoutAll() {
-        authService.logoutAll();
-        return ResponseEntity.ok(ApiResponse.<Void>builder()
-                .responseCode(AccountUtils.SUCCESS_CODE)
-                .responseMessage(AccountUtils.SUCCESS_MESSAGE)
-                .build());
+    public ResponseEntity<ApiResponse<String>> logoutAll(HttpServletRequest httpServletRequest) {
+
+        return ResponseEntity.ok(
+                apiResponseMapper.toResponse(authService.logoutAll(httpServletRequest))
+        );
     }
 }
 
