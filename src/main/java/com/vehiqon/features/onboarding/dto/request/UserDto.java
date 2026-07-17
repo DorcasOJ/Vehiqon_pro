@@ -1,5 +1,6 @@
 package com.vehiqon.features.onboarding.dto.request;
 
+import com.vehiqon.common.enums.RoleEnum;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -22,9 +23,20 @@ public class UserDto {
                 regexp = "\\+?[0-9]{10,15}",
                 message="Invalid phone number"
         ) String phoneNumber,
-        @NotBlank  String password
+        @NotBlank  String password,
+        RoleEnum role
 ){
+        public CreateUserRequest {
+            if(role == null) {
+                role = RoleEnum.ROLE_USER;
+            }
+        }
     }
+
+//    public record updateUserRoles(
+//           @NotBlank @Email String email,
+//
+//    ){}
 
 
     public record UpdateUserRequest (

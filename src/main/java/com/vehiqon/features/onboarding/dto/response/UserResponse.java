@@ -1,10 +1,12 @@
 package com.vehiqon.features.onboarding.dto.response;
 
+import com.vehiqon.common.enums.RoleEnum;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Set;
 import java.util.UUID;
 
 @Data
@@ -17,7 +19,7 @@ public class UserResponse {
     private String lastName;
     private String email;
     private String phoneNumber;
-//    private String role;
+    private Set<RoleEnum> roles;
     private String status;
 
 }

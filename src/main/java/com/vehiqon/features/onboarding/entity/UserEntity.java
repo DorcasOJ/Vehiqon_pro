@@ -1,7 +1,7 @@
 package com.vehiqon.features.onboarding.entity;
 
 import com.vehiqon.common.entity.BaseEntity;
-import com.vehiqon.common.enums.Role;
+import com.vehiqon.common.enums.RoleEnum;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -52,7 +52,7 @@ public class UserEntity extends BaseEntity implements UserDetails {
     @Enumerated(EnumType.STRING)
     @Column(name = "role")
     @Builder.Default
-    private  Set<Role> roles = new HashSet<>();
+    private  Set<RoleEnum> roles = new HashSet<>();
 //
 //    @OneToOne(mappedBy = "user")
 //    private VirtualAccountEntity virtualAccount;
@@ -80,7 +80,7 @@ public class UserEntity extends BaseEntity implements UserDetails {
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return roles.stream()
-                .map(Role::name)
+                .map(RoleEnum::name)
                 .map(SimpleGrantedAuthority::new)
                 .toList();
     }
@@ -109,6 +109,18 @@ public class UserEntity extends BaseEntity implements UserDetails {
     public boolean isEnabled() {
         return Boolean.TRUE.equals(isVerified);
 //        return isVerified;
+    }
+
+    public void addRole(RoleEnum role) {
+        if(role != null) {
+            this.roles.add(role);
+        }
+    }
+
+    public void removeRole(RoleEnum role) {
+        if(role != null) {
+            this.roles.remove(role);
+        }
     }
 
 }

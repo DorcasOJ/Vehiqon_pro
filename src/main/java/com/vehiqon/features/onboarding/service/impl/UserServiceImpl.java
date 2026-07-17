@@ -8,7 +8,7 @@ import com.vehiqon.features.email.mapper.EmailResponseMapper;
 import com.vehiqon.features.email.mapper.VerificationTokenMapper;
 import com.vehiqon.features.onboarding.dto.request.UserDto;
 import com.vehiqon.features.onboarding.entity.UserEntity;
-import com.vehiqon.common.enums.Role;
+import com.vehiqon.common.enums.RoleEnum;
 import com.vehiqon.common.enums.UserStatus;
 import com.vehiqon.features.email.service.EmailService;
 import com.vehiqon.features.onboarding.dto.response.UserResponse;
@@ -47,13 +47,17 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public UserResponse createUser(UserDto.CreateUserRequest request) {
         if(userRepository.existsByEmail(request.email())){
-         throw new ResourceAlreadyExistException("Account already exist for this Email. Kindly Login.");
+            throw new ResourceAlreadyExistException("Account already exist for this Email. Kindly Login.");
         }
         UserEntity newUser = userMapper.toEntity(request);
         newUser.setStatus(UserStatus.ACTIVE.name());
         newUser.setIsVerified(false);
         newUser.setPassword(passwordEncoder.encode(request.password())); // hash password
-        newUser.getRoles().add(Role.ROLE_USER);
+        if (request.role() == null) {
+            newUser.getRoles().add(RoleEnum.ROLE_USER);
+        } else {
+            newUser.getRoles().add(request.role());
+        }
         UserEntity savedUser = userRepository.save(newUser);
         validateUserEmail(savedUser);
         return userMapper.toResponse(savedUser);
@@ -71,6 +75,26 @@ public class UserServiceImpl implements UserService {
         emailService.sendEmailAlert(emailResponseMapper.toVerifyEmailResponse(savedUser, url));
 //        emailService.sendEmailAlert(emailResponseMapper.toAccountCreationResponse(savedUser));
     }
+
+//    @Override
+//    @Transactional
+//    public UserResponse addRoleToUser(UserDto.CreateUserRequest request) {
+//        if(userRepository.existsByEmail(request.email())){
+//            throw new ResourceAlreadyExistException("Account already exist for this Email. Kindly Login.");
+//        }
+//        UserEntity newUser = userMapper.toEntity(request);
+//        newUser.setStatus(UserStatus.ACTIVE.name());
+//        newUser.setIsVerified(false);
+//        newUser.setPassword(passwordEncoder.encode(request.password())); // hash password
+//        if (request.role() == null) {
+//            newUser.getRoles().add(RoleEnum.ROLE_USER);
+//        } else {
+//            newUser.getRoles().add(request.role());
+//        }
+//        UserEntity savedUser = userRepository.save(newUser);
+//        validateUserEmail(savedUser);
+//        return userMapper.toResponse(savedUser);
+//    }
 
     @Override
     public UserResponse updateProfile(UserDto.UpdateUserRequest request) {

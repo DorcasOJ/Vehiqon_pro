@@ -42,7 +42,7 @@ public class AccountUtils {
     public static final String user_logout_description = "User Logged Out";
     public static final String user_logout_all_description = "User Logged Out On All Devices ";
     public static final String password_reset_description = "User Reset Password";
-    public static final String token_refreshed_description = "User Refreshed Login Token";
+    public static final String token_refreshed_description = "Refreshed Login Token was generated or refreshed";
     public static final String email_verified_description = "User Email Verified";
     public static final String user_entity = "USER";
     public static final String admin_entity = "ADMIN";

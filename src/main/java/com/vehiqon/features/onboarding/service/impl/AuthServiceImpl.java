@@ -1,6 +1,7 @@
 package com.vehiqon.features.onboarding.service.impl;
 
 import com.vehiqon.common.enums.AuditAction;
+import com.vehiqon.common.enums.EntityEnum;
 import com.vehiqon.common.enums.VerificationTokenTypeEnum;
 import com.vehiqon.common.exception.*;
 import com.vehiqon.common.service.AuditLogService;
@@ -84,10 +85,9 @@ public class AuthServiceImpl implements AuthService {
             throw new TooManyRequestException("Too may register attempts");
         }
         UserResponse user = userService.createUser(request);
-        auditLogService.log(user.getId(), AuditAction.USER_REGISTERED.name(),
-                AccountUtils.user_entity, user.getId(), AccountUtils.SUCCESS_MESSAGE,
+             auditLogService.log(user.getId(), AuditAction.USER_REGISTERED.name(),
+                     EntityEnum.USER, user.getId(), AccountUtils.SUCCESS_MESSAGE,
                 AccountUtils.user_registered_description, httpServletRequest);
-
         return user;
     }
 
@@ -104,9 +104,9 @@ public class AuthServiceImpl implements AuthService {
         }
         Authentication authenticate = getAuthentication(request);
         UserEntity user = (UserEntity) authenticate.getPrincipal();
-        auditLogService.log(user.getId(), AuditAction.USER_LOGGED_IN.name(),
-                AccountUtils.user_entity, user.getId(), AccountUtils.SUCCESS_MESSAGE,
-                AccountUtils.user_login_description, httpRequest);
+//        auditLogService.log(user.getId(), AuditAction.USER_LOGGED_IN.name(),
+//                EntityEnum.USER, user.getId(), AccountUtils.SUCCESS_MESSAGE,
+//                AccountUtils.user_login_description, httpRequest);
 
         return generateTokens(user, httpRequest);
 
@@ -137,6 +137,7 @@ public class AuthServiceImpl implements AuthService {
         refreshToken.setRevoked(true);
         refreshToken.setExpired(true);
         refreshToken.setRevokedAt(LocalDateTime.now());
+
         return response;
 
     }
@@ -183,7 +184,7 @@ public class AuthServiceImpl implements AuthService {
         verificationTokenRepository.save(verificationToken);
 
         auditLogService.log(user.getId(), AuditAction.USER_VERIFIED_EMAIL.name(),
-                AccountUtils.user_entity, user.getId(), AccountUtils.SUCCESS_MESSAGE,
+                EntityEnum.VERIFICATION_TOKEN, user.getId(), AccountUtils.SUCCESS_MESSAGE,
                 AccountUtils.user_email_verified_description, httpServletRequest);
 
         return "Email verified successfully.";
@@ -232,7 +233,7 @@ public class AuthServiceImpl implements AuthService {
             userService.validateUserEmail(user);
 
             auditLogService.log(user.getId(), AuditAction.USER_REQUESTED_VERIFICATION_EMAIL_TOKEN.name(),
-                    AccountUtils.user_entity, user.getId(), AccountUtils.SUCCESS_MESSAGE,
+                    EntityEnum.VERIFICATION_TOKEN, user.getId(), AccountUtils.SUCCESS_MESSAGE,
                     AccountUtils.user_requested_email_verification_description, httpServletRequest);
             return "If an account exists with this email, a verification email has been sent.";
         }
@@ -260,7 +261,7 @@ public class AuthServiceImpl implements AuthService {
         refreshTokenRepository.save(refreshToken);
 
         auditLogService.log(refreshToken.getUserId(), AuditAction.USER_LOGGED_OUT.name(),
-                AccountUtils.user_entity, refreshToken.getUserId(), AccountUtils.SUCCESS_MESSAGE,
+                EntityEnum.USER, refreshToken.getUserId(), AccountUtils.SUCCESS_MESSAGE,
                 AccountUtils.user_logout_description, httpServletRequest);
         return "Logged out Successful";
     }
@@ -276,7 +277,7 @@ public class AuthServiceImpl implements AuthService {
         refreshTokenRepository.revokeAll(user.getId());
 //        log.info("Revoked refresh tokens for user {}",user.getEmail());
         auditLogService.log(user.getId(), AuditAction.USER_LOGGED_OUT_ALL.name(),
-                AccountUtils.user_entity, user.getId(), AccountUtils.SUCCESS_MESSAGE,
+                EntityEnum.USER, user.getId(), AccountUtils.SUCCESS_MESSAGE,
                 AccountUtils.user_logout_all_description, httpServletRequest);
         return "Logged out from all devices";
     }
@@ -299,7 +300,7 @@ public class AuthServiceImpl implements AuthService {
         // revoking all refresh tokens
         refreshTokenRepository.revokeAll(user.getId());
         auditLogService.log(user.getId(), AuditAction.USER_PASSWORD_CHANGED.name(),
-                AccountUtils.user_entity, user.getId(), AccountUtils.SUCCESS_MESSAGE,
+                EntityEnum.USER, user.getId(), AccountUtils.SUCCESS_MESSAGE,
                 AccountUtils.password_changed_description, httpServletRequest);
         return "Password changed successfully";
     }
@@ -319,14 +320,14 @@ public class AuthServiceImpl implements AuthService {
 
         String token = tokenUtils.generateSecureToken(32);
 
-        passwordResetTokenRepository.save(authMapper.toPasswordResetTokenEntity(user, tokenUtils.hashToken(token)));
+        PasswordResetTokenEntity savedPasswordToken = passwordResetTokenRepository.save(authMapper.toPasswordResetTokenEntity(user, tokenUtils.hashToken(token)));
         String link = resetPasswordLink + token;
 
         System.out.printf("forgot password token here %s", token);
 
         emailService.sendEmailAlert(emailResponseMapper.toResetPassword(user, token));
         auditLogService.log(user.getId(), AuditAction.USER_PASSWORD_RESET_REQUESTED.name(),
-                AccountUtils.user_entity, user.getId(), AccountUtils.SUCCESS_MESSAGE,
+                EntityEnum.PASSWORD_RESET_TOKEN, savedPasswordToken.getId(), AccountUtils.SUCCESS_MESSAGE,
                 AccountUtils.password_reset_requested_description, httpServletRequest);
 
 
@@ -367,7 +368,7 @@ public class AuthServiceImpl implements AuthService {
         // revoking all refresh tokens
         refreshTokenRepository.revokeAll(user.getId());
         auditLogService.log(user.getId(), AuditAction.USER_PASSWORD_RESET_COMPLETED.name(),
-                AccountUtils.user_entity, user.getId(), AccountUtils.SUCCESS_MESSAGE,
+                EntityEnum.USER, user.getId(), AccountUtils.SUCCESS_MESSAGE,
                 AccountUtils.password_reset_description, httpServletRequest);
 
         return "Password has been successfully updated. You can now log in with your new password.";
@@ -387,8 +388,11 @@ public class AuthServiceImpl implements AuthService {
 
             String refreshToken = jwtService.generateRefreshToken(user);
             RefreshTokenEntity refreshTokenEntity = jwtService.mapRefreshTokenToEntity(tokenUtils.hashToken(refreshToken), user, request);
-            refreshTokenRepository.save(refreshTokenEntity);
+            RefreshTokenEntity newrefreshTokenEntity = refreshTokenRepository.save(refreshTokenEntity);
 
+            auditLogService.log(user.getId(), AuditAction.USER_REFRESHED_TOKEN.name(),
+                    EntityEnum.REFRESH_TOKEN, newrefreshTokenEntity.getId(), AccountUtils.SUCCESS_MESSAGE,
+                    AccountUtils.token_refreshed_description, request);
 
             String accessToken = jwtService.generateToken(user, claims);
 
@@ -417,13 +421,5 @@ public class AuthServiceImpl implements AuthService {
             throw new com.vehiqon.common.exception.CredentialsExpiredException(ex.getMessage());
         }
     }
-
-//    private String getClientIp(HttpServletRequest httpServletRequest) {
-//        String xfHeader = httpServletRequest.getHeader("X-Forwarded-For");
-//        if(xfHeader == null) {
-//            return httpServletRequest.getRemoteAddr();
-//        }
-//        return xfHeader.split(",")[0];
-//    }
 
 }
