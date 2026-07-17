@@ -3,6 +3,7 @@ CREATE TABLE IF NOT EXISTS password_reset_tokens (
     token TEXT NOT NULL,
     user_id UUID NOT NULL,
     expires_at TIMESTAMP NOT NULL,
+    used_at TIMESTAMP,
     used BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP,
     updated_at TIMESTAMP,

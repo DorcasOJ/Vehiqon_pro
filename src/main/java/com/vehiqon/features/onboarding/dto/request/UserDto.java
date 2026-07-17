@@ -6,6 +6,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
+import java.util.Set;
+
 public class UserDto {
     private UserDto(){}
 
@@ -33,10 +35,15 @@ public class UserDto {
         }
     }
 
-//    public record updateUserRoles(
-//           @NotBlank @Email String email,
-//
-//    ){}
+    public record UpdateRolesRequest(
+           Set<RoleEnum> add,
+           Set<RoleEnum> remove
+
+    ){}
+
+    public record SyncRolesRequest(
+            Set<RoleEnum> roles
+    ){}
 
 
     public record UpdateUserRequest (

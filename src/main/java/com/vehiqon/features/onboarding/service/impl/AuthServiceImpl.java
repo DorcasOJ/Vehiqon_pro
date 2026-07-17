@@ -1,6 +1,7 @@
 package com.vehiqon.features.onboarding.service.impl;
 
 import com.vehiqon.common.enums.AuditAction;
+import com.vehiqon.common.enums.AuditStatus;
 import com.vehiqon.common.enums.EntityEnum;
 import com.vehiqon.common.enums.VerificationTokenTypeEnum;
 import com.vehiqon.common.exception.*;
@@ -27,7 +28,6 @@ import com.vehiqon.features.onboarding.repository.VerificationTokenRepository;
 import com.vehiqon.features.onboarding.service.AuthService;
 import com.vehiqon.features.onboarding.service.UserService;
 import com.vehiqon.security.jwt.JwtService;
-import io.github.bucket4j.Bucket;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -43,8 +43,10 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 @Service
@@ -54,6 +56,12 @@ public class AuthServiceImpl implements AuthService {
 
     @Value("${RESET_PASSWORD_URL}")
     private String resetPasswordLink;
+
+    @Value("${LOCK_ACCOUNT_MINUTE}")
+    private Integer lockAccountBasedOnFailedAttemptInMinute;
+
+    @Value("${MAX_LOGIN_FAILED_ATTEMPT}")
+    private Integer maxFailedAttempt;
 
     private final UserMapper userMapper;
     private final AuthMapper loginResponseMapper;
@@ -76,39 +84,49 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public UserResponse register(UserDto.CreateUserRequest request, HttpServletRequest httpServletRequest) {
-        Bucket bucket = rateLimitService.resolveBucket(
-                "REGISTER:" + request.email() + ":" + httpRequestUtils.getClientIp(httpServletRequest),
-                rateLimitProperties.getRegister().getCapacity(),
-                rateLimitProperties.getRegister().getDuration()
-        );
-        if (!bucket.tryConsume(1)) {
-            throw new TooManyRequestException("Too may register attempts");
-        }
+        rateLimitService.validateRegister(request.email(),httpRequestUtils.getClientIp(httpServletRequest) );
         UserResponse user = userService.createUser(request);
-             auditLogService.log(user.getId(), AuditAction.USER_REGISTERED.name(),
-                     EntityEnum.USER, user.getId(), AccountUtils.SUCCESS_MESSAGE,
-                AccountUtils.user_registered_description, httpServletRequest);
+         auditLogService.log(user.getId(), AuditAction.USER_REGISTERED.name(),
+                 EntityEnum.USER, user.getId(), AuditStatus.SUCCESS,
+            AccountUtils.user_registered_description, httpServletRequest);
         return user;
     }
 
     @Override
     public LoginResponse login(AuthDto.LoginRequest request, HttpServletRequest
             httpRequest) {
-        Bucket bucket = rateLimitService.resolveBucket(
-                "LOGIN:" + request.email() + ":" + httpRequestUtils.getClientIp(httpRequest),
-                rateLimitProperties.getLogin().getCapacity(),
-                rateLimitProperties.getLogin().getDuration()
-        );
-        if (!bucket.tryConsume(1)) {
-            throw new TooManyRequestException("Too may login attempts");
-        }
-        Authentication authenticate = getAuthentication(request);
-        UserEntity user = (UserEntity) authenticate.getPrincipal();
-//        auditLogService.log(user.getId(), AuditAction.USER_LOGGED_IN.name(),
-//                EntityEnum.USER, user.getId(), AccountUtils.SUCCESS_MESSAGE,
-//                AccountUtils.user_login_description, httpRequest);
+        String email = request.email();
+        rateLimitService.validateLogin(request.email(),httpRequestUtils.getClientIp(httpRequest) );
 
-        return generateTokens(user, httpRequest);
+        Optional<UserEntity> userOpt = userRepository.findByEmail(email);
+        try {
+            Authentication authenticate = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            email, request.password()
+                    )
+            );
+        UserEntity user = (UserEntity) authenticate.getPrincipal();
+            resetLoginAttempts(Objects.requireNonNull(user));
+            userRepository.save(user);
+        LoginResponse response = generateTokens(user, httpRequest);
+        auditLogService.log(user.getId(), AuditAction.LOGIN_SUCCESS.name(),
+                EntityEnum.USER, user.getId(), AuditStatus.SUCCESS,
+                AuditAction.LOGIN_SUCCESS.getDescription(), httpRequest);
+        return response;
+
+        } catch (BadCredentialsException e) {
+            userOpt.ifPresent(
+                    userFound ->
+                        handleFailedLoginAttempt(httpRequest, userFound));
+            throw new InvalidResourceException("Invalid email or password.");
+        } catch (LockedException ex) {
+            throw new AccountLockedException("Account is temporarily locked. Try again later.");
+        } catch (DisabledException ex) {
+            throw new AccountDisabledException("Your account is not active. Please verify your email to continue.");
+//            If an account with this email exists and is not yet verified, a new verification email has been sent.
+        } catch (CredentialsExpiredException ex) {
+            throw new com.vehiqon.common.exception.CredentialsExpiredException(ex.getMessage());
+        }
 
     }
 
@@ -137,7 +155,6 @@ public class AuthServiceImpl implements AuthService {
         refreshToken.setRevoked(true);
         refreshToken.setExpired(true);
         refreshToken.setRevokedAt(LocalDateTime.now());
-
         return response;
 
     }
@@ -147,44 +164,21 @@ public class AuthServiceImpl implements AuthService {
     @Transactional
     public String verifyEmail(String token, HttpServletRequest httpServletRequest) {
         VerificationTokenEntity verificationToken = verificationTokenRepository
-                .findByTokenAndType(
-                        token,
+                .findActiveToken(
+                        tokenUtils.hashToken(token),
                         VerificationTokenTypeEnum.EMAIL_VERIFICATION
                 )
                 .orElseThrow(() ->
-//                        new ResourceNotFoundException("Invalid verification token")
-                        new ResourceNotFoundException("Email Verification Failed, Invalid Token")
+                        new ResourceNotFoundException("Email Verification Failed.")
                 );
-
-        if (Boolean.TRUE.equals(verificationToken.getUsed())) {
-//            throw new IllegalArgumentException("Verification link has already been used");
-            throw new BadRequestException("Email Verification Failed, link already used");
-        }
-
-        if (verificationToken.getExpiresAt().isBefore(LocalDateTime.now())) {
-//            throw new IllegalArgumentException("Verification link has expired");
-            throw new BadRequestException("Email Verification Failed, link expired");
-        }
         UserEntity user = userRepository.findById(verificationToken.getUserId()).orElseThrow(() ->
                 new ResourceNotFoundException("Email Verification Failed, user not found"));
-
-        Bucket bucket = rateLimitService.resolveBucket(
-                "VERIFY_EMAIL:" + user.getEmail()+ ":" + httpRequestUtils.getClientIp(httpServletRequest),
-                rateLimitProperties.getVerifyEmail().getCapacity(),
-                rateLimitProperties.getVerifyEmail().getDuration()
-        );
-        if (!bucket.tryConsume(1)) {
-            throw new TooManyRequestException("Too may attempts to verify email");
-        }
-
-        user.setIsVerified(true);
-        userRepository.save(user);
-        verificationToken.setUsed(true);
-        verificationToken.setUsedAt(LocalDateTime.now());
-        verificationTokenRepository.save(verificationToken);
+        rateLimitService.validateVerifyEmail(user.getEmail(), httpRequestUtils.getClientIp(httpServletRequest));
+        userRepository.markUserAsIsVerified(user.getId());
+        verificationTokenRepository.markAllAsUsed(user.getId(), VerificationTokenTypeEnum.EMAIL_VERIFICATION, LocalDateTime.now());
 
         auditLogService.log(user.getId(), AuditAction.USER_VERIFIED_EMAIL.name(),
-                EntityEnum.VERIFICATION_TOKEN, user.getId(), AccountUtils.SUCCESS_MESSAGE,
+                EntityEnum.VERIFICATION_TOKEN, user.getId(), AuditStatus.SUCCESS,
                 AccountUtils.user_email_verified_description, httpServletRequest);
 
         return "Email verified successfully.";
@@ -210,16 +204,8 @@ public class AuthServiceImpl implements AuthService {
                 return "Email is already verified.";
             }
 
-            Bucket bucket = rateLimitService.resolveBucket(
-                    "VERIFY_EMAIL:" + user.getEmail()+ ":" + httpRequestUtils.getClientIp(httpServletRequest),
-                    rateLimitProperties.getResendVerificationEmail().getCapacity(),
-                    rateLimitProperties.getResendVerificationEmail().getDuration()
-            );
-            if (!bucket.tryConsume(1)) {
-                throw new TooManyRequestException("Too may attempts requesting email verification");
-        }
-
-            // invalidate previous unused tokens
+            rateLimitService.validateResendVerificationEmail(user.getEmail(),  httpRequestUtils.getClientIp(httpServletRequest));
+        // invalidate previous unused tokens
             List<VerificationTokenEntity> tokens =
                     verificationTokenRepository.findByUserIdAndTypeAndUsedFalse(
                             user.getId(),
@@ -233,7 +219,7 @@ public class AuthServiceImpl implements AuthService {
             userService.validateUserEmail(user);
 
             auditLogService.log(user.getId(), AuditAction.USER_REQUESTED_VERIFICATION_EMAIL_TOKEN.name(),
-                    EntityEnum.VERIFICATION_TOKEN, user.getId(), AccountUtils.SUCCESS_MESSAGE,
+                    EntityEnum.VERIFICATION_TOKEN, user.getId(), AuditStatus.SUCCESS,
                     AccountUtils.user_requested_email_verification_description, httpServletRequest);
             return "If an account exists with this email, a verification email has been sent.";
         }
@@ -261,7 +247,7 @@ public class AuthServiceImpl implements AuthService {
         refreshTokenRepository.save(refreshToken);
 
         auditLogService.log(refreshToken.getUserId(), AuditAction.USER_LOGGED_OUT.name(),
-                EntityEnum.USER, refreshToken.getUserId(), AccountUtils.SUCCESS_MESSAGE,
+                EntityEnum.USER, refreshToken.getUserId(), AuditStatus.SUCCESS,
                 AccountUtils.user_logout_description, httpServletRequest);
         return "Logged out Successful";
     }
@@ -277,7 +263,7 @@ public class AuthServiceImpl implements AuthService {
         refreshTokenRepository.revokeAll(user.getId());
 //        log.info("Revoked refresh tokens for user {}",user.getEmail());
         auditLogService.log(user.getId(), AuditAction.USER_LOGGED_OUT_ALL.name(),
-                EntityEnum.USER, user.getId(), AccountUtils.SUCCESS_MESSAGE,
+                EntityEnum.USER, user.getId(), AuditStatus.SUCCESS,
                 AccountUtils.user_logout_all_description, httpServletRequest);
         return "Logged out from all devices";
     }
@@ -300,77 +286,53 @@ public class AuthServiceImpl implements AuthService {
         // revoking all refresh tokens
         refreshTokenRepository.revokeAll(user.getId());
         auditLogService.log(user.getId(), AuditAction.USER_PASSWORD_CHANGED.name(),
-                EntityEnum.USER, user.getId(), AccountUtils.SUCCESS_MESSAGE,
+                EntityEnum.USER, user.getId(), AuditStatus.SUCCESS,
                 AccountUtils.password_changed_description, httpServletRequest);
         return "Password changed successfully";
     }
 
     @Override
     public String forgotPassword(AuthDto.ForgotPasswordRequest request, HttpServletRequest httpServletRequest) {
-        UserEntity user = userRepository.findByEmail(request.email()).orElseThrow(() ->
-                new ResourceNotFoundException("If an account with that email exists, a password reset link has been sent."));
-        Bucket bucket = rateLimitService.resolveBucket(
-                "FORGOT_PASSWORD:" + user.getEmail()+ ":" + httpRequestUtils.getClientIp(httpServletRequest),
-                rateLimitProperties.getForgotPassword().getCapacity(),
-                rateLimitProperties.getForgotPassword().getDuration()
-        );
-        if (!bucket.tryConsume(1)) {
-            throw new TooManyRequestException("Too may attempts on forgot password");
-        }
+        Optional<UserEntity> userOpt = userRepository.findByEmail(request.email());
+        rateLimitService.validateForgotPassword(request.email(), httpRequestUtils.getClientIp(httpServletRequest) );
+        userOpt.ifPresent(user ->{
+            passwordResetTokenRepository.markAllAsUsedByUserId(user.getId());
+            String token = tokenUtils.generateSecureToken(32);
+            PasswordResetTokenEntity savedPasswordToken = passwordResetTokenRepository.save(authMapper.toPasswordResetTokenEntity(user, tokenUtils.hashToken(token)));
+//            resetLoginAttempts(user);
+            userRepository.save(user);
+            String link = resetPasswordLink + token;
+            log.debug("forgot password token here {}", token); // remove this later
+            emailService.sendEmailAlert(emailResponseMapper.toResetPassword(user, link));
 
-        String token = tokenUtils.generateSecureToken(32);
-
-        PasswordResetTokenEntity savedPasswordToken = passwordResetTokenRepository.save(authMapper.toPasswordResetTokenEntity(user, tokenUtils.hashToken(token)));
-        String link = resetPasswordLink + token;
-
-        System.out.printf("forgot password token here %s", token);
-
-        emailService.sendEmailAlert(emailResponseMapper.toResetPassword(user, token));
-        auditLogService.log(user.getId(), AuditAction.USER_PASSWORD_RESET_REQUESTED.name(),
-                EntityEnum.PASSWORD_RESET_TOKEN, savedPasswordToken.getId(), AccountUtils.SUCCESS_MESSAGE,
-                AccountUtils.password_reset_requested_description, httpServletRequest);
-
-
+            auditLogService.log(user.getId(), AuditAction.USER_PASSWORD_RESET_REQUESTED.name(),
+                    EntityEnum.PASSWORD_RESET_TOKEN, savedPasswordToken.getId(), AuditStatus.SUCCESS,
+                    AccountUtils.password_reset_requested_description, httpServletRequest);
+        });
         return "If an account with that email exists, a password reset link has been sent.";
     }
 
-
     @Override
+    @Transactional
     public String resetPassword(AuthDto.ResetPasswordRequest request, HttpServletRequest httpServletRequest) {
-        PasswordResetTokenEntity token = passwordResetTokenRepository.findByToken(tokenUtils.hashToken(request.token())).orElseThrow(() ->
+        PasswordResetTokenEntity token = passwordResetTokenRepository.findValidToken(tokenUtils.hashToken(request.token())).orElseThrow(() ->
                 new BadRequestException("Invalid Token. Unable to reset password"));
 
-        if(token.isUsed()) {
-            throw new BadRequestException("Password Reset Failed, Token already used");
-        }
-
-        if (token.getExpiresAt().isBefore(Instant.now())) {
-            throw new BadRequestException("Password Reset Failed, Token has expired");
-        }
         if(!request.newPassword().equals(request.confirmPassword())) {
             throw new BadRequestException("Password Reset Failed, Passwords do not match");
         }
         UserEntity user = userRepository.findById(token.getUserId()).orElseThrow(() ->
                 new BadRequestException("Password Reset Failed, User not found"));
 
-        Bucket bucket = rateLimitService.resolveBucket(
-                "RESET_PASSWORD:" + user.getEmail()+ ":" + httpRequestUtils.getClientIp(httpServletRequest),
-                rateLimitProperties.getForgotPassword().getCapacity(),
-                rateLimitProperties.getForgotPassword().getDuration()
-        );
-        if (!bucket.tryConsume(1)) {
-            throw new TooManyRequestException("Too may reset password attempts");
-        }
+        rateLimitService.validateResetPassword(user.getEmail(), httpRequestUtils.getClientIp(httpServletRequest));
         user.setPassword(passwordEncoder.encode(request.newPassword()));
         userRepository.save(user);
-        token.setUsed(true);
-        passwordResetTokenRepository.save(token);
-        // revoking all refresh tokens
-        refreshTokenRepository.revokeAll(user.getId());
+        passwordResetTokenRepository.markAllAsUsedByUserId(user.getId());
+        refreshTokenRepository.revokeAll(user.getId());  // revoking all refresh tokens
+        resetLoginAttempts(user);
         auditLogService.log(user.getId(), AuditAction.USER_PASSWORD_RESET_COMPLETED.name(),
-                EntityEnum.USER, user.getId(), AccountUtils.SUCCESS_MESSAGE,
+                EntityEnum.USER, user.getId(),AuditStatus.SUCCESS,
                 AccountUtils.password_reset_description, httpServletRequest);
-
         return "Password has been successfully updated. You can now log in with your new password.";
     }
 
@@ -391,7 +353,7 @@ public class AuthServiceImpl implements AuthService {
             RefreshTokenEntity newrefreshTokenEntity = refreshTokenRepository.save(refreshTokenEntity);
 
             auditLogService.log(user.getId(), AuditAction.USER_REFRESHED_TOKEN.name(),
-                    EntityEnum.REFRESH_TOKEN, newrefreshTokenEntity.getId(), AccountUtils.SUCCESS_MESSAGE,
+                    EntityEnum.REFRESH_TOKEN, newrefreshTokenEntity.getId(),AuditStatus.SUCCESS,
                     AccountUtils.token_refreshed_description, request);
 
             String accessToken = jwtService.generateToken(user, claims);
@@ -402,24 +364,27 @@ public class AuthServiceImpl implements AuthService {
         }
     }
 
-    private Authentication getAuthentication(AuthDto.LoginRequest request) {
-        try {
-            return authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(
-                            request.email(), request.password()
-                    )
-            );
-        } catch (BadCredentialsException e) {
-            throw new InvalidResourceException("Invalid email or password");
-        } catch (LockedException ex) {
-            throw new AccountLockedException(ex.getMessage());
-        } catch (DisabledException ex) {
-            throw new AccountDisabledException("Your email address has not been verified. \n" +
-                    "Please verify your email before logging in.");
-//            If an account with this email exists and is not yet verified, a new verification email has been sent.
-        } catch (CredentialsExpiredException ex) {
-            throw new com.vehiqon.common.exception.CredentialsExpiredException(ex.getMessage());
+    private void handleFailedLoginAttempt(HttpServletRequest httpRequest, UserEntity userFound) {
+        userFound.incrementFailedLoginAttempt();
+
+        if (userFound.getFailedLoginAttempts() >= maxFailedAttempt) {
+            userFound.lock(Duration.ofMinutes(lockAccountBasedOnFailedAttemptInMinute));
+
+            auditLogService.log(userFound.getId(), AuditAction.ACCOUNT_LOCKED.name(),
+                    EntityEnum.USER, userFound.getId(), AuditStatus.SUCCESS,
+                    AuditAction.ACCOUNT_LOCKED.getDescription(), httpRequest);
+
+            userFound.setFailedLoginAttempts(0);
         }
+        userRepository.save(userFound);
+        auditLogService.log(userFound.getId(), AuditAction.LOGIN_FAILED.name(),
+                EntityEnum.USER, userFound.getId(), AuditStatus.FAILED,
+                AuditAction.LOGIN_FAILED.getDescription(), httpRequest);
+    }
+
+    private static void resetLoginAttempts(UserEntity user) {
+        user.setFailedLoginAttempts(0);
+        user.setLockedUntil(null);
     }
 
 }

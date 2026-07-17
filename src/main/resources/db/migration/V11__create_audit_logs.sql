@@ -8,6 +8,9 @@ CREATE TABLE IF NOT EXISTS audit_logs (
     user_id UUID,
     created_at TIMESTAMP,
     updated_at TIMESTAMP,
+    user_agent VARCHAR(255),
+    status VARCHAR(255),
+    description VARCHAR(255),
 
     CONSTRAINT fk_audit_log_user
         FOREIGN KEY (user_id)

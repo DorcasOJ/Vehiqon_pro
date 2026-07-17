@@ -34,19 +34,16 @@ public interface UserMapper {
     List<UserResponse> toResponses(List<UserEntity> users);
 
     //    create new user
-    //@Mapping(target = "cars", ignore = true)
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "roles", ignore = true)
     @Mapping(target = "status", ignore = true)
     @Mapping(target = "isVerified", ignore = true)
-//    @Mapping(target = "notifications", ignore = true)
-//    @Mapping(target = "auditLog", ignore = true)
-//    @Mapping(target = "userPlan", ignore = true)
+    @Mapping(target = "lockedUntil", ignore = true)
     @Mapping(target = "password", ignore = true)
-//    @Mapping(target = "refreshTokens", ignore = true)
-//    @Mapping(target = "virtualAccount", ignore = true)
+    @Mapping(target = "failedLoginAttempts", ignore = true)
+    @Mapping(target = "lastFailedLoginAt", ignore = true)
     UserEntity toEntity(UserDto.CreateUserRequest request);
 
 
@@ -56,14 +53,11 @@ public interface UserMapper {
     @Mapping(target = "status", ignore = true)
     @Mapping(target = "isVerified", ignore = true)
     @Mapping(target = "roles", ignore = true)
-//    @Mapping(target = "cars", ignore = true)
-//    @Mapping(target = "notifications", ignore = true)
-//    @Mapping(target = "auditLog", ignore = true)
-//    @Mapping(target = "userPlan", ignore = true)
+    @Mapping(target = "lockedUntil", ignore = true)
+    @Mapping(target = "failedLoginAttempts", ignore = true)
+    @Mapping(target = "lastFailedLoginAt", ignore = true)
     @Mapping(target = "password", ignore = true)
     @Mapping(target = "authorities", ignore = true)
-//    @Mapping(target = "refreshTokens", ignore = true)
-//    @Mapping(target = "virtualAccount", ignore = true)
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void updateEntity(
             UserDto.UpdateUserRequest request,

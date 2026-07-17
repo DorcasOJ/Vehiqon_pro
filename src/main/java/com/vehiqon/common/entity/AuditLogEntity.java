@@ -35,5 +35,5 @@ public class AuditLogEntity extends BaseEntity {
     private String ipAddress;
 
     @Column(name = "user_id")
-    private UUID userId;
+    private UUID userId; //performed by
 }

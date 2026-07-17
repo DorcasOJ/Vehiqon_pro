@@ -22,4 +22,5 @@ public class PasswordResetTokenEntity extends BaseEntity {
     private UUID userId;
     private Instant expiresAt;
     private boolean used;
+    private Instant usedAt;
 }

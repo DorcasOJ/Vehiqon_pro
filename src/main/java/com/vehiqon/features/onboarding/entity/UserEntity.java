@@ -9,6 +9,8 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
@@ -53,29 +55,12 @@ public class UserEntity extends BaseEntity implements UserDetails {
     @Column(name = "role")
     @Builder.Default
     private  Set<RoleEnum> roles = new HashSet<>();
-//
-//    @OneToOne(mappedBy = "user")
-//    private VirtualAccountEntity virtualAccount;
-//
-//    @Builder.Default
-//    @OneToMany(mappedBy = "user")
-//    private Set<CarEntity> cars = new HashSet<>();;
-//
-//    @Builder.Default
-//    @OneToMany(mappedBy = "user")
-//    private Set<Notification> notifications = new HashSet<>();;
-//
-//    @Builder.Default
-//    @OneToMany(mappedBy = "user")
-//    private Set<AuditLog> auditLog = new HashSet<>();;
-//
-//    @Builder.Default
-//    @OneToMany(mappedBy = "user")
-//    private Set<UserSubscription> userPlan = new HashSet<>();;
-//
-//    @Builder.Default
-//    @OneToMany(mappedBy = "user")
-//    private Set<RefreshTokenEntity> refreshTokens = new HashSet<>();;
+
+    private Integer failedLoginAttempts;
+
+    private Instant lockedUntil;
+
+    private Instant lastFailedLoginAt;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -95,9 +80,10 @@ public class UserEntity extends BaseEntity implements UserDetails {
         return true;
     }
 
+
     @Override
     public boolean isAccountNonLocked() {
-        return true;
+       return !isLocked();
     }
 
     @Override
@@ -108,18 +94,50 @@ public class UserEntity extends BaseEntity implements UserDetails {
     @Override
     public boolean isEnabled() {
         return Boolean.TRUE.equals(isVerified);
-//        return isVerified;
     }
 
-    public void addRole(RoleEnum role) {
-        if(role != null) {
-            this.roles.add(role);
+    public boolean isLocked() {
+        return lockedUntil != null && lockedUntil.isAfter(Instant.now());
+    }
+
+    public void lock(Duration duration) {
+        lockedUntil = Instant.now().plus(duration);
+        failedLoginAttempts =0;
+    }
+
+
+    public void incrementFailedLoginAttempt() {
+        failedLoginAttempts++;
+    }
+
+//    public void addRole(RoleEnum role) {
+//        if(role != null) {
+//            this.roles.add(role);
+//        }
+//    }
+//
+//    public void removeRole(RoleEnum role) {
+//        if(role != null) {
+//            this.roles.remove(role);
+//        }
+//    }
+
+    public void addRoles(Collection<RoleEnum> rolesToAdd) {
+        if(rolesToAdd != null && !rolesToAdd.isEmpty()) {
+            this.roles.addAll(rolesToAdd);
         }
     }
 
-    public void removeRole(RoleEnum role) {
-        if(role != null) {
-            this.roles.remove(role);
+    public void removeRoles(Collection<RoleEnum> rolesToRemove) {
+        if(rolesToRemove != null && !rolesToRemove.isEmpty()) {
+            this.roles.removeAll(rolesToRemove);
+        }
+    }
+
+    public void syncRoles(Collection<RoleEnum> targetRoles) {
+        this.roles.clear();
+        if(targetRoles != null) {
+            this.roles.addAll(targetRoles);
         }
     }
 

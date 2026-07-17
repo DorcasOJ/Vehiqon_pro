@@ -15,6 +15,7 @@ public class AccountUtils {
 
 
     public static final String SUCCESS_MESSAGE = "Success";
+    public static final String FAILED_MESSAGE = "Success";
     public static final String UNAUTHORIZED_ERROR_MESSAGE= "User is unauthorised";
     public static final String USER_FOUND_MESSAGE = "User Found";
     public static final String INVALID_CREDENTIALS_MESSAGE = "Credentials is invalid, Kindly supply valid credentials";
@@ -44,8 +45,7 @@ public class AccountUtils {
     public static final String password_reset_description = "User Reset Password";
     public static final String token_refreshed_description = "Refreshed Login Token was generated or refreshed";
     public static final String email_verified_description = "User Email Verified";
-    public static final String user_entity = "USER";
-    public static final String admin_entity = "ADMIN";
+
 
 
 }
