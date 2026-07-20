@@ -1,6 +1,6 @@
-package com.vehiqon.common.entity;
+package com.vehiqon.features.insights.analytics.entities;
 
-import com.vehiqon.features.onboarding.entity.UserEntity;
+import com.vehiqon.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -36,4 +36,6 @@ public class AuditLogEntity extends BaseEntity {
 
     @Column(name = "user_id")
     private UUID userId; //performed by
+
+//    private Json metadata;
 }

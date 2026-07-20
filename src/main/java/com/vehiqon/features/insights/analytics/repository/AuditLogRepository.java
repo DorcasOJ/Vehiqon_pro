@@ -1,6 +1,6 @@
-package com.vehiqon.common.repository;
+package com.vehiqon.features.insights.analytics.repository;
 
-import com.vehiqon.common.entity.AuditLogEntity;
+import com.vehiqon.features.insights.analytics.entities.AuditLogEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.UUID;

@@ -1,11 +1,15 @@
 package com.vehiqon.features.onboarding.service.impl;
 
-import com.vehiqon.common.enums.AuditAction;
-import com.vehiqon.common.enums.AuditStatus;
+import com.vehiqon.features.insights.analytics.dto.AnalyticsDto;
+import com.vehiqon.features.insights.analytics.enums.AuditAction;
+import com.vehiqon.features.insights.analytics.enums.AuditStatus;
 import com.vehiqon.common.enums.EntityEnum;
 import com.vehiqon.common.enums.VerificationTokenTypeEnum;
 import com.vehiqon.common.exception.*;
-import com.vehiqon.common.service.AuditLogService;
+import com.vehiqon.features.insights.analytics.enums.PublishAction;
+import com.vehiqon.features.insights.analytics.service.AnalyticsEventPublisher;
+import com.vehiqon.features.insights.analytics.service.AnalyticsService;
+import com.vehiqon.features.insights.analytics.service.AuditLogService;
 import com.vehiqon.features.onboarding.config.RateLimitProperties;
 import com.vehiqon.features.onboarding.service.RateLimitService;
 import com.vehiqon.common.utils.AccountUtils;
@@ -44,9 +48,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
-import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 @Service
@@ -81,14 +83,18 @@ public class AuthServiceImpl implements AuthService {
     private final RateLimitService rateLimitService;
     private final RateLimitProperties rateLimitProperties;
     private final HttpRequestUtils httpRequestUtils;
+    private final AnalyticsEventPublisher publisher;
+    private final AnalyticsService analyticsService;
+
 
     @Override
+    @Transactional
     public UserResponse register(UserDto.CreateUserRequest request, HttpServletRequest httpServletRequest) {
         rateLimitService.validateRegister(request.email(),httpRequestUtils.getClientIp(httpServletRequest) );
         UserResponse user = userService.createUser(request);
-         auditLogService.log(user.getId(), AuditAction.USER_REGISTERED.name(),
-                 EntityEnum.USER, user.getId(), AuditStatus.SUCCESS,
-            AccountUtils.user_registered_description, httpServletRequest);
+
+        publisher.publish( new AnalyticsDto.AuditEvent(user.getId(), AuditAction.USER_REGISTERED, EntityEnum.USER,
+                user.getId(), AuditStatus.SUCCESS, httpServletRequest, PublishAction.AUDIT_LOG));
         return user;
     }
 
@@ -109,9 +115,10 @@ public class AuthServiceImpl implements AuthService {
             resetLoginAttempts(Objects.requireNonNull(user));
             userRepository.save(user);
         LoginResponse response = generateTokens(user, httpRequest);
-        auditLogService.log(user.getId(), AuditAction.LOGIN_SUCCESS.name(),
-                EntityEnum.USER, user.getId(), AuditStatus.SUCCESS,
-                AuditAction.LOGIN_SUCCESS.getDescription(), httpRequest);
+            publisher.publish(new AnalyticsDto.AuditEvent(user.getId(), AuditAction.USER_LOGGED_IN, EntityEnum.USER,
+                    user.getId(), AuditStatus.SUCCESS, httpRequest, PublishAction.AUDIT_LOG));
+//            analyticsService.startUserSession(user.getId(), new AnalyticsDto.SessionContext(httpRequestUtils.getClientIp(httpRequest), ));
+            
         return response;
 
         } catch (BadCredentialsException e) {
@@ -177,9 +184,8 @@ public class AuthServiceImpl implements AuthService {
         userRepository.markUserAsIsVerified(user.getId());
         verificationTokenRepository.markAllAsUsed(user.getId(), VerificationTokenTypeEnum.EMAIL_VERIFICATION, LocalDateTime.now());
 
-        auditLogService.log(user.getId(), AuditAction.USER_VERIFIED_EMAIL.name(),
-                EntityEnum.VERIFICATION_TOKEN, user.getId(), AuditStatus.SUCCESS,
-                AccountUtils.user_email_verified_description, httpServletRequest);
+        publisher.publish( new AnalyticsDto.AuditEvent(user.getId(), AuditAction.USER_EMAIL_VERIFIED, EntityEnum.USER,
+                user.getId(), AuditStatus.SUCCESS, httpServletRequest, PublishAction.AUDIT_LOG));
 
         return "Email verified successfully.";
     }
@@ -217,10 +223,9 @@ public class AuthServiceImpl implements AuthService {
             }
             verificationTokenRepository.saveAll(tokens);
             userService.validateUserEmail(user);
+        publisher.publish( new AnalyticsDto.AuditEvent(user.getId(), AuditAction.USER_VERIFICATION_EMAIL_RESENT, EntityEnum.USER,
+                user.getId(), AuditStatus.SUCCESS, httpServletRequest, PublishAction.AUDIT_LOG));
 
-            auditLogService.log(user.getId(), AuditAction.USER_REQUESTED_VERIFICATION_EMAIL_TOKEN.name(),
-                    EntityEnum.VERIFICATION_TOKEN, user.getId(), AuditStatus.SUCCESS,
-                    AccountUtils.user_requested_email_verification_description, httpServletRequest);
             return "If an account exists with this email, a verification email has been sent.";
         }
 
@@ -246,9 +251,9 @@ public class AuthServiceImpl implements AuthService {
         refreshToken.setRevokedAt(LocalDateTime.now());
         refreshTokenRepository.save(refreshToken);
 
-        auditLogService.log(refreshToken.getUserId(), AuditAction.USER_LOGGED_OUT.name(),
-                EntityEnum.USER, refreshToken.getUserId(), AuditStatus.SUCCESS,
-                AccountUtils.user_logout_description, httpServletRequest);
+        publisher.publish( new AnalyticsDto.AuditEvent(refreshToken.getUserId(), AuditAction.USER_LOGGED_OUT, EntityEnum.USER,
+                refreshToken.getUserId(), AuditStatus.SUCCESS, httpServletRequest, PublishAction.AUDIT_LOG));
+
         return "Logged out Successful";
     }
 
@@ -262,9 +267,9 @@ public class AuthServiceImpl implements AuthService {
                 (UserEntity) authentication.getPrincipal();
         refreshTokenRepository.revokeAll(user.getId());
 //        log.info("Revoked refresh tokens for user {}",user.getEmail());
-        auditLogService.log(user.getId(), AuditAction.USER_LOGGED_OUT_ALL.name(),
-                EntityEnum.USER, user.getId(), AuditStatus.SUCCESS,
-                AccountUtils.user_logout_all_description, httpServletRequest);
+          publisher.publish( new AnalyticsDto.AuditEvent(user.getId(), AuditAction.USER_LOGGED_OUT_ALL, EntityEnum.USER,
+                user.getId(), AuditStatus.SUCCESS, httpServletRequest, PublishAction.AUDIT_LOG));
+
         return "Logged out from all devices";
     }
 
@@ -285,9 +290,9 @@ public class AuthServiceImpl implements AuthService {
         userRepository.save(user);
         // revoking all refresh tokens
         refreshTokenRepository.revokeAll(user.getId());
-        auditLogService.log(user.getId(), AuditAction.USER_PASSWORD_CHANGED.name(),
-                EntityEnum.USER, user.getId(), AuditStatus.SUCCESS,
-                AccountUtils.password_changed_description, httpServletRequest);
+        publisher.publish( new AnalyticsDto.AuditEvent(user.getId(), AuditAction.USER_PASSWORD_CHANGED, EntityEnum.USER,
+                user.getId(), AuditStatus.SUCCESS, httpServletRequest, PublishAction.AUDIT_LOG));
+
         return "Password changed successfully";
     }
 
@@ -304,10 +309,8 @@ public class AuthServiceImpl implements AuthService {
             String link = resetPasswordLink + token;
             log.debug("forgot password token here {}", token); // remove this later
             emailService.sendEmailAlert(emailResponseMapper.toResetPassword(user, link));
-
-            auditLogService.log(user.getId(), AuditAction.USER_PASSWORD_RESET_REQUESTED.name(),
-                    EntityEnum.PASSWORD_RESET_TOKEN, savedPasswordToken.getId(), AuditStatus.SUCCESS,
-                    AccountUtils.password_reset_requested_description, httpServletRequest);
+            publisher.publish( new AnalyticsDto.AuditEvent(user.getId(), AuditAction.USER_PASSWORD_RESET_REQUESTED, EntityEnum.USER,
+                    user.getId(), AuditStatus.SUCCESS, httpServletRequest, PublishAction.AUDIT_LOG));
         });
         return "If an account with that email exists, a password reset link has been sent.";
     }
@@ -330,9 +333,9 @@ public class AuthServiceImpl implements AuthService {
         passwordResetTokenRepository.markAllAsUsedByUserId(user.getId());
         refreshTokenRepository.revokeAll(user.getId());  // revoking all refresh tokens
         resetLoginAttempts(user);
-        auditLogService.log(user.getId(), AuditAction.USER_PASSWORD_RESET_COMPLETED.name(),
-                EntityEnum.USER, user.getId(),AuditStatus.SUCCESS,
-                AccountUtils.password_reset_description, httpServletRequest);
+        publisher.publish( new AnalyticsDto.AuditEvent(user.getId(), AuditAction.USER_PASSWORD_RESET_COMPLETED, EntityEnum.USER,
+                user.getId(), AuditStatus.SUCCESS, httpServletRequest, PublishAction.AUDIT_LOG));
+
         return "Password has been successfully updated. You can now log in with your new password.";
     }
 
@@ -352,10 +355,8 @@ public class AuthServiceImpl implements AuthService {
             RefreshTokenEntity refreshTokenEntity = jwtService.mapRefreshTokenToEntity(tokenUtils.hashToken(refreshToken), user, request);
             RefreshTokenEntity newrefreshTokenEntity = refreshTokenRepository.save(refreshTokenEntity);
 
-            auditLogService.log(user.getId(), AuditAction.USER_REFRESHED_TOKEN.name(),
-                    EntityEnum.REFRESH_TOKEN, newrefreshTokenEntity.getId(),AuditStatus.SUCCESS,
-                    AccountUtils.token_refreshed_description, request);
-
+            publisher.publish( new AnalyticsDto.AuditEvent(user.getId(), AuditAction.USER_REFRESHED_TOKEN, EntityEnum.USER,
+                    user.getId(), AuditStatus.SUCCESS, request, PublishAction.AUDIT_LOG));
             String accessToken = jwtService.generateToken(user, claims);
 
             return loginResponseMapper.toLoginResponse(accessToken, refreshToken, user);
@@ -367,19 +368,17 @@ public class AuthServiceImpl implements AuthService {
     private void handleFailedLoginAttempt(HttpServletRequest httpRequest, UserEntity userFound) {
         userFound.incrementFailedLoginAttempt();
 
+
         if (userFound.getFailedLoginAttempts() >= maxFailedAttempt) {
             userFound.lock(Duration.ofMinutes(lockAccountBasedOnFailedAttemptInMinute));
-
-            auditLogService.log(userFound.getId(), AuditAction.ACCOUNT_LOCKED.name(),
-                    EntityEnum.USER, userFound.getId(), AuditStatus.SUCCESS,
-                    AuditAction.ACCOUNT_LOCKED.getDescription(), httpRequest);
-
+            publisher.publish( new AnalyticsDto.AuditEvent(userFound.getId(), AuditAction.ACCOUNT_LOCKED, EntityEnum.USER,
+                    userFound.getId(), AuditStatus.FAILED, httpRequest, PublishAction.AUDIT_LOG));
             userFound.setFailedLoginAttempts(0);
         }
         userRepository.save(userFound);
-        auditLogService.log(userFound.getId(), AuditAction.LOGIN_FAILED.name(),
-                EntityEnum.USER, userFound.getId(), AuditStatus.FAILED,
-                AuditAction.LOGIN_FAILED.getDescription(), httpRequest);
+
+        auditLogService.log( new AnalyticsDto.AuditEvent(userFound.getId(), AuditAction.LOGIN_FAILED, EntityEnum.USER,
+                userFound.getId(), AuditStatus.FAILED, httpRequest, PublishAction.AUDIT_LOG));
     }
 
     private static void resetLoginAttempts(UserEntity user) {

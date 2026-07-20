@@ -1,4 +1,6 @@
-package com.vehiqon.common.enums;
+package com.vehiqon.features.insights.analytics.enums;
+
+import lombok.Getter;
 
 public enum AuditAction {
     USER_PASSWORD_CHANGED( "User Changed Password"),
@@ -27,4 +29,6 @@ public enum AuditAction {
     public String getDescription() {
         return description;
     }
+
+
 }

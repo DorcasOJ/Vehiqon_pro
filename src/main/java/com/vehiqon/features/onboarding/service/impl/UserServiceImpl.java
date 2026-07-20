@@ -4,11 +4,15 @@ import com.vehiqon.common.enums.*;
 import com.vehiqon.common.exception.BadRequestException;
 import com.vehiqon.common.exception.ResourceAlreadyExistException;
 import com.vehiqon.common.exception.ResourceNotFoundException;
-import com.vehiqon.common.service.AuditLogService;
-import com.vehiqon.common.utils.AccountUtils;
+import com.vehiqon.features.insights.analytics.dto.AnalyticsDto;
+import com.vehiqon.features.insights.analytics.enums.PublishAction;
+import com.vehiqon.features.insights.analytics.service.AnalyticsEventPublisher;
+import com.vehiqon.features.insights.analytics.service.AuditLogService;
 import com.vehiqon.common.utils.GenerateOrHashTokenUtils;
 import com.vehiqon.features.email.mapper.EmailResponseMapper;
 import com.vehiqon.features.email.mapper.VerificationTokenMapper;
+import com.vehiqon.features.insights.analytics.enums.AuditAction;
+import com.vehiqon.features.insights.analytics.enums.AuditStatus;
 import com.vehiqon.features.onboarding.dto.request.UserDto;
 import com.vehiqon.features.onboarding.entity.UserEntity;
 import com.vehiqon.features.email.service.EmailService;
@@ -45,7 +49,8 @@ public class UserServiceImpl implements UserService {
     private final EmailService emailService;
     private final PasswordEncoder passwordEncoder;
     private final GenerateOrHashTokenUtils tokenUtils;
-    private final AuditLogService auditLogService;
+//    private final AuditLogService auditLogService;
+    private final AnalyticsEventPublisher publisher;
 //    private final CurrentUserService currentUserService;
 
     @Override
@@ -130,9 +135,13 @@ public class UserServiceImpl implements UserService {
         );
         user.setLockedUntil(null);
         user.setFailedLoginAttempts(0);
-        auditLogService.log(adminUser.getId(), AuditAction.ACCOUNT_UNLOCKED.name(),
-                EntityEnum.USER, user.getId(),  AuditStatus.SUCCESS,
-                AuditAction.ACCOUNT_UNLOCKED.getDescription(), request );
+        userRepository.save(user);
+        publisher.publish( new AnalyticsDto.AuditEvent(user.getId(), AuditAction.USER_REGISTERED, EntityEnum.USER,
+                user.getId(), AuditStatus.SUCCESS, request, PublishAction.AUDIT_LOG));
+
+//        auditLogService.log(adminUser.getId(), AuditAction.ACCOUNT_UNLOCKED.name(),
+//                EntityEnum.USER, user.getId(),  AuditStatus.SUCCESS,
+//                AuditAction.ACCOUNT_UNLOCKED.getDescription(), request );
 
     }
 

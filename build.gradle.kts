@@ -28,6 +28,7 @@ dependencies {
 	implementation ("me.paulschwarz:spring-dotenv:4.0.0")
 	implementation("com.github.ben-manes.caffeine:caffeine:3.2.3")
 	implementation("com.bucket4j:bucket4j-core:8.10.1")
+	implementation("nl.basjes.parse.useragent:yauaa:8.1.1")
 //	implementation ("org.springframework.boot:spring-boot-starter-data-redis")
 
 	implementation ("org.flywaydb:flyway-core")
