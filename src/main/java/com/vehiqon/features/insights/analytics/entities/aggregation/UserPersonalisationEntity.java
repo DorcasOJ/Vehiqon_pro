@@ -9,7 +9,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 
@@ -20,8 +23,8 @@ import java.util.UUID;
 @SuperBuilder
 @Entity
 @Table(name="user_personalisation")
-public class UserPersonalisationEntity extends BaseEntity {
-
+public class UserPersonalisationEntity {
+    @Id
     @Column(name = "user_id", nullable = false)
     private UUID userId;
 
@@ -34,6 +37,14 @@ public class UserPersonalisationEntity extends BaseEntity {
     private NotificationChannel preferredNotificationChannel;
     private Boolean prefersDarkMode;
     private Boolean onboardingCompleted;
+
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    @Column(name = "updated_at")
+    private  LocalDateTime updatedAt;
 
 //    private Long averageSessionLength;
 //    private Long riskScore;

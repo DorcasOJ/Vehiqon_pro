@@ -2,9 +2,10 @@ package com.vehiqon.security.config;
 
 import com.vehiqon.CustomAccessDeniedHandler;
 import com.vehiqon.CustomAuthenticationEntryPoint;
+import com.vehiqon.common.exception.ResourceNotFoundException;
+import com.vehiqon.features.onboarding.repository.UserRepository;
 import com.vehiqon.security.jwt.JwtAuthenticationEntryPoint;
 import com.vehiqon.security.jwt.JwtAuthenticationFilter;
-import com.vehiqon.security.service.CustomerUserDetailsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,6 +16,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -28,7 +30,7 @@ public class SecurityConfig {
 //    private final CustomerUserDetailsService userDetailsService;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
-    private final CustomAccessDeniedHandler customAccessDeniedHandler;
+//    private final CustomAccessDeniedHandler customAccessDeniedHandler;
 //    private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
 
 
@@ -83,6 +85,12 @@ public class SecurityConfig {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
+
+//    @Bean
+//    public UserDetailsService userDetailsService() {
+//        return username -> userRepository.findByEmail(username)
+//                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + username));
+//    }
 
     @Bean
     public AuthenticationManager authenticationManager(

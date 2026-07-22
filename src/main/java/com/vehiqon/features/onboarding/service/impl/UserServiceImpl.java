@@ -20,7 +20,9 @@ import com.vehiqon.features.onboarding.dto.response.UserResponse;
 import com.vehiqon.features.onboarding.mapper.UserMapper;
 import com.vehiqon.features.onboarding.repository.UserRepository;
 import com.vehiqon.features.onboarding.repository.VerificationTokenRepository;
+import com.vehiqon.features.onboarding.service.AuthService;
 import com.vehiqon.features.onboarding.service.UserService;
+import com.vehiqon.security.model.CustomerUserDetails;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -146,6 +148,8 @@ public class UserServiceImpl implements UserService {
     }
 
     private UserEntity getAuthenticatedUser() {
+//        CustomerUserDetails authenticatedUser = authService.getAuthenticatedUser();
+//        return authenticatedUser.user();
         Authentication authentication =
                 SecurityContextHolder.getContext().getAuthentication();
 

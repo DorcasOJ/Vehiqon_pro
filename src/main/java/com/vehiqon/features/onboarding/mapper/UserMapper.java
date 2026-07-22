@@ -44,6 +44,8 @@ public interface UserMapper {
     @Mapping(target = "password", ignore = true)
     @Mapping(target = "failedLoginAttempts", ignore = true)
     @Mapping(target = "lastFailedLoginAt", ignore = true)
+    @Mapping(target = "jti", ignore = true)
+    @Mapping(target = "sessionId", ignore = true)
     UserEntity toEntity(UserDto.CreateUserRequest request);
 
 
@@ -58,6 +60,8 @@ public interface UserMapper {
     @Mapping(target = "lastFailedLoginAt", ignore = true)
     @Mapping(target = "password", ignore = true)
     @Mapping(target = "authorities", ignore = true)
+    @Mapping(target = "jti", ignore = true)
+    @Mapping(target = "sessionId", ignore = true)
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void updateEntity(
             UserDto.UpdateUserRequest request,

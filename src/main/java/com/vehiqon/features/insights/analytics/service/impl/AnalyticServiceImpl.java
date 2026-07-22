@@ -20,6 +20,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 @RequiredArgsConstructor
@@ -39,7 +40,7 @@ public class AnalyticServiceImpl implements AnalyticsService {
 
     @Override
     @Async("asyncTaskExecutor")
-    public UUID startFeatureSession(UUID userId, UUID sessionId, FeatureEnum feature, EventType type) {
+    public CompletableFuture<UUID> startFeatureSession(UUID userId, UUID sessionId, FeatureEnum feature, EventType type) {
         FeatureSessionEntity featureSession = FeatureSessionEntity.builder()
                 .featureName(feature)
                 .startedTime(LocalDateTime.now())
@@ -71,7 +72,7 @@ public class AnalyticServiceImpl implements AnalyticsService {
                     .build();
             userPersonalisationRepository.save(userPersonalisation);
         }
-        return savedFeatureSession.getId();
+        return CompletableFuture.completedFuture(savedFeatureSession.getId());
     }
 
     @Override
@@ -98,12 +99,20 @@ public class AnalyticServiceImpl implements AnalyticsService {
 
     @Override
     @Async("asyncTaskExecutor")
-    public UUID startUserSession(UUID userId, AnalyticsDto.SessionContext context) {
-        UserSessionEntity userSessionEntity = analyticsMapper.toStartUserSessionEntity(context);
-        userSessionEntity.setUserId(userId);
-        userSessionEntity.setLoginTime(LocalDateTime.now());
-        UserSessionEntity savedUserSession = userSessionRepository.save(userSessionEntity);
-
+    public CompletableFuture<UUID> startUserSession(UUID id, UUID userId, AnalyticsDto.SessionContext context) {
+        Optional<UserSessionEntity> userSessionOpt = userSessionRepository.findByUserIdAndDeviceIdAndLogoutAtIsNull(userId, context.deviceId());
+        UserSessionEntity userSessionEntity;
+        UserSessionEntity userSession;
+        if(userSessionOpt.isPresent()) {
+            userSession = userSessionOpt.get();
+            userSession.setLastActivityAt(LocalDateTime.now());
+        } else {
+            userSession = analyticsMapper.toStartUserSessionEntity(context);
+            userSession.setUserId(userId);
+            userSession.setId(id);
+            userSession.setLoginAt(LocalDateTime.now());
+        }
+        userSessionEntity = userSessionRepository.save(userSession);
         Optional<UserStatisticsEntity> userStatisticsEntityOpt = userStatisticsRepository.findByUserId(userId);
         if (userStatisticsEntityOpt.isPresent()) {
             UserStatisticsEntity userStatisticsEntity = userStatisticsEntityOpt.get();
@@ -118,7 +127,7 @@ public class AnalyticServiceImpl implements AnalyticsService {
                     .build();
             userStatisticsRepository.save(userStatistics);
         }
-        return savedUserSession.getId();
+        return CompletableFuture.completedFuture(userSessionEntity.getId());
     }
 
     @Override
@@ -127,20 +136,28 @@ public class AnalyticServiceImpl implements AnalyticsService {
         Optional<UserSessionEntity> userSessionOpt = userSessionRepository.findById(userSessionId);
         if(userSessionOpt.isPresent()) {
             UserSessionEntity userSession = userSessionOpt.get();
-            userSession.setLogoutTime(LocalDateTime.now());
-            userSession.setTotalDurationSeconds(
-                    Duration.between(userSession.getLoginTime(), userSession.getLogoutTime()).getSeconds());
+            userSession.setLogoutAt(LocalDateTime.now());
+            userSession.setActive(false);
+            userSession.setDurationSeconds(
+                    Duration.between(userSession.getLoginAt(), userSession.getLogoutAt()).getSeconds());
             userSessionRepository.save(userSession);
-
-        Optional<UserStatisticsEntity> userStatisticsEntityOpt = userStatisticsRepository.findByUserId(userSession.getUserId());
-        if (userStatisticsEntityOpt.isPresent()) {
-            UserStatisticsEntity userStatisticsEntity = userStatisticsEntityOpt.get();
-            userStatisticsEntity.setTotalTimeSpent(
-                    userStatisticsEntity.getTotalTimeSpent() + userSession.getTotalDurationSeconds()
-            );
-            userStatisticsEntity.setLastActive(LocalDateTime.now());
-            userStatisticsRepository.save(userStatisticsEntity);
+// end feature session and featureStatistics before endSession...
+            Optional<UserStatisticsEntity> userStatisticsEntityOpt = userStatisticsRepository.findByUserId(userSession.getUserId());
+            if (userStatisticsEntityOpt.isPresent()) {
+                UserStatisticsEntity userStatisticsEntity = userStatisticsEntityOpt.get();
+                userStatisticsEntity.setTotalTimeSpent(
+                        userStatisticsEntity.getTotalTimeSpent() + userSession.getDurationSeconds()
+                );
+                userStatisticsEntity.setLastActive(LocalDateTime.now());
+                userStatisticsRepository.save(userStatisticsEntity);
+            }
         }
     }
-}
+
+    @Override
+    @Async("asyncTaskExecutor")
+    public void endAllSession(UUID userSessionId, UUID userId) {
+        endSession(userSessionId);
+        userSessionRepository.logoutAllActiveSessions(userId, LocalDateTime.now());
+    }
 }

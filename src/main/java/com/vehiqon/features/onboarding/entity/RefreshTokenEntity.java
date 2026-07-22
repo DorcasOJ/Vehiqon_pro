@@ -20,7 +20,6 @@ public class RefreshTokenEntity extends BaseEntity {
 
     @Column(name = "user_id", nullable = false)
     private UUID userId;
-
     /**
      * Chrome on Windows
      * Safari on iPhone

@@ -4,6 +4,7 @@ import com.vehiqon.common.enums.VerificationTokenTypeEnum;
 import com.vehiqon.features.onboarding.entity.UserEntity;
 import com.vehiqon.features.onboarding.entity.VerificationTokenEntity;
 import jakarta.transaction.Transactional;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -32,6 +33,8 @@ public interface UserRepository extends JpaRepository<UserEntity, UUID> {
 
     boolean existsByBvn(String bvn);
 
+    @EntityGraph(attributePaths = "roles")
+//    Optional<UserEntity> findByEmail(String email);
     Optional<UserEntity> findByEmail(String email);
 
     Optional<UserEntity> findByPhoneNumber(String phoneNumber);

@@ -2,10 +2,7 @@ package com.vehiqon.features.insights.analytics.entities;
 
 import com.vehiqon.common.entity.BaseEntity;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDateTime;
@@ -18,14 +15,16 @@ import java.util.UUID;
 @AllArgsConstructor
 @SuperBuilder
 @Entity
-@Table(name="user_events")
+@Table(name="user_sessions")
 public class UserSessionEntity extends BaseEntity {
 
     @Column(name = "user_id", nullable = false)
     private UUID userId;
-
-    private LocalDateTime loginTime;
-    private LocalDateTime logoutTime;
+    @Column(name = "login_at", nullable = false)
+    private LocalDateTime loginAt;
+    @Column(name = "logout_at", nullable = false)
+    private LocalDateTime logoutAt;
+    @Column(name = "last_activity_at", nullable = false)
     private LocalDateTime lastActivityAt;
     private String device;
     private String browser;
@@ -36,5 +35,9 @@ public class UserSessionEntity extends BaseEntity {
     private String deviceId; // each device has it own session
     private String appVersion;
 
-    private Long totalDurationSeconds;
+    @Builder.Default
+    @Column(nullable = false)
+    private Boolean active = true;
+
+    private Long durationSeconds;
 }

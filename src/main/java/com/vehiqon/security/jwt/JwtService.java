@@ -1,5 +1,7 @@
 package com.vehiqon.security.jwt;
 
+import com.vehiqon.common.service.UserAgentParserService;
+import com.vehiqon.features.insights.analytics.dto.AnalyticsDto;
 import com.vehiqon.features.onboarding.entity.RefreshTokenEntity;
 import com.vehiqon.features.onboarding.entity.UserEntity;
 import com.vehiqon.security.config.JwtProperties;
@@ -26,6 +28,8 @@ import java.util.UUID;
 //@ConfigurationPropertiesScan
 public class JwtService {
     private final JwtProperties properties;
+    private final UserAgentParserService userAgentParserService;
+
     private SecretKey getSigningKey() {
         return Keys.hmacShaKeyFor(properties.secret().getBytes());
     }
@@ -34,7 +38,9 @@ public class JwtService {
                                 Map<String, Object> extraClaims) {
         Date now = new Date();
         Date expiry = new Date(now.getTime() + properties.expiration());
+        String jti = UUID.randomUUID().toString();
         return Jwts.builder()
+                .id(jti)
                 .subject(userEntity.getUsername())
                 .claims(extraClaims)
                 .issuedAt(now)
@@ -43,29 +49,31 @@ public class JwtService {
                 .compact();
     }
 
-    public String generateRefreshToken(UserEntity userEntity ) {
+    public String generateRefreshToken(UserEntity userEntity,  Map<String, Object> extraClaims ) {
         Date now = new Date();
         Date expiry = new Date(
                 now.getTime() + properties.refreshExpiration()
         );
         return Jwts.builder()
                 .subject(userEntity.getUsername())
+                .claims(extraClaims) //sessionId
                 .issuedAt(now)
                 .expiration(expiry)
                 .signWith(getSigningKey())
                 .compact();
     }
-        public RefreshTokenEntity mapRefreshTokenToEntity(String refreshToken, UserEntity userEntity, HttpServletRequest request) {
 
+    public RefreshTokenEntity mapRefreshTokenToEntity(String refreshToken, UserEntity userEntity, HttpServletRequest request, UUID sessionId) {
+
+        AnalyticsDto.SessionContext sessionContext = userAgentParserService.parseRequestDetails(request);
         return RefreshTokenEntity.builder()
                 .token(refreshToken)
                 .userId(userEntity.getId())
-                .deviceName(request.getHeader("User-Agent"))
-                .deviceId(UUID.randomUUID().toString())
-                .ipAddress(request.getRemoteAddr())
+                .deviceName(sessionContext.device())
+                .deviceId(sessionContext.deviceId())
+                .ipAddress(sessionContext.ipAddress())
                 .expiresAt(
                         LocalDateTime.now()
-//                                .plusDays(7)
                                 .plus(Duration.ofMillis(properties.refreshExpiration()))
                 )
                 .revoked(false)
@@ -74,6 +82,16 @@ public class JwtService {
 
     }
 
+    public  UUID extractSessionId(String token) {
+        Claims claims = extractClaims(token);
+        return UUID.fromString(
+                claims.get("sessionId", String.class)
+        );
+    }
+
+    public  String extractJti(String token) {
+        return extractClaims(token).getId();
+    }
 
     public String extractUsername(String token) {
 

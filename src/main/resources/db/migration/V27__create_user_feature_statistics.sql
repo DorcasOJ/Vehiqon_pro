@@ -23,7 +23,13 @@ CREATE TABLE user_feature_statistics
     updated_at TIMESTAMP,
 
      CONSTRAINT uk_user_feature_statistics_user_feature
-        UNIQUE (user_id, feature)
+        UNIQUE (user_id, feature),
+
+     CONSTRAINT fk_user_feature_statistic_user
+            FOREIGN KEY (user_id)
+            REFERENCES users(id)
+            ON DELETE CASCADE
+
 
 );
 

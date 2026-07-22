@@ -1,6 +1,7 @@
 CREATE TABLE IF NOT EXISTS refresh_tokens (
     id UUID PRIMARY KEY,
     token VARCHAR(512) NOT NULL UNIQUE,
+--    session_id VARCHAR(512) NOT NULL UNIQUE,
     user_id UUID NOT NULL,
     device_name VARCHAR(255),
     device_id VARCHAR(255),

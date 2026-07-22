@@ -18,3 +18,5 @@ CREATE TABLE IF NOT EXISTS users (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP
 );
+CREATE UNIQUE INDEX idx_users_email ON users(email);
+CREATE UNIQUE INDEX idx_users_id ON users(id);

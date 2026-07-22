@@ -22,7 +22,23 @@ CREATE TABLE user_events
 
     created_at TIMESTAMP,
 
-    updated_at TIMESTAMP
+    updated_at TIMESTAMP,
+
+      CONSTRAINT fk_user_event_user
+            FOREIGN KEY (user_id)
+            REFERENCES users(id)
+            ON DELETE CASCADE,
+
+     CONSTRAINT fk_user_event_user_session
+            FOREIGN KEY (user_session_id)
+            REFERENCES user_sessions(id)
+            ON DELETE CASCADE,
+
+    CONSTRAINT fk_user_event_feature_session
+         FOREIGN KEY (feature_session_id)
+         REFERENCES feature_sessions(id)
+         ON DELETE CASCADE
+
 );
 
 CREATE INDEX idx_events_user

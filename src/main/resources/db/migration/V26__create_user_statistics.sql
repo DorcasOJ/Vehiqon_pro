@@ -28,5 +28,11 @@ CREATE TABLE user_statistics
 
     created_at TIMESTAMP,
 
-    updated_at TIMESTAMP
+    updated_at TIMESTAMP,
+
+  CONSTRAINT fk_user_statistic_user
+        FOREIGN KEY (user_id)
+        REFERENCES users(id)
+        ON DELETE CASCADE
+
 );

@@ -18,7 +18,17 @@ CREATE TABLE feature_sessions
 
     created_at TIMESTAMP,
 
-    updated_at TIMESTAMP
+    updated_at TIMESTAMP,
+
+  CONSTRAINT fk_feature_sessions_user
+        FOREIGN KEY (user_id)
+        REFERENCES users(id)
+        ON DELETE CASCADE,
+
+  CONSTRAINT fk_feature_sessions_user_session
+        FOREIGN KEY (user_session_id)
+        REFERENCES user_sessions(id)
+        ON DELETE CASCADE
 );
 
 CREATE INDEX idx_feature_user

@@ -8,6 +8,8 @@ CREATE TABLE user_sessions
 
     logout_at TIMESTAMP,
 
+    active BOOLEAN DEFAULT TRUE,
+
     last_activity_at TIMESTAMP,
 
     duration_seconds BIGINT,
@@ -32,7 +34,12 @@ CREATE TABLE user_sessions
 
     created_at TIMESTAMP,
 
-    updated_at TIMESTAMP
+    updated_at TIMESTAMP,
+
+  CONSTRAINT fk_user_sessions_user
+        FOREIGN KEY (user_id)
+        REFERENCES users(id)
+        ON DELETE CASCADE
 );
 
 CREATE INDEX idx_user_session_user

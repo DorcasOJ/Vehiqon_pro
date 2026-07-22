@@ -1,5 +1,6 @@
 package com.vehiqon.features.onboarding.service.impl;
 
+import com.vehiqon.common.service.UserAgentParserService;
 import com.vehiqon.features.insights.analytics.dto.AnalyticsDto;
 import com.vehiqon.features.insights.analytics.enums.AuditAction;
 import com.vehiqon.features.insights.analytics.enums.AuditStatus;
@@ -31,7 +32,9 @@ import com.vehiqon.features.onboarding.repository.UserRepository;
 import com.vehiqon.features.onboarding.repository.VerificationTokenRepository;
 import com.vehiqon.features.onboarding.service.AuthService;
 import com.vehiqon.features.onboarding.service.UserService;
+import com.vehiqon.security.config.CustomAuthenticationDetails;
 import com.vehiqon.security.jwt.JwtService;
+import com.vehiqon.security.model.CustomerUserDetails;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -85,6 +88,7 @@ public class AuthServiceImpl implements AuthService {
     private final HttpRequestUtils httpRequestUtils;
     private final AnalyticsEventPublisher publisher;
     private final AnalyticsService analyticsService;
+    private final UserAgentParserService userAgentParserService;
 
 
     @Override
@@ -101,25 +105,48 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public LoginResponse login(AuthDto.LoginRequest request, HttpServletRequest
             httpRequest) {
+        long start = System.nanoTime();
         String email = request.email();
         rateLimitService.validateLogin(request.email(),httpRequestUtils.getClientIp(httpRequest) );
+        log.info("login rate limit = {} ms", (System.nanoTime() - start) / 1_000_000);
 
         Optional<UserEntity> userOpt = userRepository.findByEmail(email);
+        log.info("get user Opt = {} ms", (System.nanoTime() - start) / 1_000_000);
+
         try {
             Authentication authenticate = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
                             email, request.password()
                     )
             );
-        UserEntity user = (UserEntity) authenticate.getPrincipal();
+            log.info("authenticate = {} ms", (System.nanoTime() - start) / 1_000_000);
+
+            UserEntity user = (UserEntity) authenticate.getPrincipal();
+            log.info("get user principal = {} ms", (System.nanoTime() - start) / 1_000_000);
+
             resetLoginAttempts(Objects.requireNonNull(user));
-            userRepository.save(user);
-        LoginResponse response = generateTokens(user, httpRequest);
+            log.info("reset login attempt = {} ms", (System.nanoTime() - start) / 1_000_000);
+
+
+            AnalyticsDto.SessionContext context = userAgentParserService.parseRequestDetails(httpRequest);
+            log.info("get session context = {} ms", (System.nanoTime() - start) / 1_000_000);
+
+            UUID userSessionId = UUID.randomUUID();
+            analyticsService.startUserSession(userSessionId, user.getId(), context);
+            log.info("start session for user = {} ms", (System.nanoTime() - start) / 1_000_000);
+
+            LoginResponse response = generateTokens(user, httpRequest, userSessionId);
+            log.info("generate user tokens = {} ms", (System.nanoTime() - start) / 1_000_000);
+
             publisher.publish(new AnalyticsDto.AuditEvent(user.getId(), AuditAction.USER_LOGGED_IN, EntityEnum.USER,
-                    user.getId(), AuditStatus.SUCCESS, httpRequest, PublishAction.AUDIT_LOG));
-//            analyticsService.startUserSession(user.getId(), new AnalyticsDto.SessionContext(httpRequestUtils.getClientIp(httpRequest), ));
-            
-        return response;
+                        user.getId(), AuditStatus.SUCCESS, httpRequest, PublishAction.AUDIT_LOG));
+            log.info("audit log for login = {} ms", (System.nanoTime() - start) / 1_000_000);
+
+            log.debug("user session id: {}", userSessionId);
+            response.setDeviceId(context.deviceId());
+            log.info("set device Id before returning = {} ms", (System.nanoTime() - start) / 1_000_000);
+
+            return response;
 
         } catch (BadCredentialsException e) {
             userOpt.ifPresent(
@@ -147,21 +174,22 @@ public class AuthServiceImpl implements AuthService {
             throw new InvalidResourceException("Refresh token has been revoked");
         }
 
+        UUID sessionId = jwtService.extractSessionId(refreshToken.getToken());
         if(Boolean.TRUE.equals(refreshToken.getExpired())) {
+            analyticsService.endSession(sessionId);
             throw new InvalidResourceException("Refresh token has expired");
         }
 
         if(refreshToken.getExpiresAt().isBefore(LocalDateTime.now())) {
             refreshToken.setExpired(true);
             refreshTokenRepository.save(refreshToken);
+            analyticsService.endSession(sessionId);
             throw new InvalidResourceException("Refresh token has expired");
         }
 
         UserEntity user = userRepository.findById(refreshToken.getUserId()).orElseThrow(() -> new ResourceNotFoundException("user does not exist"));
-        LoginResponse response = generateTokens(user, httpRequest);
-        refreshToken.setRevoked(true);
-        refreshToken.setExpired(true);
-        refreshToken.setRevokedAt(LocalDateTime.now());
+        LoginResponse response = generateTokens(user, httpRequest, sessionId);
+        refreshTokenRepository.revokeToken(refreshToken.getToken());
         return response;
 
     }
@@ -230,43 +258,52 @@ public class AuthServiceImpl implements AuthService {
         }
 
     @Override
-    public UserEntity getAuthenticatedUser() {
+    public CustomerUserDetails getAuthenticatedUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new BadRequestException("User is not authenticated");
         }
-        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        CustomerUserDetails userDetails = (CustomerUserDetails) authentication.getPrincipal();
+        UserEntity user = userRepository.findByEmail(Objects.requireNonNull(userDetails).getUsername())
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        return userRepository.findByEmail(Objects.requireNonNull(userDetails).getUsername()).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        if (authentication.getDetails() instanceof CustomAuthenticationDetails details) {
+            String sessionId = details.getSessionId();
+            String jti = details.getJti();
+
+            return new CustomerUserDetails(user, UUID.fromString(Objects.requireNonNull(sessionId)),
+                    UUID.fromString(jti), user.getAuthorities());
+        } else {
+            throw new BadRequestException("SessionId not Found for user");
+        }
+
     }
 
 
     @Override
     public String logout(AuthDto.LogoutRequest request, HttpServletRequest httpServletRequest) {
+        CustomerUserDetails authenticatedUser = getAuthenticatedUser();
         RefreshTokenEntity refreshToken = refreshTokenRepository.findByToken(request.refreshToken())
                 .orElseThrow(() -> new TokenNotFoundException("Token not found"));
         refreshToken.setRevoked(true);
         refreshToken.setExpired(true);
         refreshToken.setRevokedAt(LocalDateTime.now());
         refreshTokenRepository.save(refreshToken);
-
+        analyticsService.endSession(authenticatedUser.sessionId());
         publisher.publish( new AnalyticsDto.AuditEvent(refreshToken.getUserId(), AuditAction.USER_LOGGED_OUT, EntityEnum.USER,
                 refreshToken.getUserId(), AuditStatus.SUCCESS, httpServletRequest, PublishAction.AUDIT_LOG));
-
         return "Logged out Successful";
     }
 
     @Override
     @Transactional
     public String logoutAll(HttpServletRequest httpServletRequest) {
-        Authentication authentication =
-                SecurityContextHolder.getContext()
-                        .getAuthentication();
-        UserEntity user =
-                (UserEntity) authentication.getPrincipal();
+        CustomerUserDetails authenticatedUser = getAuthenticatedUser();
+        UserEntity user = authenticatedUser.user();
         refreshTokenRepository.revokeAll(user.getId());
 //        log.info("Revoked refresh tokens for user {}",user.getEmail());
+        analyticsService.endAllSession(authenticatedUser.sessionId(), user.getId());
           publisher.publish( new AnalyticsDto.AuditEvent(user.getId(), AuditAction.USER_LOGGED_OUT_ALL, EntityEnum.USER,
                 user.getId(), AuditStatus.SUCCESS, httpServletRequest, PublishAction.AUDIT_LOG));
 
@@ -275,14 +312,15 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public String changePassword(AuthDto.ChangePasswordRequest request, HttpServletRequest httpServletRequest) {
-        UserEntity user = getAuthenticatedUser();
+        CustomerUserDetails authenticatedUser = getAuthenticatedUser();
+        UserEntity user = authenticatedUser.user();
         if(!passwordEncoder.matches(request.currentPassword(), user.getPassword())) {
             throw new BadRequestException("Current password is incorrect");
         }
         if(!request.newPassword().equals(request.confirmPassword())) {
             throw new BadRequestException("Passwords do not match");
         }
-        if(passwordEncoder.matches(request.newPassword(), user.getPassword())) {
+        if(passwordEncoder.matches(request.newPassword(), authenticatedUser.user().getPassword())) {
             throw new BadRequestException("New password must be different");
         }
 
@@ -339,9 +377,24 @@ public class AuthServiceImpl implements AuthService {
         return "Password has been successfully updated. You can now log in with your new password.";
     }
 
-    private LoginResponse generateTokens(UserEntity user,  HttpServletRequest request) {
+    private LoginResponse generateTokens(UserEntity user,  HttpServletRequest request, UUID sessionId) {
         try {
+            long start = System.nanoTime();
             Map<String, Object> claims = new HashMap<>();
+            claims.put("sessionId", sessionId.toString());
+
+            String refreshToken = jwtService.generateRefreshToken(user, claims);
+            log.info("generate refresh token = {} ms", (System.nanoTime() - start) / 1_000_000);
+
+            refreshTokenRepository.save(
+                    jwtService.mapRefreshTokenToEntity(tokenUtils.hashToken(refreshToken), user, request, sessionId)
+            );
+            log.info("save refresh token = {} ms", (System.nanoTime() - start) / 1_000_000);
+
+
+            publisher.publish( new AnalyticsDto.AuditEvent(user.getId(), AuditAction.USER_REFRESHED_TOKEN, EntityEnum.USER,
+                    user.getId(), AuditStatus.SUCCESS, request, PublishAction.AUDIT_LOG));
+            log.info("audit log in token generation = {} ms", (System.nanoTime() - start) / 1_000_000);
 
             claims.put(
                     "roles",
@@ -350,14 +403,8 @@ public class AuthServiceImpl implements AuthService {
                             .map(GrantedAuthority::getAuthority)
                             .toList()
             );
-
-            String refreshToken = jwtService.generateRefreshToken(user);
-            RefreshTokenEntity refreshTokenEntity = jwtService.mapRefreshTokenToEntity(tokenUtils.hashToken(refreshToken), user, request);
-            RefreshTokenEntity newrefreshTokenEntity = refreshTokenRepository.save(refreshTokenEntity);
-
-            publisher.publish( new AnalyticsDto.AuditEvent(user.getId(), AuditAction.USER_REFRESHED_TOKEN, EntityEnum.USER,
-                    user.getId(), AuditStatus.SUCCESS, request, PublishAction.AUDIT_LOG));
             String accessToken = jwtService.generateToken(user, claims);
+            log.info("generate access token = {} ms", (System.nanoTime() - start) / 1_000_000);
 
             return loginResponseMapper.toLoginResponse(accessToken, refreshToken, user);
         } catch (Exception e) {
@@ -381,9 +428,10 @@ public class AuthServiceImpl implements AuthService {
                 userFound.getId(), AuditStatus.FAILED, httpRequest, PublishAction.AUDIT_LOG));
     }
 
-    private static void resetLoginAttempts(UserEntity user) {
+    private void resetLoginAttempts(UserEntity user) {
         user.setFailedLoginAttempts(0);
         user.setLockedUntil(null);
+        userRepository.save(user);
     }
 
 }

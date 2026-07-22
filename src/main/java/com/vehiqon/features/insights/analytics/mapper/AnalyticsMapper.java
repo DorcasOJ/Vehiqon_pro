@@ -23,10 +23,11 @@ public interface AnalyticsMapper {
     @Mapping(target="id", ignore = true)
     @Mapping(target="createdAt", ignore = true)
     @Mapping(target="updatedAt", ignore = true)
-    @Mapping(target="logoutTime", ignore = true)
-    @Mapping(target="loginTime", ignore = true)
-    @Mapping(target="totalDurationSeconds", ignore = true)
+    @Mapping(target="logoutAt", ignore = true)
+    @Mapping(target="loginAt", ignore = true)
+    @Mapping(target="durationSeconds", ignore = true)
     @Mapping(target="lastActivityAt", ignore = true)
+    @Mapping(target="active", ignore = true)
     UserSessionEntity toStartUserSessionEntity(AnalyticsDto.SessionContext context);
 
 

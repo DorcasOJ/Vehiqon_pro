@@ -20,5 +20,11 @@ CREATE TABLE user_personalisation
 
     created_at TIMESTAMP,
 
-    updated_at TIMESTAMP
+    updated_at TIMESTAMP,
+
+    CONSTRAINT fk_user_personalisation_user
+            FOREIGN KEY (user_id)
+            REFERENCES users(id)
+            ON DELETE CASCADE
+
 );

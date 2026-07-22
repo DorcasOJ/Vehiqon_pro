@@ -13,6 +13,7 @@ import com.vehiqon.features.wallet.service.VirtualAccountService;
 import com.vehiqon.integrations.nomba.client.NombaClient;
 import com.vehiqon.integrations.nomba.dto.NombaDto;
 import com.vehiqon.integrations.nomba.service.NombaAuthService;
+import com.vehiqon.security.model.CustomerUserDetails;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -32,9 +33,9 @@ public class VirtualAccountServiceImpl implements VirtualAccountService{
 
     @Override
     public NombaDto.VirtualAccountResponse.Data getVirtualAccount() {
-        UserEntity user = authService.getAuthenticatedUser();
+        CustomerUserDetails authenticatedUser = authService.getAuthenticatedUser();
         return nombaMapper.toVirtualAccResponse(
-                virtualAccountRepository.findByUserId(user.getId()).orElseThrow(
+                virtualAccountRepository.findByUserId(authenticatedUser.user().getId()).orElseThrow(
                         () -> new BadRequestException("No account found. Kindly request for a wallet account")
                 )
         );
@@ -43,8 +44,8 @@ public class VirtualAccountServiceImpl implements VirtualAccountService{
     @Override
     @Transactional
     public NombaDto.VirtualAccountResponse.Data updateVirtualAccountName(NombaDto.UpdateVirtualAccountName request) {
-        UserEntity user = authService.getAuthenticatedUser();
-        VirtualAccountEntity existing = virtualAccountRepository.findByUserId(user.getId()).orElseThrow(() -> new ResourceNotFoundException("Virtual account not found. " +
+        CustomerUserDetails authenticatedUser = authService.getAuthenticatedUser();
+        VirtualAccountEntity existing = virtualAccountRepository.findByUserId(authenticatedUser.user().getId()).orElseThrow(() -> new ResourceNotFoundException("Virtual account not found. " +
                 "Kindly request for a virtual account"));
 
         NombaDto.UpdateVirtualAccountResponse updateResponse = nombaClient.updateVirtualAccountName(request, existing.getAccountNumber());
@@ -60,7 +61,8 @@ public class VirtualAccountServiceImpl implements VirtualAccountService{
     @Override
     @Transactional
     public NombaDto.VirtualAccountResponse.Data createVirtualAccount() {
-        UserEntity user = authService.getAuthenticatedUser();
+        CustomerUserDetails authenticatedUser = authService.getAuthenticatedUser();
+        UserEntity user = authenticatedUser.user();
         Optional<VirtualAccountEntity> existing = virtualAccountRepository.findByUserId(user.getId());
         if(existing.isPresent()) {
             return nombaMapper.toVirtualAccResponse(existing.get());

@@ -16,5 +16,6 @@ public class LoginResponse {
     private String tokenType; //bearer
     private Long expiresIn; // 3600
     private UserResponse user;
+    private String deviceId;
 
 }

@@ -14,6 +14,7 @@ import java.time.Instant;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -46,7 +47,7 @@ public class UserEntity extends BaseEntity implements UserDetails {
     @Column(name = "is_verified")
     private Boolean isVerified;
 
-    @ElementCollection(fetch = FetchType.EAGER)
+    @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(
             name = "user_roles",
             joinColumns = @JoinColumn(name = "user_id")
@@ -61,6 +62,12 @@ public class UserEntity extends BaseEntity implements UserDetails {
     private Instant lockedUntil;
 
     private Instant lastFailedLoginAt;
+
+    @Transient
+    private UUID sessionId;
+
+    @Transient
+    private UUID jti;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -93,8 +100,10 @@ public class UserEntity extends BaseEntity implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return Boolean.TRUE.equals(isVerified);
+        return Boolean.TRUE.equals(isUserVerified());
     }
+
+    public boolean isUserVerified() {return isVerified;}
 
     public boolean isLocked() {
         return lockedUntil != null && lockedUntil.isAfter(Instant.now());

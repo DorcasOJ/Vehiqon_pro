@@ -17,7 +17,6 @@ import org.springframework.stereotype.Component;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 
 @Component
@@ -52,22 +51,25 @@ public class AnalyticsConsumer {
     @Async("asyncTaskExecutor")
     @EventListener
     public void consume(AnalyticsDto.AnalyticsEvent event) {
+
+        if (event.publishAction() != PublishAction.ANALYTICS) {
+            return;
+        }
         if(event.userId() == null) {
             throw new BadRequestException("User Id is required");
         }
-        if (event.publishAction() == PublishAction.ANALYTICS) {
-            try {
-                System.out.println(event.eventType());
-                recordSessions(event);
-                updateUserSession(event);
-                updateFeatureSession(event);
-                updateUserStatistics(event);
-                updateFeatureStatistics(event);
-            } catch (Exception e) {
-                log.error("Failed to process analytics event {}", event, e);
+        try {
+            System.out.println(event.eventType());
+            recordSessions(event);
+            updateUserSession(event);
+            updateFeatureSession(event);
+            updateUserStatistics(event);
+            updateFeatureStatistics(event);
+        } catch (Exception e) {
+            log.error("Failed to process analytics event {}", event, e);
 //            throw new BadRequestException(e.getMessage());
-            }
         }
+
     }
 
     public void recordSessions(AnalyticsDto.AnalyticsEvent event) {
@@ -79,8 +81,8 @@ public class AnalyticsConsumer {
         if(userSessionEntityOptional.isPresent()) {
             UserSessionEntity userSession = userSessionEntityOptional.get();
             userSession.setLastActivityAt(LocalDateTime.now());
-            userSession.setTotalDurationSeconds(
-                    Duration.between(userSession.getLastActivityAt(),  userSession.getLoginTime()).getSeconds()
+            userSession.setDurationSeconds(
+                    Duration.between(userSession.getLastActivityAt(),  userSession.getLoginAt()).getSeconds()
             );
             userSessionRepository.save(userSession);
         }

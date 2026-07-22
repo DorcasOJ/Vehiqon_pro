@@ -44,13 +44,13 @@ public class AnalyticsDto {
 
     ) implements event{}
 
-    public record FeatureUsage(){}
-
-    public record Activity(){}
-
-    public record UsageTrend(){}
-
-    public record RecommendationSummary(){}
+//    public record FeatureUsage(){}
+//
+//    public record Activity(){}
+//
+//    public record UsageTrend(){}
+//
+//    public record RecommendationSummary(){}
 
     public record SessionContext(
             String ipAddress,
