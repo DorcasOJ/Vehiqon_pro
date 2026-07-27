@@ -1,8 +1,10 @@
 package com.vehiqon.features.insights.analytics.dto;
 
+import com.vehiqon.common.dto.ConsumerEvent;
 import com.vehiqon.common.enums.EntityEnum;
-import com.vehiqon.features.insights.analytics.enums.*;
-import jakarta.servlet.http.HttpServletRequest;
+import com.vehiqon.features.insights.analytics.enums.EventType;
+import com.vehiqon.features.insights.analytics.enums.FeatureEnum;
+import com.vehiqon.features.insights.enums.*;
 
 import java.time.LocalDateTime;
 import java.util.Map;
@@ -13,12 +15,7 @@ public class AnalyticsDto {
 
     private AnalyticsDto(){}
 
-    public interface event{
-        UUID userId();
-        UUID entityId();
-        PublishAction publishAction();
 
-    }
 
     public record AnalyticsEvent (
     UUID userId,
@@ -31,18 +28,7 @@ public class AnalyticsDto {
     Map<String, Object> metadata,
     LocalDateTime occurredAt,
     PublishAction publishAction
-    ) implements event{}
-
-    public record AuditEvent(
-            UUID userId,
-            AuditAction action,
-            EntityEnum entity,
-            UUID entityId,
-            AuditStatus status,
-           HttpServletRequest request,
-            PublishAction publishAction
-
-    ) implements event{}
+    ) implements ConsumerEvent {}
 
 //    public record FeatureUsage(){}
 //

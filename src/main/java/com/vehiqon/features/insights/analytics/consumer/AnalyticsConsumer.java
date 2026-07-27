@@ -1,4 +1,4 @@
-package com.vehiqon.features.insights.analytics.service.consumer;
+package com.vehiqon.features.insights.analytics.consumer;
 
 import com.vehiqon.common.exception.BadRequestException;
 import com.vehiqon.features.insights.analytics.dto.AnalyticsDto;
@@ -6,7 +6,7 @@ import com.vehiqon.features.insights.analytics.entities.FeatureSessionEntity;
 import com.vehiqon.features.insights.analytics.entities.UserSessionEntity;
 import com.vehiqon.features.insights.analytics.entities.aggregation.UserFeatureStatisticsEntity;
 import com.vehiqon.features.insights.analytics.entities.aggregation.UserStatisticsEntity;
-import com.vehiqon.features.insights.analytics.enums.PublishAction;
+import com.vehiqon.features.insights.enums.PublishAction;
 import com.vehiqon.features.insights.analytics.mapper.AnalyticsMapper;
 import com.vehiqon.features.insights.analytics.repository.*;
 import lombok.RequiredArgsConstructor;

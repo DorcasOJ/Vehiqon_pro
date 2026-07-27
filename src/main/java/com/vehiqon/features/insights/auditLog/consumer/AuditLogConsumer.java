@@ -1,12 +1,11 @@
-package com.vehiqon.features.insights.analytics.service.consumer;
+package com.vehiqon.features.insights.auditLog.consumer;
 
 import com.vehiqon.common.exception.BadRequestException;
-import com.vehiqon.features.insights.analytics.dto.AnalyticsDto;
-import com.vehiqon.features.insights.analytics.enums.PublishAction;
-import com.vehiqon.features.insights.analytics.service.AuditLogService;
+import com.vehiqon.features.insights.enums.PublishAction;
+import com.vehiqon.features.insights.auditLog.dto.AuditLogDto;
+import com.vehiqon.features.insights.auditLog.service.AuditLogService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
@@ -22,7 +21,7 @@ public class AuditLogConsumer {
 //    @EventListener
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT,
             fallbackExecution = true)
-    public void consume(AnalyticsDto.AuditEvent event) {
+    public void consume(AuditLogDto.AuditEvent event) {
         if(event.userId() == null) {
             throw new BadRequestException("User Id is required");
         }
@@ -42,7 +41,7 @@ public class AuditLogConsumer {
     @Async("asyncTaskExecutor")
 //    @EventListener
     @TransactionalEventListener(phase = TransactionPhase.AFTER_ROLLBACK)
-    public void handleRollback(AnalyticsDto.AuditEvent event) {
+    public void handleRollback(AuditLogDto.AuditEvent event) {
         if(event.userId() == null) {
             throw new BadRequestException("User Id is required");
         }

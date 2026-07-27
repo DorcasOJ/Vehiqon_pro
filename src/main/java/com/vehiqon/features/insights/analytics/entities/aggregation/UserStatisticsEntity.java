@@ -21,10 +21,8 @@ import java.util.UUID;
 @SuperBuilder
 @Entity
 @Table(name="user_statistics")
-public class UserStatisticsEntity {
+public class UserStatisticsEntity extends BaseEntity {
 
-    @Id
-    private UUID id;
 
     @Column(name = "user_id", nullable = false)
     private UUID userId;
@@ -46,12 +44,5 @@ public class UserStatisticsEntity {
     private LocalDateTime lastActive;
 //    private long monthlyActiveDays;
 
-    @CreationTimestamp
-    @Column(name = "created_at", updatable = false)
-    private LocalDateTime createdAt;
-
-    @UpdateTimestamp
-    @Column(name = "updated_at")
-    private  LocalDateTime updatedAt;
 
 }

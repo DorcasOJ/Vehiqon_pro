@@ -1,4 +1,4 @@
-package com.vehiqon.features.email.mapper;
+package com.vehiqon.features.onboarding.mapper;
 
 import com.vehiqon.common.enums.VerificationTokenTypeEnum;
 import com.vehiqon.features.onboarding.entity.UserEntity;
@@ -12,14 +12,14 @@ public class VerificationTokenMapper {
 
         public VerificationTokenEntity emailTokenToSave(UserEntity user, String token) {
            return VerificationTokenEntity.builder()
-                            .token(token)
-                            .type(
-                                    VerificationTokenTypeEnum.EMAIL_VERIFICATION
-                            )
-                            .userId(user.getId())
-                            .expiresAt(
-                                    LocalDateTime.now().plusHours(24)
-                            )
-                            .build();
+                .token(token)
+                .type(
+                        VerificationTokenTypeEnum.EMAIL_VERIFICATION
+                )
+                .userId(user.getId())
+                .expiresAt(
+                        LocalDateTime.now().plusHours(24)
+                )
+                .build();
         }
     }

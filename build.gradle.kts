@@ -29,7 +29,10 @@ dependencies {
 	implementation("com.github.ben-manes.caffeine:caffeine:3.2.3")
 	implementation("com.bucket4j:bucket4j-core:8.10.1")
 	implementation("nl.basjes.parse.useragent:yauaa:8.1.1")
-	implementation("com.maxmind.geoip2:geoip2:5.1.0")
+//	implementation("com.maxmind.geoip2:geoip2:5.1.0")
+	implementation("org.springframework.boot:spring-boot-starter-actuator:4.1.0")
+	implementation("p6spy:p6spy:3.9.1")
+
 //	implementation ("org.springframework.boot:spring-boot-starter-data-redis")
 
 	implementation ("org.flywaydb:flyway-core")

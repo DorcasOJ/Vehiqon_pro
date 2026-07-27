@@ -1,17 +1,13 @@
-package com.vehiqon.features.insights.analytics.service;
+package com.vehiqon.features.insights.auditLog.service;
 
-import com.vehiqon.features.insights.analytics.dto.AnalyticsDto;
 import com.vehiqon.features.insights.analytics.entities.AuditLogEntity;
-import com.vehiqon.features.insights.analytics.enums.AuditAction;
-import com.vehiqon.features.insights.analytics.enums.AuditStatus;
-import com.vehiqon.common.enums.EntityEnum;
-import com.vehiqon.features.insights.analytics.repository.AuditLogRepository;
+import com.vehiqon.features.insights.auditLog.enums.AuditAction;
+import com.vehiqon.features.insights.auditLog.enums.AuditStatus;
+import com.vehiqon.features.insights.auditLog.dto.AuditLogDto;
+import com.vehiqon.features.insights.auditLog.repository.AuditLogRepository;
 import com.vehiqon.common.utils.HttpRequestUtils;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -19,7 +15,7 @@ public class AuditLogService {
     private final AuditLogRepository auditLogRepository;
     private final HttpRequestUtils httpRequestUtils;
 
-    public void log(AnalyticsDto.AuditEvent event){
+    public void log(AuditLogDto.AuditEvent event){
         AuditLogEntity log = AuditLogEntity.builder()
                 .userId(event.userId())
                 .action(event.action().name())
@@ -33,7 +29,7 @@ public class AuditLogService {
         auditLogRepository.save(log);
     }
 
-    public void logFailure(AnalyticsDto.AuditEvent event){
+    public void logFailure(AuditLogDto.AuditEvent event){
         AuditLogEntity log = AuditLogEntity.builder()
                 .userId(event.userId())
                 .action(event.action().name())

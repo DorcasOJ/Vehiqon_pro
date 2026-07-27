@@ -2,17 +2,13 @@ package com.vehiqon.features.carmgmt.entities;
 
 
 import com.vehiqon.common.entity.BaseEntity;
-import com.vehiqon.features.carmgmt.enums.MaintenanceType;
-import com.vehiqon.features.carmgmt.enums.MaintenanceStatus;
-import com.vehiqon.features.onboarding.entity.UserEntity;
+import com.vehiqon.features.carmgmt.enums.NotificationChannelEnum;
+import com.vehiqon.features.carmgmt.enums.NotificationStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
+import java.time.*;
 import java.util.UUID;
 
 @Getter
@@ -23,38 +19,32 @@ import java.util.UUID;
 @Entity
 @Table(name="maintenance_reminders")
 public class MaintenanceReminderEntity extends BaseEntity {
-    @Column(name = "car_id", nullable = false)
-    private UUID carId;
 
-    private String title;
+    @Column(name = "car_maintenance_id", nullable = false)
+    private UUID carMaintenanceId;
 
-    @Column(length = 1200)
-    private String description;
+    private String reminderName;
 
     @Enumerated(EnumType.STRING)
-    private MaintenanceType type;
-
-    @Enumerated(EnumType.STRING)
-    private MaintenanceStatus status;
-
-    private LocalDate appointmentDate;
-
-    private LocalTime appointmentTime;
-
-    private Integer odometer;
-
-    private BigDecimal estimatedCost;
-
-    private String workshop;
-
-    @Column(columnDefinition = "TEXT")
-    private String notes;
-
+    @Column(nullable = false)
     @Builder.Default
-    private Boolean notificationSent = false;
+    private NotificationStatus notificationStatus = NotificationStatus.PENDING;
 
-    private LocalDate notificationDate;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @Builder.Default
+    private NotificationChannelEnum notificationChannel = NotificationChannelEnum.EMAIL;
 
-    private LocalDateTime notificationSentAt;
-    private LocalDate dueDate;
+    private Instant scheduledAt;
+    private Instant queuedAt;
+    private Instant sentAt;
+    private Instant failedAt;
+
+    @Column(length = 1000)
+    private String failureReason;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private Integer attemptCount = 0;
+
 }

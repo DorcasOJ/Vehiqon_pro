@@ -1,28 +1,27 @@
 package com.vehiqon.features.onboarding.service.impl;
 
-import com.vehiqon.common.enums.*;
+import com.vehiqon.common.enums.EntityEnum;
+import com.vehiqon.common.enums.RoleEnum;
+import com.vehiqon.common.enums.UserStatus;
 import com.vehiqon.common.exception.BadRequestException;
 import com.vehiqon.common.exception.ResourceAlreadyExistException;
 import com.vehiqon.common.exception.ResourceNotFoundException;
-import com.vehiqon.features.insights.analytics.dto.AnalyticsDto;
-import com.vehiqon.features.insights.analytics.enums.PublishAction;
-import com.vehiqon.features.insights.analytics.service.AnalyticsEventPublisher;
-import com.vehiqon.features.insights.analytics.service.AuditLogService;
 import com.vehiqon.common.utils.GenerateOrHashTokenUtils;
-import com.vehiqon.features.email.mapper.EmailResponseMapper;
-import com.vehiqon.features.email.mapper.VerificationTokenMapper;
-import com.vehiqon.features.insights.analytics.enums.AuditAction;
-import com.vehiqon.features.insights.analytics.enums.AuditStatus;
-import com.vehiqon.features.onboarding.dto.request.UserDto;
-import com.vehiqon.features.onboarding.entity.UserEntity;
-import com.vehiqon.features.email.service.EmailService;
+import com.vehiqon.features.insights.InsightEventPublisher;
+import com.vehiqon.features.insights.Notification.dto.NotificationDto;
+import com.vehiqon.features.insights.Notification.enums.NotificationEvent;
+import com.vehiqon.features.insights.auditLog.enums.AuditAction;
+import com.vehiqon.features.insights.auditLog.enums.AuditStatus;
+import com.vehiqon.features.insights.enums.PublishAction;
+import com.vehiqon.features.insights.auditLog.dto.AuditLogDto;
+import com.vehiqon.features.onboarding.dto.UserDto;
 import com.vehiqon.features.onboarding.dto.response.UserResponse;
+import com.vehiqon.features.onboarding.entity.UserEntity;
 import com.vehiqon.features.onboarding.mapper.UserMapper;
+import com.vehiqon.features.onboarding.mapper.VerificationTokenMapper;
 import com.vehiqon.features.onboarding.repository.UserRepository;
 import com.vehiqon.features.onboarding.repository.VerificationTokenRepository;
-import com.vehiqon.features.onboarding.service.AuthService;
 import com.vehiqon.features.onboarding.service.UserService;
-import com.vehiqon.security.model.CustomerUserDetails;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -44,20 +43,18 @@ public class UserServiceImpl implements UserService {
     private String verificationLink;
 
     private final UserMapper userMapper;
-    private final EmailResponseMapper emailResponseMapper;
     private final VerificationTokenMapper verificationTokenMapper;
     private final VerificationTokenRepository verificationTokenRepository;
     private final UserRepository userRepository;
-    private final EmailService emailService;
     private final PasswordEncoder passwordEncoder;
     private final GenerateOrHashTokenUtils tokenUtils;
 //    private final AuditLogService auditLogService;
-    private final AnalyticsEventPublisher publisher;
+    private final InsightEventPublisher publisher;
 //    private final CurrentUserService currentUserService;
 
     @Override
     @Transactional
-    public UserResponse createUser(UserDto.CreateUserRequest request) {
+    public UserDto.UserResponse createUser(UserDto.CreateUserRequest request) {
         if(userRepository.existsByEmail(request.email())){
             throw new ResourceAlreadyExistException("Account already exist for this Email. Kindly Login.");
         }
@@ -78,33 +75,41 @@ public class UserServiceImpl implements UserService {
     @Override
     public void validateUserEmail(UserEntity savedUser) {
         String token = tokenUtils.generateSecureToken(32);
-
         verificationTokenRepository.save(verificationTokenMapper.emailTokenToSave(savedUser, tokenUtils.hashToken(token)));
         String url = verificationLink+ token;
-
         System.out.printf("Email token here: %s", token);
+        publisher.publish(
+                new NotificationDto.VerifyEmail(PublishAction.NOTIFICATION, savedUser.getId(), savedUser.getEmail(), url,
+                        NotificationEvent.VERIFY_EMAIL)
+        );
 
-        emailService.sendEmailAlert(emailResponseMapper.toVerifyEmailResponse(savedUser, url));
-//        emailService.sendEmailAlert(emailResponseMapper.toAccountCreationResponse(savedUser));
     }
 
     @Override
-    public UserResponse updateProfile(UserDto.UpdateUserRequest request) {
+    public UserDto.UserResponse updateProfile(UserDto.UpdateUserRequest request, HttpServletRequest httpServletRequest) {
         UserEntity user = getAuthenticatedUser();
         userMapper.updateEntity(request, user);
-        return userMapper.toResponse(userRepository.save(user));
+        UserDto.UserResponse response = userMapper.toResponse(userRepository.save(user));
+        publisher.publish( new AuditLogDto.AuditEvent(user.getId(), AuditAction.USER_PROFILE_UPDATED, EntityEnum.USER,
+                user.getId(), AuditStatus.SUCCESS, httpServletRequest, PublishAction.AUDIT_LOG));
+        return response;
     }
 
     @Override
-    public UserResponse getProfile() {
+    public UserDto.UserResponse getProfile(HttpServletRequest httpServletRequest) {
         UserEntity user = getAuthenticatedUser();
 //        String salt = org.springframework.security.crypto.keygen.KeyGenerators.string().generateKey();
+        publisher.publish( new AuditLogDto.AuditEvent(user.getId(), AuditAction.USER_VIEWS_PROFILE, EntityEnum.USER,
+                user.getId(), AuditStatus.SUCCESS, httpServletRequest, PublishAction.AUDIT_LOG));
+
         return userMapper.toResponse(user);
     }
 
     @Override
     @Transactional
-    public void updateRoles(UUID userId, UserDto.UpdateRolesRequest request) {
+    public void updateRoles(UUID userId, UserDto.UpdateRolesRequest request,  HttpServletRequest httpServletRequest) {
+        UserEntity adminUser = getAuthenticatedUser();
+
         UserEntity user = userRepository.findById(userId).orElseThrow(() ->
                 new BadRequestException("Role Update Failed, User not found"));
 
@@ -116,17 +121,22 @@ public class UserServiceImpl implements UserService {
             user.addRoles(request.add());
         }
         userRepository.save(user);
+        publisher.publish( new AuditLogDto.AuditEvent(adminUser.getId(), AuditAction.USER_ROLE_UPDATED, EntityEnum.USER,
+                user.getId(), AuditStatus.SUCCESS, httpServletRequest, PublishAction.AUDIT_LOG));
     }
 
     @Override
     @Transactional
-    public void syncRoles(UUID userId, UserDto.SyncRolesRequest request) {
+    public void syncRoles(UUID userId, UserDto.SyncRolesRequest request,  HttpServletRequest httpServletRequest) {
         UserEntity user = userRepository.findById(userId).orElseThrow(() ->
                 new BadRequestException("Role Update Failed, User not found"));
         if (request.roles() != null) {
             user.syncRoles(request.roles());
         }
         userRepository.save(user);
+        publisher.publish( new AuditLogDto.AuditEvent(user.getId(), AuditAction.USER_ROLE_SYNCED, EntityEnum.USER,
+                user.getId(), AuditStatus.SUCCESS, httpServletRequest, PublishAction.AUDIT_LOG));
+
     }
 
     @Override
@@ -135,16 +145,25 @@ public class UserServiceImpl implements UserService {
         UserEntity user = userRepository.findById(userId).orElseThrow(
                 () -> new ResourceNotFoundException("User not found")
         );
+        if (!user.isLocked()) {
+            throw new BadRequestException("User is not locked");
+        }
         user.setLockedUntil(null);
         user.setFailedLoginAttempts(0);
         userRepository.save(user);
-        publisher.publish( new AnalyticsDto.AuditEvent(user.getId(), AuditAction.USER_REGISTERED, EntityEnum.USER,
+        publisher.publish( new AuditLogDto.AuditEvent(adminUser.getId(), AuditAction.USER_UNLOCKED, EntityEnum.USER,
                 user.getId(), AuditStatus.SUCCESS, request, PublishAction.AUDIT_LOG));
+    }
 
-//        auditLogService.log(adminUser.getId(), AuditAction.ACCOUNT_UNLOCKED.name(),
-//                EntityEnum.USER, user.getId(),  AuditStatus.SUCCESS,
-//                AuditAction.ACCOUNT_UNLOCKED.getDescription(), request );
-
+    @Override
+    public UserDto.UserResponse getUser(UUID userId, HttpServletRequest request) {
+        UserEntity adminUser = getAuthenticatedUser();
+        UserEntity user = userRepository.findById(userId).orElseThrow(
+                () -> new ResourceNotFoundException("User not found")
+        );
+        publisher.publish( new AuditLogDto.AuditEvent(adminUser.getId(), AuditAction.GET_USER, EntityEnum.USER,
+                user.getId(), AuditStatus.SUCCESS, request, PublishAction.AUDIT_LOG));
+        return userMapper.toResponse(user);
     }
 
     private UserEntity getAuthenticatedUser() {

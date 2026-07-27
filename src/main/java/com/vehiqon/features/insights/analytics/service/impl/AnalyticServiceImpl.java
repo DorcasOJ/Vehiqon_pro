@@ -1,5 +1,6 @@
 package com.vehiqon.features.insights.analytics.service.impl;
 
+import com.vehiqon.common.exception.BadRequestException;
 import com.vehiqon.features.insights.analytics.dto.AnalyticsDto;
 import com.vehiqon.features.insights.analytics.entities.FeatureSessionEntity;
 import com.vehiqon.features.insights.analytics.entities.UserSessionEntity;
@@ -10,9 +11,11 @@ import com.vehiqon.features.insights.analytics.enums.EventType;
 import com.vehiqon.features.insights.analytics.enums.FeatureEnum;
 import com.vehiqon.features.insights.analytics.mapper.AnalyticsMapper;
 import com.vehiqon.features.insights.analytics.repository.*;
-import com.vehiqon.features.insights.analytics.service.AnalyticsEventPublisher;
+import com.vehiqon.features.insights.InsightEventPublisher;
 import com.vehiqon.features.insights.analytics.service.AnalyticsService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -24,8 +27,9 @@ import java.util.concurrent.CompletableFuture;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AnalyticServiceImpl implements AnalyticsService {
-    private final AnalyticsEventPublisher publisher;
+    private final InsightEventPublisher publisher;
     private final FeatureSessionRepository featureSessionRepository;
     private final UserSessionRepository userSessionRepository;
     private final UserStatisticsRepository userStatisticsRepository;
@@ -99,35 +103,44 @@ public class AnalyticServiceImpl implements AnalyticsService {
 
     @Override
     @Async("asyncTaskExecutor")
-    public CompletableFuture<UUID> startUserSession(UUID id, UUID userId, AnalyticsDto.SessionContext context) {
-        Optional<UserSessionEntity> userSessionOpt = userSessionRepository.findByUserIdAndDeviceIdAndLogoutAtIsNull(userId, context.deviceId());
-        UserSessionEntity userSessionEntity;
-        UserSessionEntity userSession;
-        if(userSessionOpt.isPresent()) {
-            userSession = userSessionOpt.get();
-            userSession.setLastActivityAt(LocalDateTime.now());
-        } else {
-            userSession = analyticsMapper.toStartUserSessionEntity(context);
-            userSession.setUserId(userId);
-            userSession.setId(id);
-            userSession.setLoginAt(LocalDateTime.now());
+    @Transactional
+    public void startUserSession(UUID id, UUID userId, AnalyticsDto.SessionContext context) {
+        try {
+            log.info("startUserSession called. sessionId={}, userId={}", id, userId);
+            Optional<UserSessionEntity> userSessionOpt = userSessionRepository.findByUserIdAndDeviceIdAndLogoutAtIsNull(userId, context.deviceId());
+            UserSessionEntity userSessionEntity;
+            UserSessionEntity userSession;
+            if (userSessionOpt.isPresent()) {
+                userSession = userSessionOpt.get();
+                userSession.setLastActivityAt(LocalDateTime.now());
+            } else {
+                userSession = analyticsMapper.toStartUserSessionEntity(context);
+                userSession.setUserId(userId);
+                userSession.setId(id);
+                userSession.setLoginAt(LocalDateTime.now());
+            }
+            log.info("Before User Session save");
+            userSessionEntity = userSessionRepository.save(userSession);
+            log.info("After User Session save. id={}", userSessionEntity.getId());
+            Optional<UserStatisticsEntity> userStatisticsEntityOpt = userStatisticsRepository.findByUserId(userId);
+            if (userStatisticsEntityOpt.isPresent()) {
+                UserStatisticsEntity userStatisticsEntity = userStatisticsEntityOpt.get();
+                userStatisticsEntity.setTotalSessions(userStatisticsEntity.getTotalSessions() + 1L);
+                userStatisticsEntity.setLastActive(LocalDateTime.now());
+                userStatisticsRepository.save(userStatisticsEntity);
+            } else {
+                UserStatisticsEntity userStatistics = UserStatisticsEntity.builder()
+                        .totalSessions(1L)
+                        .lastActive(LocalDateTime.now())
+                        .userId(userId)
+                        .build();
+                userStatisticsRepository.save(userStatistics);
+            }
+            return;
+//            return CompletableFuture.completedFuture(userSessionEntity.getId());
+        } catch (Exception e) {
+            throw new BadRequestException("Failed to start user session: "+ e.getMessage());
         }
-        userSessionEntity = userSessionRepository.save(userSession);
-        Optional<UserStatisticsEntity> userStatisticsEntityOpt = userStatisticsRepository.findByUserId(userId);
-        if (userStatisticsEntityOpt.isPresent()) {
-            UserStatisticsEntity userStatisticsEntity = userStatisticsEntityOpt.get();
-            userStatisticsEntity.setTotalSessions(userStatisticsEntity.getTotalSessions() + 1L);
-            userStatisticsEntity.setLastActive(LocalDateTime.now());
-            userStatisticsRepository.save(userStatisticsEntity);
-        } else {
-            UserStatisticsEntity userStatistics = UserStatisticsEntity.builder()
-                    .totalSessions(1L)
-                    .lastActive(LocalDateTime.now())
-                    .userId(userId)
-                    .build();
-            userStatisticsRepository.save(userStatistics);
-        }
-        return CompletableFuture.completedFuture(userSessionEntity.getId());
     }
 
     @Override

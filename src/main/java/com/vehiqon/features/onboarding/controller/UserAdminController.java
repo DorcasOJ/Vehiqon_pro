@@ -2,7 +2,7 @@ package com.vehiqon.features.onboarding.controller;
 
 import com.vehiqon.common.dto.response.ApiResponse;
 import com.vehiqon.common.mapper.ApiResponseMapper;
-import com.vehiqon.features.onboarding.dto.request.UserDto;
+import com.vehiqon.features.onboarding.dto.UserDto;
 import com.vehiqon.features.onboarding.mapper.UserMapper;
 import com.vehiqon.features.onboarding.service.UserService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -26,21 +26,28 @@ public class UserAdminController {
     private final UserMapper userMapper;
     private final ApiResponseMapper apiResponseMapper;
 
+    @GetMapping("/{userId}")
+    public ResponseEntity<ApiResponse<UserDto.UserResponse>> updateRoles(
+            @PathVariable UUID userId, HttpServletRequest httpServletRequest
+    ) {
+        return ResponseEntity.ok(apiResponseMapper.toResponse( userService.getUser(userId, httpServletRequest)));
+    }
+
     @PatchMapping("/{userId}/roles")
     public ResponseEntity<ApiResponse<String>> updateRoles(
             @PathVariable UUID userId,
-            @Valid @RequestBody UserDto.UpdateRolesRequest request
+            @Valid @RequestBody UserDto.UpdateRolesRequest request, HttpServletRequest httpServletRequest
             ) {
-        userService.updateRoles(userId, request);
+        userService.updateRoles(userId, request, httpServletRequest);
         return ResponseEntity.ok(apiResponseMapper.toResponse("Roles updated successfully"));
     }
 
     @PutMapping("/{userId}/roles")
     public ResponseEntity<ApiResponse<String>> syncRoles(
             @PathVariable UUID userId,
-            @RequestBody UserDto.SyncRolesRequest request
+            @RequestBody UserDto.SyncRolesRequest request, HttpServletRequest httpServletRequest
             ) {
-        userService.syncRoles(userId, request);
+        userService.syncRoles(userId, request, httpServletRequest);
         return ResponseEntity.ok(apiResponseMapper.toResponse("Roles synced successfully"));
     }
 

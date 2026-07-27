@@ -1,6 +1,7 @@
 package com.vehiqon.features.onboarding.dto.response;
 
 
+import com.vehiqon.features.onboarding.dto.UserDto;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -15,7 +16,7 @@ public class LoginResponse {
     private String refreshToken;
     private String tokenType; //bearer
     private Long expiresIn; // 3600
-    private UserResponse user;
+    private UserDto.UserResponse user;
     private String deviceId;
 
 }

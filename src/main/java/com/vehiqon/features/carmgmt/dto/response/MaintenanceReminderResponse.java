@@ -10,30 +10,22 @@ import java.util.UUID;
 
 public record MaintenanceReminderResponse(
 
-        UUID id,
-        String title,
-        LocalDate dueDate,
-        String workshop,
-        MaintenanceType type,
-        LocalDate appointmentDate,
-        LocalTime appointmentTime,
-        LocalDate notificationDate,
-        LocalDateTime notificationSentAt,
-        Integer odometer,
-        BigDecimal estimatedCost,
-        String notes,
-
-        UUID userId,
+        UUID reminderId,
+        String email,
         String firstName,
         String lastName,
-        String email,
         String phoneNumber,
-
+        LocalDate appointmentDate,
+        LocalTime appointmentTime,
+        BigDecimal estimatedCost,
+        UUID maintenanceId,
+        String title,
+        String workshop,
         UUID carId,
-        String carNickname,
         String carBrandName,
         String carModelName,
-        String plateNumber
+        String carNickname,
+        MaintenanceType type
 
 ) {
 }

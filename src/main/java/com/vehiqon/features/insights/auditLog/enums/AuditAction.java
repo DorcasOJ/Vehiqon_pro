@@ -1,6 +1,4 @@
-package com.vehiqon.features.insights.analytics.enums;
-
-import lombok.Getter;
+package com.vehiqon.features.insights.auditLog.enums;
 
 public enum AuditAction {
     USER_PASSWORD_CHANGED( "User Changed Password"),
@@ -19,7 +17,17 @@ public enum AuditAction {
     LOGIN_FAILED("INVALID PASSWORD"),
     ACCOUNT_LOCKED("TOO MANY FAILED LOGIN ATTEMPTS"),
     LOGIN_SUCCESS("User successfully logged in"),
-    ACCOUNT_UNLOCKED("An Admin unlocked a user account");
+    ACCOUNT_UNLOCKED("An Admin unlocked a user account"),
+
+    USER_PROFILE_UPDATED("User updated profile"),
+    USER_VIEWS_PROFILE("User viewed profile"),
+    USER_ROLE_UPDATED("User role updated"),
+    USER_ROLE_SYNCED("User role synced"),
+    USER_UNLOCKED("User is now unlocked to login"),
+
+    GET_USER("Admin view user");
+//    GET_USER("Admin view user"),
+//    GET_USER("Admin view user"),
 
     private final String description;
 

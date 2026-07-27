@@ -1,8 +1,6 @@
 package com.vehiqon.features.onboarding.mapper;
 
-import com.vehiqon.features.onboarding.dto.request.CreateUserRequest;
-import com.vehiqon.features.onboarding.dto.request.UpdateUserRequest;
-import com.vehiqon.features.onboarding.dto.request.UserDto;
+import com.vehiqon.features.onboarding.dto.UserDto;
 import com.vehiqon.features.onboarding.dto.response.UserProfileResponse;
 import com.vehiqon.features.onboarding.dto.response.UserResponse;
 import com.vehiqon.features.onboarding.entity.UserEntity;
@@ -14,7 +12,7 @@ import java.util.List;
 public interface UserMapper {
 
 //    return from creating user
-    UserResponse toResponse(UserEntity user);
+    UserDto.UserResponse toResponse(UserEntity user);
 
 //    return user profile
     @Mapping(target = "fullName",

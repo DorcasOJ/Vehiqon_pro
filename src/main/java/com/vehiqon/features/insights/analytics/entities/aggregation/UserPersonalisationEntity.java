@@ -1,8 +1,7 @@
 package com.vehiqon.features.insights.analytics.entities.aggregation;
 
-import com.vehiqon.common.entity.BaseEntity;
 import com.vehiqon.features.insights.analytics.enums.FeatureEnum;
-import com.vehiqon.features.insights.analytics.enums.NotificationChannel;
+import com.vehiqon.features.insights.Notification.enums.NotificationChannel;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

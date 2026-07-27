@@ -2,7 +2,7 @@ package com.vehiqon.features.onboarding.controller;
 
 import com.vehiqon.common.dto.response.ApiResponse;
 import com.vehiqon.common.mapper.ApiResponseMapper;
-import com.vehiqon.common.utils.AccountUtils;
+import com.vehiqon.features.onboarding.dto.UserDto;
 import com.vehiqon.features.onboarding.dto.request.*;
 import com.vehiqon.features.onboarding.dto.response.LoginResponse;
 import com.vehiqon.features.onboarding.dto.response.UserResponse;
@@ -15,8 +15,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.UUID;
-
 @RestController
 @RequestMapping("/api/auth")
 @Tag(name = "Registration & Authentication")
@@ -26,8 +24,8 @@ public class AuthController {
     private final ApiResponseMapper apiResponseMapper;
 
     @PostMapping("/register")
-    public ResponseEntity<ApiResponse<UserResponse>> register(@Valid @RequestBody UserDto.CreateUserRequest request,
-                                                              HttpServletRequest httpServletRequest) {
+    public ResponseEntity<ApiResponse<UserDto.UserResponse>> register(@Valid @RequestBody UserDto.CreateUserRequest request,
+                                                                      HttpServletRequest httpServletRequest) {
 
         return ResponseEntity.status(HttpStatus.CREATED).body(
                 apiResponseMapper.toResponse(authService.register(request, httpServletRequest))

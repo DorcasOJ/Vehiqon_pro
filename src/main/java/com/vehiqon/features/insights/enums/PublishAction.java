@@ -1,4 +1,4 @@
-package com.vehiqon.features.insights.analytics.enums;
+package com.vehiqon.features.insights.enums;
 
 public enum PublishAction {
     AUDIT_LOG,

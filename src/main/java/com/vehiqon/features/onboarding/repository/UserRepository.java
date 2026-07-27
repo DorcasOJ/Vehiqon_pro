@@ -34,7 +34,6 @@ public interface UserRepository extends JpaRepository<UserEntity, UUID> {
     boolean existsByBvn(String bvn);
 
     @EntityGraph(attributePaths = "roles")
-//    Optional<UserEntity> findByEmail(String email);
     Optional<UserEntity> findByEmail(String email);
 
     Optional<UserEntity> findByPhoneNumber(String phoneNumber);

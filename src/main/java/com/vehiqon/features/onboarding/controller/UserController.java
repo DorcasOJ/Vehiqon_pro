@@ -2,19 +2,16 @@ package com.vehiqon.features.onboarding.controller;
 
 import com.vehiqon.common.dto.response.ApiResponse;
 import com.vehiqon.common.mapper.ApiResponseMapper;
-import com.vehiqon.common.utils.AccountUtils;
-import com.vehiqon.features.onboarding.dto.request.UpdateUserRequest;
-import com.vehiqon.features.onboarding.dto.request.UserDto;
+import com.vehiqon.features.onboarding.dto.UserDto;
 import com.vehiqon.features.onboarding.dto.response.UserResponse;
-import com.vehiqon.features.onboarding.entity.UserEntity;
 import com.vehiqon.features.onboarding.mapper.UserMapper;
 import com.vehiqon.features.onboarding.service.UserService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -34,20 +31,20 @@ public class UserController {
 //    }
 
     @GetMapping("/profile")
-    public ResponseEntity<ApiResponse<UserResponse>> getProfile() {
+    public ResponseEntity<ApiResponse<UserDto.UserResponse>> getProfile(HttpServletRequest httpServletRequest) {
 //        UserEntity user = (UserEntity) authentication.getPrincipal();
         return ResponseEntity.ok(
-                apiResponseMapper.toResponse(userService.getProfile())
+                apiResponseMapper.toResponse(userService.getProfile(httpServletRequest))
         );
 
     }
 
     @PatchMapping("/profile")
-    public ResponseEntity<ApiResponse<UserResponse>> updateProfile(
-            @Valid @RequestBody UserDto.UpdateUserRequest request
+    public ResponseEntity<ApiResponse<UserDto.UserResponse>> updateProfile(
+            @Valid @RequestBody UserDto.UpdateUserRequest request, HttpServletRequest httpServletRequest
     ) {
         return ResponseEntity.ok(
-                apiResponseMapper.toResponse(userService.updateProfile(request))
+                apiResponseMapper.toResponse(userService.updateProfile(request, httpServletRequest))
         );
     }
 }

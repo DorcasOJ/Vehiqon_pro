@@ -1,17 +1,18 @@
 package com.vehiqon.features.carmgmt.scheduler;
 
-import com.vehiqon.features.carmgmt.dto.CarMaintenanceDto;
 import com.vehiqon.features.carmgmt.dto.response.MaintenanceReminderResponse;
-import com.vehiqon.features.carmgmt.repository.CarMaintenanceRepository;
-import com.vehiqon.features.email.mapper.EmailResponseMapper;
-import com.vehiqon.features.email.service.EmailService;
+import com.vehiqon.features.carmgmt.repository.MaintenanceReminderRepository;
+import com.vehiqon.features.insights.InsightEventPublisher;
+import com.vehiqon.features.insights.Notification.dto.NotificationDto;
+import com.vehiqon.features.insights.Notification.enums.NotificationEvent;
+import com.vehiqon.features.insights.enums.PublishAction;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDate;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -20,28 +21,29 @@ import java.util.Optional;
 @Slf4j
 public class MaintenanceReminderScheduler {
 
-    private final CarMaintenanceRepository carMaintenanceRepository;
-    private final EmailService emailService;
-    private final EmailResponseMapper emailResponseMapper;
+    private final MaintenanceReminderRepository maintenanceReminderRepository;
+    private final InsightEventPublisher publisher;
 
 //    @Scheduled(cron = "0 * * * * *") // Every minute
     @Scheduled(cron = "0 0 8 * * *") // Every day at 8:00 AM
     @Transactional
     public void sendMaintenanceReminders() {
-        Optional<List<MaintenanceReminderResponse>> dueNotifications = carMaintenanceRepository.findDueNotifications(
-                LocalDate.now()
+
+        Optional<List<MaintenanceReminderResponse>> dueReminderForScheduleOpt = maintenanceReminderRepository.findDueReminderForSchedule(
+                Instant.now()
         );
 
-        if(dueNotifications.isPresent()) {
-            List<MaintenanceReminderResponse> reminders = dueNotifications.get();
+        if(dueReminderForScheduleOpt.isPresent()) {
+            List<MaintenanceReminderResponse> reminders = dueReminderForScheduleOpt.get();
             for (MaintenanceReminderResponse reminder : reminders) {
                 try {
-                    emailService.sendEmailAlert(emailResponseMapper.maintenanceReminderEmail(reminder));
-                    carMaintenanceRepository.markNotificationSent(reminder.id());
+                    publisher.publish( new NotificationDto.MaintenanceReminder(
+                            PublishAction.NOTIFICATION, reminder.maintenanceId(), reminder,
+                            NotificationEvent.MAINTENANCE_REMINDER));
+
+                    maintenanceReminderRepository.updateReminderNotificationStatusToQueued(reminder.reminderId());
                 } catch (Exception e) {
-                    log.error("Failed to send reminder {}",
-                            reminder.id(),
-                            e);
+                    log.error("Failed to send reminder {}", reminder.reminderId(), e);
                 }
             }
             log.info("Attempted Sending {} maintenance reminders", reminders.size());

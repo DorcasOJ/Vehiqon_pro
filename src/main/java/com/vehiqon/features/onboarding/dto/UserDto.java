@@ -1,12 +1,16 @@
-package com.vehiqon.features.onboarding.dto.request;
+package com.vehiqon.features.onboarding.dto;
 
 import com.vehiqon.common.enums.RoleEnum;
+import com.vehiqon.common.exception.BadRequestException;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Set;
+import java.util.UUID;
 
 public class UserDto {
     private UserDto(){}
@@ -39,7 +43,29 @@ public class UserDto {
            Set<RoleEnum> add,
            Set<RoleEnum> remove
 
-    ){}
+    ){
+        public UpdateRolesRequest {
+            add = (add == null) ? Set.of() : Set.copyOf(add);
+            remove = (remove == null) ? Set.of() : Set.copyOf(remove);
+
+            if(add.isEmpty() && remove.isEmpty()) {
+                throw new BadRequestException("At least one role must be added or removed.");
+            }
+
+            if(!Collections.disjoint(add, remove)) {
+                throw new BadRequestException("A role cannot be added and removed in the same request.");
+            }
+        }
+
+        private static void validateRolePrefix(Set<RoleEnum> roles) {
+            for(RoleEnum role : roles) {
+                if(role == null || !role.name().startsWith("ROLE_")) {
+                    throw new BadRequestException("All roles must start with 'ROLE_'. Found invalid role: " + role);
+                }
+            }
+        }
+    }
+
 
     public record SyncRolesRequest(
             Set<RoleEnum> roles
@@ -57,5 +83,17 @@ public class UserDto {
         //    @NotBlank
         //    private String password
     ){ }
+
+    public record UserResponse(
+            UUID id,
+            String firstName,
+            String lastName,
+            String email,
+            String phoneNumber,
+            Set<RoleEnum> roles,
+            String status,
+            String gender,
+            String bvn
+    ){}
 
 }

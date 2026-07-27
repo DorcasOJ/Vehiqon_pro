@@ -1,8 +1,6 @@
 package com.vehiqon.features.onboarding.service;
 
-import com.vehiqon.features.onboarding.dto.request.CreateUserRequest;
-import com.vehiqon.features.onboarding.dto.request.UpdateUserRequest;
-import com.vehiqon.features.onboarding.dto.request.UserDto;
+import com.vehiqon.features.onboarding.dto.UserDto;
 import com.vehiqon.features.onboarding.dto.response.UserResponse;
 import com.vehiqon.features.onboarding.entity.UserEntity;
 import jakarta.servlet.http.HttpServletRequest;
@@ -11,11 +9,12 @@ import java.util.UUID;
 
 
 public interface UserService {
-    UserResponse createUser (UserDto.CreateUserRequest userRequest);
+    UserDto.UserResponse createUser (UserDto.CreateUserRequest userRequest);
     void validateUserEmail(UserEntity user );
-    UserResponse updateProfile(UserDto.UpdateUserRequest request);
-    UserResponse getProfile();
-    void updateRoles(UUID userId, UserDto.UpdateRolesRequest request);
-    void syncRoles(UUID userId, UserDto.SyncRolesRequest request);
+    UserDto.UserResponse updateProfile(UserDto.UpdateUserRequest request, HttpServletRequest httpServletRequest);
+    UserDto.UserResponse getProfile(HttpServletRequest httpServletRequest);
+    void updateRoles(UUID userId, UserDto.UpdateRolesRequest request,  HttpServletRequest httpServletRequest);
+    void syncRoles(UUID userId, UserDto.SyncRolesRequest request,  HttpServletRequest httpServletRequest);
     void unlockUser(UUID userId, HttpServletRequest request);
+    UserDto.UserResponse getUser(UUID userId, HttpServletRequest request);
 }

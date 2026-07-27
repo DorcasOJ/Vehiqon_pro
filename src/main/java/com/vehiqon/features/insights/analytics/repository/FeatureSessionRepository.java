@@ -1,7 +1,6 @@
 package com.vehiqon.features.insights.analytics.repository;
 
 import com.vehiqon.features.insights.analytics.entities.FeatureSessionEntity;
-import com.vehiqon.features.insights.analytics.entities.UserSessionEntity;
 import com.vehiqon.features.insights.analytics.enums.FeatureEnum;
 import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;

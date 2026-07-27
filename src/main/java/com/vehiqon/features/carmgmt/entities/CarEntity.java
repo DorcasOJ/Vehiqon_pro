@@ -23,6 +23,7 @@ import java.util.UUID;
 public class CarEntity extends BaseEntity {
 
     private String nickname;
+
     @Column(unique = true, nullable = false)
     private String vin;
 

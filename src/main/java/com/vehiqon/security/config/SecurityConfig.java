@@ -38,10 +38,6 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
         http
                 .csrf(AbstractHttpConfigurer::disable)
-//                .cors(cors -> {})
-//                .httpBasic(AbstractHttpConfigurer::disable)
-//
-//                .formLogin(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/api/auth/login",
@@ -53,7 +49,9 @@ public class SecurityConfig {
                                 "/api/auth/verify-email",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
-                                "/v3/api-docs/**"
+                                "/v3/api-docs/**",
+                                "/actuator/**",
+                                "/favicon.ico"
                         ).permitAll()
 
                         .requestMatchers("/api/admin/**")
@@ -61,9 +59,9 @@ public class SecurityConfig {
 //                        .requestMatchers("/api/cars/**")
 //                        .hasAnyRole("USER", "ADMIN")
 
-
                         .anyRequest().authenticated()
                 )
+
                 .addFilterBefore(jwtAuthenticationFilter,
                         UsernamePasswordAuthenticationFilter.class)
                 .sessionManagement(
@@ -85,12 +83,6 @@ public class SecurityConfig {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
-
-//    @Bean
-//    public UserDetailsService userDetailsService() {
-//        return username -> userRepository.findByEmail(username)
-//                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + username));
-//    }
 
     @Bean
     public AuthenticationManager authenticationManager(

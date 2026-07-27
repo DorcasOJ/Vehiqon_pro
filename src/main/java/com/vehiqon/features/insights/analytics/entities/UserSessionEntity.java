@@ -4,6 +4,8 @@ import com.vehiqon.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -16,7 +18,29 @@ import java.util.UUID;
 @SuperBuilder
 @Entity
 @Table(name="user_sessions")
-public class UserSessionEntity extends BaseEntity {
+public class UserSessionEntity  {
+
+    @Id
+    private UUID id;
+
+//    @Transient
+//    private boolean isNew = true;
+//
+//    @Override
+//    public UUID getId() {
+//        return id;
+//    }
+//
+//    @Override
+//    public boolean isNew() {
+//        return isNew;
+//    }
+//
+//    @PostLoad
+//    @PostPersist
+//    void markNotNew() {
+//        this.isNew = false;
+//    }
 
     @Column(name = "user_id", nullable = false)
     private UUID userId;
@@ -40,4 +64,12 @@ public class UserSessionEntity extends BaseEntity {
     private Boolean active = true;
 
     private Long durationSeconds;
+
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    @Column(name = "updated_at")
+    private  LocalDateTime updatedAt;
 }
