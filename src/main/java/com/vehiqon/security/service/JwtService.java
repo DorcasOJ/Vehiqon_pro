@@ -1,26 +1,17 @@
-package com.vehiqon.security.jwt;
+package com.vehiqon.security.service;
 
-import com.vehiqon.common.service.UserAgentParserService;
-import com.vehiqon.features.insights.analytics.dto.AnalyticsDto;
-import com.vehiqon.features.onboarding.entity.RefreshTokenEntity;
+import com.vehiqon.security.config.UserAgentParserService;
 import com.vehiqon.features.onboarding.entity.UserEntity;
 import com.vehiqon.security.config.JwtProperties;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
-import jakarta.annotation.PostConstruct;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
-import java.time.Duration;
-import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.Map;
-import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -49,43 +40,25 @@ public class JwtService {
                 .compact();
     }
 
-    public String generateRefreshToken(UserEntity userEntity,  Map<String, Object> extraClaims ) {
+    public String generateRefreshToken(UserEntity userEntity,  Map<String, Object> extraClaims, String jti ) {
         Date now = new Date();
         Date expiry = new Date(
                 now.getTime() + properties.refreshExpiration()
         );
         return Jwts.builder()
+                .id(jti)
                 .subject(userEntity.getUsername())
-                .claims(extraClaims) //sessionId
+                .claims(extraClaims) //deviceId
                 .issuedAt(now)
                 .expiration(expiry)
                 .signWith(getSigningKey())
                 .compact();
     }
 
-    public RefreshTokenEntity mapRefreshTokenToEntity(String refreshToken, UserEntity userEntity, HttpServletRequest request, UUID sessionId) {
-
-        AnalyticsDto.SessionContext sessionContext = userAgentParserService.parseRequestDetails(request);
-        return RefreshTokenEntity.builder()
-                .token(refreshToken)
-                .userId(userEntity.getId())
-                .deviceName(sessionContext.device())
-                .deviceId(sessionContext.deviceId())
-                .ipAddress(sessionContext.ipAddress())
-                .expiresAt(
-                        LocalDateTime.now()
-                                .plus(Duration.ofMillis(properties.refreshExpiration()))
-                )
-                .revoked(false)
-                .expired(false)
-                .build();
-
-    }
-
-    public  UUID extractSessionId(String token) {
+    public  UUID extractDeviceId(String token) {
         Claims claims = extractClaims(token);
         return UUID.fromString(
-                claims.get("sessionId", String.class)
+                claims.get("deviceId", String.class)
         );
     }
 

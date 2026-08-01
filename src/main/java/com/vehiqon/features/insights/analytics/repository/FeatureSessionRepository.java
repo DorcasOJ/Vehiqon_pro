@@ -16,7 +16,7 @@ import java.util.UUID;
 public interface FeatureSessionRepository extends JpaRepository<FeatureSessionEntity, UUID> {
 
     Optional<FeatureSessionEntity> findFirstByUserIdAndEndedTimeIsNull(UUID userId);
-    Optional<FeatureSessionEntity> findByUserSessionIdAndFeatureNameAndEndedTimeIsNull(UUID userSessionId, FeatureEnum feature);
+    Optional<FeatureSessionEntity> findByUserSessionIdAndFeatureAndEndedTimeIsNull(UUID userSessionId, FeatureEnum feature);
     List<FeatureSessionEntity> findByUserIdAndEndedTimeIsNull(UUID userId);
     boolean existsByUserIdAndEndedTimeIsNull(UUID userId);
 
@@ -24,11 +24,15 @@ public interface FeatureSessionRepository extends JpaRepository<FeatureSessionEn
     @Transactional
     @Query("""
             UPDATE FeatureSessionEntity s
-            SET s.endedTime = :now
+            SET s.endedTime = s.lastActivityTime
             WHERE s.endedTime IS NULL
              AND s.lastActivityTime < :cutoffTIme
             """)
-    int expireInactiveFeatureSessions(@Param("cutoffTIme") LocalDateTime cutoffTIme,
-                                @Param("now")LocalDateTime now);
+    int expireInactiveFeatureSessions(@Param("cutoffTIme") LocalDateTime cutoffTIme);
+
+
+    Optional<FeatureSessionEntity> findByUserSessionIdAndEndedTimeIsNull(UUID userSessionId);
+
+
 }
 //s.durationSeconds = (EXTRACT(EPOCH FROM :now) - EXTRACT(EPOCH FROM s.startedTime))

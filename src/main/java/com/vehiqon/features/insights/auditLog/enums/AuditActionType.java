@@ -1,6 +1,6 @@
 package com.vehiqon.features.insights.auditLog.enums;
 
-public enum AuditAction {
+public enum AuditActionType {
     USER_PASSWORD_CHANGED( "User Changed Password"),
     USER_VERIFIED_EMAIL("User Email Verified"),
     USER_REGISTERED("User registered"),
@@ -8,7 +8,7 @@ public enum AuditAction {
     USER_LOGIN_FAILED("User login failed"),
     USER_PASSWORD_RESET_REQUESTED("User requested password reset"),
     USER_PASSWORD_RESET_COMPLETED("User reset password"),
-    USER_EMAIL_VERIFIED("User email verified"),
+//    USER_EMAIL_VERIFIED("User email verified"),
     USER_VERIFICATION_EMAIL_RESENT("Verification email resent"),
     USER_REQUESTED_VERIFICATION_EMAIL_TOKEN("Verification email token requested"),
     USER_LOGGED_OUT("user logged out"),
@@ -24,14 +24,17 @@ public enum AuditAction {
     USER_ROLE_UPDATED("User role updated"),
     USER_ROLE_SYNCED("User role synced"),
     USER_UNLOCKED("User is now unlocked to login"),
+    GET_USER("Admin view user"),
 
-    GET_USER("Admin view user");
-//    GET_USER("Admin view user"),
+    VEHICLE_REGISTERED("User registered a vehicle"),
+    VEHICLE_UPDATED("User Updated Vehicle details"),
+    VEHICLE_DELETED("User deleted a Vehicle");
+
 //    GET_USER("Admin view user"),
 
     private final String description;
 
-    AuditAction(String description) {
+    AuditActionType(String description) {
         this.description = description;
     }
     public String getDescription() {

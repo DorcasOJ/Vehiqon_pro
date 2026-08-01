@@ -5,6 +5,9 @@ import com.vehiqon.common.mapper.ApiResponseMapper;
 import com.vehiqon.features.carmgmt.dto.CarDto;
 import com.vehiqon.features.carmgmt.dto.response.CarDetailsResponse;
 import com.vehiqon.features.carmgmt.service.CarService;
+import com.vehiqon.features.insights.analytics.enums.EntityIdSource;
+import com.vehiqon.features.insights.analytics.enums.EventType;
+import com.vehiqon.features.insights.analytics.service.around.AnalyticsAction;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -25,7 +28,7 @@ public class CarController {
     private final ApiResponseMapper apiResponseMapper;
 
 
-    //    register a vehicle
+
     @PostMapping("/new")
     public ResponseEntity<ApiResponse<CarDto.CarResponse>> registerCar(
             @Valid @RequestBody CarDto.CreateCarRequest request
@@ -46,13 +49,21 @@ public class CarController {
     }
 
 //    get one vehicle of a vehicle
-    @GetMapping("{carId}")
+    @AnalyticsAction(
+            value = EventType.CAR_VIEWED,
+            entityIdSource = EntityIdSource.PATH_VARIABLE,
+            entityIdParam = "id"
+    )
+    @GetMapping("{id}")
     ResponseEntity<ApiResponse<CarDetailsResponse>> getCar(
-            @PathVariable UUID carId
+            @PathVariable UUID id
     ){
         return ResponseEntity.ok()
-                .body(apiResponseMapper.toResponse(carService.getCar(carId)));
+                .body(apiResponseMapper.toResponse(carService.getCar(id)));
     }
+
+
+
 
     @PatchMapping("{carId}")
     ResponseEntity<ApiResponse<CarDto.CarResponse>> updateCar(

@@ -1,17 +1,21 @@
-package com.vehiqon.security.jwt;
+package com.vehiqon.security.filter;
 
+import com.vehiqon.common.dto.RequestContext;
 import com.vehiqon.common.exception.BadRequestException;
 import com.vehiqon.common.exception.ResourceNotFoundException;
-import com.vehiqon.common.utils.GenerateOrHashTokenUtils;
+import com.vehiqon.security.config.UserAgentParserService;
 import com.vehiqon.features.insights.analytics.repository.UserSessionRepository;
 import com.vehiqon.features.onboarding.entity.UserEntity;
-import com.vehiqon.features.onboarding.repository.RefreshTokenRepository;
 import com.vehiqon.security.model.CustomerUserDetails;
+import com.vehiqon.security.service.JwtService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import nl.basjes.parse.useragent.UserAgentAnalyzer;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -26,56 +30,59 @@ import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
     private final UserSessionRepository userSessionRepository;
-    private final RefreshTokenRepository refreshTokenRepository;
-    private final GenerateOrHashTokenUtils hashTokenUtils;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(
+            @NonNull HttpServletRequest request,
+            @NonNull HttpServletResponse response,
+            @NonNull FilterChain filterChain
+    ) throws ServletException, IOException {
+        String authHeader = request.getHeader("Authorization");
+        if(authHeader == null || !authHeader.startsWith(("Bearer "))) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+        final String jwt = authHeader.substring(7);
         try {
-            String authHeader = request.getHeader("Authorization");
-
-            if(authHeader == null || !authHeader.startsWith(("Bearer "))) {
-                filterChain.doFilter(request, response);
-                return;
-            }
-
-            String jwt = authHeader.substring(7);
-            String email = jwtService.extractUsername(jwt);
-            UUID sessionId = jwtService.extractSessionId(jwt);
-            String jti = jwtService.extractJti(jwt);
+            final String email = jwtService.extractUsername(jwt);
 
             if(email != null &&
-                    SecurityContextHolder.getContext().getAuthentication() == null) {
-                UserDetails userDetails = userDetailsService.loadUserByUsername(email);
-                boolean isSessionNotLoggedOut = userSessionRepository.existsByIdAndLogoutAtIsNull(sessionId);
-//
+                 SecurityContextHolder.getContext().getAuthentication() == null) {
 
-                if(jwtService.isTokenValid(jwt, userDetails.getUsername()) && isSessionNotLoggedOut) {
+                UUID deviceId = jwtService.extractDeviceId(jwt);
+                String jti = jwtService.extractJti(jwt);
+
+                UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+                if(jwtService.isTokenValid(jwt, userDetails.getUsername())) {
                     CustomerUserDetails customerUserDetails = new CustomerUserDetails(
-                            (UserEntity) userDetails, sessionId, UUID.fromString(jti), userDetails.getAuthorities()
+                            (UserEntity) userDetails, deviceId, UUID.fromString(jti), userDetails.getAuthorities()
                     );
                     UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
                             customerUserDetails, null, customerUserDetails.getAuthorities());
                     authenticationToken.setDetails(
                             new WebAuthenticationDetailsSource()
                                     .buildDetails(request)
-//                            new CustomAuthenticationDetails(request, sessionId.toString(), jti)
                     );
                     SecurityContextHolder.getContext()
                             .setAuthentication(authenticationToken);
                 }
             }
-        } catch (IOException | ServletException e) {
-            throw new BadRequestException(e.getMessage());
         } catch (UsernameNotFoundException e) {
             throw new ResourceNotFoundException(e.getMessage());
+        } catch (Exception e) {
+            log.error("Failed to authenticate JWT token: {}", e.getMessage());
+            SecurityContextHolder.clearContext();
         }
         filterChain.doFilter(request, response);
 
     }
+
+
+
 }

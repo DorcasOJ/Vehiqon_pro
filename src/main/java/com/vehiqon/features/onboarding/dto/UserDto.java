@@ -2,6 +2,7 @@ package com.vehiqon.features.onboarding.dto;
 
 import com.vehiqon.common.enums.RoleEnum;
 import com.vehiqon.common.exception.BadRequestException;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -16,21 +17,36 @@ public class UserDto {
     private UserDto(){}
 
     public record CreateUserRequest (
-        @NotBlank(message = "First name is required")
-        @Size(max= 50) String firstName,
+            @Schema(example = "john",
+                    description = "User first name"
+            )
+            @NotBlank(message = "First name is required")
+            @Size(max= 50) String firstName,
 
-        @NotBlank(message = "Last name is required")
-        @Size(max= 50) String lastName,
-         String bvn, String address,
-        @NotBlank String gender,
-        @NotBlank @Email(message= "Invalid email address") String email,
-        @NotBlank
-        @Pattern(
-                regexp = "\\+?[0-9]{10,15}",
-                message="Invalid phone number"
-        ) String phoneNumber,
-        @NotBlank  String password,
-        RoleEnum role
+            @Schema(example = "doe",
+                    description = "User last name"
+            )
+            @NotBlank(message = "Last name is required")
+            @Size(max= 50) String lastName,
+
+            @Schema(example = "123, Some address, LG, NG",
+                    description = "User address"
+            )
+             String bvn, String address,
+            @NotBlank String gender,
+
+            @Schema(example = "john@email.com",
+                    description = "User email"
+            )
+            @NotBlank @Email(message= "Invalid email address") String email,
+            @NotBlank
+            @Pattern(
+                    regexp = "\\+?[0-9]{10,15}",
+                    message="Invalid phone number"
+            ) String phoneNumber,
+
+            @NotBlank  String password,
+            RoleEnum role
 ){
         public CreateUserRequest {
             if(role == null) {

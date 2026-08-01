@@ -6,6 +6,7 @@ import com.vehiqon.features.insights.auditLog.dto.AuditLogDto;
 import com.vehiqon.features.insights.auditLog.service.AuditLogService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
@@ -39,7 +40,7 @@ public class AuditLogConsumer {
     }
 
     @Async("asyncTaskExecutor")
-//    @EventListener
+    @EventListener
     @TransactionalEventListener(phase = TransactionPhase.AFTER_ROLLBACK)
     public void handleRollback(AuditLogDto.AuditEvent event) {
         if(event.userId() == null) {
@@ -54,7 +55,5 @@ public class AuditLogConsumer {
             log.error("Failed to process analytics event {}", event, e);
 //            throw new BadRequestException(e.getMessage());
         }
-
-
     }
 }

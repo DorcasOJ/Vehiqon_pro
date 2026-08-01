@@ -1,5 +1,7 @@
 package com.vehiqon.features.carmgmt.service.impl;
 
+import com.vehiqon.common.dto.RequestContext;
+import com.vehiqon.common.enums.EntityEnum;
 import com.vehiqon.common.exception.BadRequestException;
 import com.vehiqon.common.exception.ResourceNotFoundException;
 import com.vehiqon.features.carmgmt.dto.CarDto;
@@ -8,23 +10,34 @@ import com.vehiqon.features.carmgmt.entities.BrandEntity;
 import com.vehiqon.features.carmgmt.entities.CarEntity;
 import com.vehiqon.features.carmgmt.entities.CarModelEntity;
 import com.vehiqon.features.carmgmt.enums.CarStatus;
-import com.vehiqon.features.carmgmt.mapper.CarBrandModelMapper;
 import com.vehiqon.features.carmgmt.mapper.CarMapper;
 import com.vehiqon.features.carmgmt.mapper.CarResponseMapper;
 import com.vehiqon.features.carmgmt.repository.CarBrandRepository;
 import com.vehiqon.features.carmgmt.repository.CarModelRepository;
 import com.vehiqon.features.carmgmt.repository.CarRepository;
 import com.vehiqon.features.carmgmt.service.CarService;
+import com.vehiqon.features.insights.InsightEventPublisher;
+import com.vehiqon.features.insights.analytics.dto.AnalyticsDto;
+import com.vehiqon.features.insights.analytics.dto.requestScope.AnalyticsContext;
+import com.vehiqon.features.insights.auditLog.dto.AuditLogDto;
+import com.vehiqon.features.insights.auditLog.enums.AuditActionType;
+import com.vehiqon.features.insights.auditLog.enums.AuditStatus;
+import com.vehiqon.features.insights.enums.PublishAction;
 import com.vehiqon.features.onboarding.entity.UserEntity;
 import com.vehiqon.features.onboarding.repository.UserRepository;
 import com.vehiqon.features.onboarding.service.AuthService;
 import com.vehiqon.security.model.CustomerUserDetails;
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class CarServiceImpl implements CarService {
     private final AuthService authService;
     private final CarRepository carRepository;
@@ -33,17 +46,11 @@ public class CarServiceImpl implements CarService {
     private final UserRepository userRepository;
     private final CarMapper carMapper;
     private final CarResponseMapper carResponseMapper;
+    private final InsightEventPublisher publisher;
+    private final RequestContext requestContext;
+    private final AnalyticsContext analyticsContext;
 
 
-    public CarServiceImpl(AuthService authService, CarRepository carRepository, CarBrandRepository brandRepository, CarModelRepository modelRepository, UserRepository userRepository, CarMapper carMapper, CarBrandModelMapper carBrandModelMapper, CarResponseMapper carResponseMapper) {
-        this.authService = authService;
-        this.carRepository = carRepository;
-        this.brandRepository = brandRepository;
-        this.modelRepository = modelRepository;
-        this.userRepository = userRepository;
-        this.carMapper = carMapper;
-        this.carResponseMapper = carResponseMapper;
-    }
 
     @Override
     public CarDto.CarResponse registerCar(CarDto.CreateCarRequest request) {
@@ -58,10 +65,15 @@ public class CarServiceImpl implements CarService {
         validateUniqueFields(request);
 
         CarEntity carMapping = carMapper.toEntity(request);
-        carMapping.setUserId(authenticatedUser.user().getId());
+        UUID userId = authenticatedUser.user().getId();
+        carMapping.setUserId(userId);
         carMapping.setCarBrandId(brand.getId());
         carMapping.setCarModelId(model.getId());
-        carMapping.setStatus(CarStatus.ACTIVE);
+        carMapping.setStatus(CarStatus.INACTIVE);
+        //        publisher.publish( new AuditLogDto.AuditEvent(userId, AuditActionType.VEHICLE_REGISTERED, EntityEnum.USER,
+//                userId, AuditStatus.SUCCESS, context.request(), PublishAction.AUDIT_LOG));
+
+
         return carResponseMapper.toResponse(carMapper.toResponse(carRepository.save(carMapping)));
     }
 
@@ -71,12 +83,6 @@ public class CarServiceImpl implements CarService {
         CustomerUserDetails authenticatedUser = authService.getAuthenticatedUser();
 
         return carRepository.findCarsDetailsByUserId(authenticatedUser.user().getId()).orElseThrow(() -> new ResourceNotFoundException("Cars not found"));
-//        return carRepository.findAllByUserId(user.getId())
-//                .stream()
-//                .map(carMapper::toResponse)
-//                .map(carResponseMapper::toResponse)
-//                .flatMap(entity -> carMapper.toListResponse(entity).stream())
-//                .toList();
     }
 
     @Override
@@ -87,6 +93,15 @@ public class CarServiceImpl implements CarService {
 getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Car not found"));
 
+    }
+
+    @Transactional()
+    public Page<CarDetailsResponse> searchCars(String query, UUID brandId, CarStatus status, Pageable pageable) {
+        UUID userId = authService.getAuthenticatedUser().user().getId();
+        Page<CarDetailsResponse> searchResult = carRepository.searchCars(userId, query, brandId, status, pageable).orElseThrow(() -> new ResourceNotFoundException("No search result"));
+        analyticsContext.recordSearch(query,  searchResult.getNumberOfElements(),
+                searchResult.getTotalElements(), searchResult.getNumber(), searchResult.getSize());
+        return searchResult;
     }
 
     @Override

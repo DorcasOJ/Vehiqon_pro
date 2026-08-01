@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS audit_logs (
     user_agent VARCHAR(255),
     status VARCHAR(255),
     description VARCHAR(255),
+    metadata JSONB DEFAULT '{}'::jsonb,
 
     CONSTRAINT fk_audit_log_user
         FOREIGN KEY (user_id)

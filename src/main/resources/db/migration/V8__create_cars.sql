@@ -30,4 +30,12 @@ CREATE TABLE IF NOT EXISTS cars (
     CONSTRAINT fk_car_model
         FOREIGN KEY (car_model_id)
         REFERENCES car_models(id)
+
 );
+
+CREATE INDEX idx_cars_id ON cars(id);
+CREATE INDEX idx_cars_nickname ON cars(nickname);
+CREATE INDEX idx_cars_vin ON cars(vin);
+CREATE INDEX idx_cars_plate ON cars(plate_number);
+CREATE INDEX idx_cars_brand_id ON cars(car_brand_id);
+CREATE INDEX idx_cars_model_id ON cars(car_model_id);

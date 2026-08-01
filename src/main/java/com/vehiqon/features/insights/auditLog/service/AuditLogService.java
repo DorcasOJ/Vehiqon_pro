@@ -1,7 +1,7 @@
 package com.vehiqon.features.insights.auditLog.service;
 
-import com.vehiqon.features.insights.analytics.entities.AuditLogEntity;
-import com.vehiqon.features.insights.auditLog.enums.AuditAction;
+import com.vehiqon.features.insights.auditLog.entity.AuditLogEntity;
+import com.vehiqon.features.insights.auditLog.enums.AuditActionType;
 import com.vehiqon.features.insights.auditLog.enums.AuditStatus;
 import com.vehiqon.features.insights.auditLog.dto.AuditLogDto;
 import com.vehiqon.features.insights.auditLog.repository.AuditLogRepository;
@@ -22,9 +22,10 @@ public class AuditLogService {
                 .entity(event.entity().name())
                 .entityId(event.entityId())
                 .status(event.status().name())
-                .description(AuditAction.valueOf(event.action().name()).getDescription())
-                .ipAddress(httpRequestUtils.getClientIp(event.request()))
-                .userAgent(event.request().getHeader("User-Agent"))
+                .metadata(event.metadata())
+                .description(AuditActionType.valueOf(event.action().name()).getDescription())
+//                .ipAddress(event.clientIp())
+//                .userAgent(event.userAgent())
                 .build();
         auditLogRepository.save(log);
     }
@@ -36,9 +37,10 @@ public class AuditLogService {
                 .entity(event.entity().name())
                 .entityId(event.entityId())
                 .status(AuditStatus.FAILED.name())
-                .description( "FAILED: " +AuditAction.valueOf(event.action().name()).getDescription())
-                .ipAddress(httpRequestUtils.getClientIp(event.request()))
-                .userAgent(event.request().getHeader("User-Agent"))
+                .metadata(event.metadata())
+                .description( "FAILED: " + AuditActionType.valueOf(event.action().name()).getDescription())
+//                .ipAddress(httpRequestUtils.getClientIp(event.request()))
+//                .userAgent(event.request().getHeader("User-Agent"))
                 .build();
         auditLogRepository.save(log);
     }

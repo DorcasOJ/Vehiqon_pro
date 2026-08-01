@@ -8,21 +8,21 @@ import com.vehiqon.security.model.CustomerUserDetails;
 import jakarta.servlet.http.HttpServletRequest;
 
 public interface AuthService {
-    UserDto.UserResponse register(UserDto.CreateUserRequest request, HttpServletRequest httpServletRequest);
-    LoginResponse login(AuthDto.LoginRequest request, HttpServletRequest httpServletRequest);
+    UserDto.UserResponse register(UserDto.CreateUserRequest request);
+    LoginResponse login(AuthDto.LoginRequest request);
 
-    LoginResponse refresh(AuthDto.RefreshTokenRequest request, HttpServletRequest httpRequest);
+    LoginResponse refresh(AuthDto.RefreshTokenRequest request);
 
-    String logout(AuthDto.LogoutRequest request, HttpServletRequest httpServletRequest);
-    String logoutAll(HttpServletRequest httpServletRequest);
+    String logout(AuthDto.LogoutRequest request);
+    String logoutAll();
 
-    String verifyEmail(String token, HttpServletRequest httpServletRequest);
+    String verifyEmail(String token);
 
-    String resendVerificationEmail( AuthDto.ResendVerificationRequest request, HttpServletRequest httpServletRequest);
+    String resendVerificationEmail( AuthDto.ResendVerificationRequest request );
 
     CustomerUserDetails getAuthenticatedUser();
 
-    String changePassword(AuthDto.ChangePasswordRequest request, HttpServletRequest httpServletRequest);
-    String forgotPassword(AuthDto.ForgotPasswordRequest request, HttpServletRequest httpServletRequest );
-    String resetPassword(AuthDto.ResetPasswordRequest request, HttpServletRequest httpServletRequest);
+    String changePassword(AuthDto.ChangePasswordRequest request);
+    String forgotPassword(AuthDto.ForgotPasswordRequest request );
+    String resetPassword(AuthDto.ResetPasswordRequest request);
 }

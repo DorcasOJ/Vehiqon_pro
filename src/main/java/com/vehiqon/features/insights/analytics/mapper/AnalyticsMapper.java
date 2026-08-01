@@ -1,5 +1,6 @@
 package com.vehiqon.features.insights.analytics.mapper;
 
+import com.vehiqon.common.dto.RequestContext;
 import com.vehiqon.features.insights.analytics.dto.AnalyticsDto;
 import com.vehiqon.features.insights.analytics.entities.FeatureSessionEntity;
 import com.vehiqon.features.insights.analytics.entities.UserEventEntity;
@@ -10,16 +11,20 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring")
 public interface AnalyticsMapper {
 
-    @Mapping(target="id", ignore = true )
-    @Mapping(target="createdAt", ignore = true)
-    @Mapping(target="updatedAt", ignore = true)
-    UserEventEntity toUserEntityResponse(AnalyticsDto.AnalyticsEvent event);
+//    @Mapping(target="id", ignore = true )
+//    @Mapping(target="createdAt", ignore = true)
+//    @Mapping(target="updatedAt", ignore = true)
+//    @Mapping(target="userSessionId", ignore = true)
+//    @Mapping(target="featureSessionId", ignore = true)
+//    @Mapping(target="feature", ignore = true)
+//    @Mapping(target="entityType", ignore = true)
+//    UserEventEntity toUserEntityResponse(AnalyticsDto.AnalyticsEvent event);
 
-    @Mapping(target="publishAction", ignore = true)
-    AnalyticsDto.AnalyticsEvent toAnalyticsEvents(UserEventEntity entity);
+//    @Mapping(target="publishAction", ignore = true)
+//    @Mapping(target="sessionData", ignore = true)
+//    AnalyticsDto.AnalyticsEvent toAnalyticsEvents(UserEventEntity entity);
 
 //    FeatureSessionEntity toFeatureSessionEntity()
-    @Mapping(target="userId", ignore = true)
     @Mapping(target="id", ignore = true)
     @Mapping(target="createdAt", ignore = true)
     @Mapping(target="updatedAt", ignore = true)

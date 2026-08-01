@@ -62,7 +62,7 @@ public class OpenApiConfig {
                                 .description("Unique device identifier. Generate once on the client and reuse for subsequent requests.")
                                 .required(false)
                                 .schema(new StringSchema())
-//                                .example("4d2a4b0d-6b7f-4cb8-b72d-3e4ef9f79c2f")
+                                .example("4d2a4b0d-6b7f-4cb8-b72d-3e4ef9f79c2f")
                         )
                 )
         );

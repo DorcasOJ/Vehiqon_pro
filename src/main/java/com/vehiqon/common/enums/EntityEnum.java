@@ -1,13 +1,17 @@
 package com.vehiqon.common.enums;
 
 public enum EntityEnum {
+    NONE,
     USER,
-    CAR,
+    VEHICLE,
     SUBSCRIPTION_PLAN,
+    USER_SUBSCRIPTION,
+    USER_PERSONALISATION,
     CAR_DOCUMENTS,
     MAINTENANCE_REMINDER,
-    NOMBA_TOKENS,
+    MAINTENANCE,
     NOTIFICATIONS,
+    NOMBA_TOKENS,
     PASSWORD_RESET_TOKEN,
     PAYMENTS,
     REFRESH_TOKEN,

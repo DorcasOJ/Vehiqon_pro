@@ -1,11 +1,11 @@
 package com.vehiqon.features.insights.analytics.scheduler;
 
 import com.vehiqon.features.insights.analytics.repository.FeatureSessionRepository;
-import com.vehiqon.features.insights.analytics.repository.UserSessionRepository;
+import com.vehiqon.features.insights.analytics.service.FeatureSessionService;
+import com.vehiqon.features.insights.analytics.service.UserSessionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -14,31 +14,25 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 @Slf4j
 public class SessionCleanupScheduler {
-    private final UserSessionRepository userSessionRepository;
+    private final UserSessionService userSessionService;
+    private final FeatureSessionService featureSessionService;
     private final FeatureSessionRepository featureSessionRepository;
 
-//    Check User Sessions (Runs every 5 minutes)
-    @Scheduled(cron = "0 */10 * * * *")
+//    Check Sessions (Runs every 30 minutes)
+    @Scheduled(cron = "0 */30 * * * *")
     public void cleanupInactiveSessions() {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime cutOffTime = now.minusMinutes(30);
-
-
-        int expiredCount = userSessionRepository.expireInactiveSessions(cutOffTime, now);
-        if(expiredCount > 0) {
-            log.info("Auto-ended {} inactive user session(s) older than {}", expiredCount, cutOffTime);
-        }
+        userSessionService.expireInactiveSession(cutOffTime, now);
     }
 
-    @Scheduled(cron = "0 */10 * * * *")
+    @Scheduled(cron = "0 */30 * * * *")
     public void cleanupInactiveFeatures() {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime cutOffTime = now.minusMinutes(30);
-        int expiredCount = featureSessionRepository.expireInactiveFeatureSessions(cutOffTime, now);
-        if(expiredCount > 0) {
-            log.info("Auto-ended {} inactive feature session(s) older than {}", expiredCount, cutOffTime);
-        }
+        featureSessionService.expireInactiveFeatureSession(cutOffTime);
     }
+
 
 
 }

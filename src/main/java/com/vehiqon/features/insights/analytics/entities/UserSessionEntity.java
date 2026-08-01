@@ -57,13 +57,15 @@ public class UserSessionEntity  {
     private String city;
     private String country;
     private String deviceId; // each device has it own session
+    private String deviceName;
     private String appVersion;
 
     @Builder.Default
     @Column(nullable = false)
     private Boolean active = true;
 
-    private Long durationSeconds;
+    @Builder.Default
+    private Long durationSeconds =0L;
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)

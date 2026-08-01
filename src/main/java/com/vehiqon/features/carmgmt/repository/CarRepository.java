@@ -8,8 +8,11 @@ import com.vehiqon.features.carmgmt.enums.CarStatus;
 import com.vehiqon.features.carmgmt.enums.FuelType;
 import com.vehiqon.features.carmgmt.enums.TransmissionEnum;
 import com.vehiqon.features.onboarding.entity.UserEntity;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
@@ -96,6 +99,42 @@ public interface CarRepository extends JpaRepository<CarEntity, UUID> {
       AND c.userId = :userId
     """)
     Optional<CarDetailsResponse> findCarDetails(UUID carId, UUID userId);
+
+
+    @Query("""
+    SELECT new com.vehiqon.features.carmgmt.dto.response.CarDetailsResponse(
+        c.id,
+        c.nickname,
+        c.vin,
+        c.plateNumber,
+        c.color,
+        c.year,
+        c.engineNumber,
+        c.fuelType,
+        c.transmission,
+        c.odometer,
+        c.purchaseDate,
+        c.licenseExpiry,
+        c.status,
+        b.id,
+        b.name,
+        m.id,
+        m.name
+    )
+    FROM CarEntity c
+    JOIN BrandEntity b ON c.carBrandId = b.id
+    JOIN CarModelEntity m ON c.carModelId = m.id
+    WHERE c.userId = :userId
+        AND (:query IS NULL OR (
+            c.nickname ILIKE CONCAT('%', :query, '%') OR
+            c.vin ILIKE CONCAT('%', :query, '%') OR
+            c.plateNumber ILIKE CONCAT('%', :query, '%')
+            ))
+        AND (:brandId IS NULL OR c.carBrandId = :brandId)
+        AND (:status IS NULL OR c.status = :status)
+""")
+    Optional<Page<CarDetailsResponse>> searchCars(UUID userId, String query, UUID brandId, CarStatus status, Pageable pagable);
+
 }
 
 

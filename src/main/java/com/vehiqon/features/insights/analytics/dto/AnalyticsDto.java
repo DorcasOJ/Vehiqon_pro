@@ -5,6 +5,7 @@ import com.vehiqon.common.enums.EntityEnum;
 import com.vehiqon.features.insights.analytics.enums.EventType;
 import com.vehiqon.features.insights.analytics.enums.FeatureEnum;
 import com.vehiqon.features.insights.enums.*;
+import jakarta.servlet.http.HttpServletRequest;
 
 import java.time.LocalDateTime;
 import java.util.Map;
@@ -19,15 +20,13 @@ public class AnalyticsDto {
 
     public record AnalyticsEvent (
     UUID userId,
-    FeatureEnum feature,
     EventType eventType,
-    UUID userSessionId,
-    UUID featureSessionId,
-    EntityEnum entityType,
     UUID entityId,
     Map<String, Object> metadata,
     LocalDateTime occurredAt,
-    PublishAction publishAction
+    PublishAction publishAction,
+    SessionContext sessionData
+
     ) implements ConsumerEvent {}
 
 //    public record FeatureUsage(){}
@@ -38,7 +37,10 @@ public class AnalyticsDto {
 //
 //    public record RecommendationSummary(){}
 
+
     public record SessionContext(
+            UUID userId,
+            UUID userSessionId,
             String ipAddress,
             String city,
             String country,
@@ -47,6 +49,7 @@ public class AnalyticsDto {
             String platform,
             String operating_system,
             String appVersion,
-            String deviceId
+            String deviceId,
+            String deviceName
     ) {}
 }

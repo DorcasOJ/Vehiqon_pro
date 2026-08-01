@@ -10,12 +10,11 @@ import com.vehiqon.common.utils.GenerateOrHashTokenUtils;
 import com.vehiqon.features.insights.InsightEventPublisher;
 import com.vehiqon.features.insights.Notification.dto.NotificationDto;
 import com.vehiqon.features.insights.Notification.enums.NotificationEvent;
-import com.vehiqon.features.insights.auditLog.enums.AuditAction;
+import com.vehiqon.features.insights.auditLog.enums.AuditActionType;
 import com.vehiqon.features.insights.auditLog.enums.AuditStatus;
 import com.vehiqon.features.insights.enums.PublishAction;
 import com.vehiqon.features.insights.auditLog.dto.AuditLogDto;
 import com.vehiqon.features.onboarding.dto.UserDto;
-import com.vehiqon.features.onboarding.dto.response.UserResponse;
 import com.vehiqon.features.onboarding.entity.UserEntity;
 import com.vehiqon.features.onboarding.mapper.UserMapper;
 import com.vehiqon.features.onboarding.mapper.VerificationTokenMapper;
@@ -25,6 +24,7 @@ import com.vehiqon.features.onboarding.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -37,6 +37,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class UserServiceImpl implements UserService {
 
     @Value("${VERIFICATION_URL}")
@@ -78,6 +79,7 @@ public class UserServiceImpl implements UserService {
         verificationTokenRepository.save(verificationTokenMapper.emailTokenToSave(savedUser, tokenUtils.hashToken(token)));
         String url = verificationLink+ token;
         System.out.printf("Email token here: %s", token);
+        log.info("Email token here: {}", token);
         publisher.publish(
                 new NotificationDto.VerifyEmail(PublishAction.NOTIFICATION, savedUser.getId(), savedUser.getEmail(), url,
                         NotificationEvent.VERIFY_EMAIL)
@@ -90,8 +92,8 @@ public class UserServiceImpl implements UserService {
         UserEntity user = getAuthenticatedUser();
         userMapper.updateEntity(request, user);
         UserDto.UserResponse response = userMapper.toResponse(userRepository.save(user));
-        publisher.publish( new AuditLogDto.AuditEvent(user.getId(), AuditAction.USER_PROFILE_UPDATED, EntityEnum.USER,
-                user.getId(), AuditStatus.SUCCESS, httpServletRequest, PublishAction.AUDIT_LOG));
+//        publisher.publish( new AuditLogDto.AuditEvent(user.getId(), AuditActionType.USER_PROFILE_UPDATED, EntityEnum.USER,
+//                user.getId(), AuditStatus.SUCCESS, httpServletRequest, PublishAction.AUDIT_LOG));
         return response;
     }
 
@@ -99,8 +101,8 @@ public class UserServiceImpl implements UserService {
     public UserDto.UserResponse getProfile(HttpServletRequest httpServletRequest) {
         UserEntity user = getAuthenticatedUser();
 //        String salt = org.springframework.security.crypto.keygen.KeyGenerators.string().generateKey();
-        publisher.publish( new AuditLogDto.AuditEvent(user.getId(), AuditAction.USER_VIEWS_PROFILE, EntityEnum.USER,
-                user.getId(), AuditStatus.SUCCESS, httpServletRequest, PublishAction.AUDIT_LOG));
+//        publisher.publish( new AuditLogDto.AuditEvent(user.getId(), AuditActionType.USER_VIEWS_PROFILE, EntityEnum.USER,
+//                user.getId(), AuditStatus.SUCCESS, httpServletRequest, PublishAction.AUDIT_LOG));
 
         return userMapper.toResponse(user);
     }
@@ -121,8 +123,8 @@ public class UserServiceImpl implements UserService {
             user.addRoles(request.add());
         }
         userRepository.save(user);
-        publisher.publish( new AuditLogDto.AuditEvent(adminUser.getId(), AuditAction.USER_ROLE_UPDATED, EntityEnum.USER,
-                user.getId(), AuditStatus.SUCCESS, httpServletRequest, PublishAction.AUDIT_LOG));
+//        publisher.publish( new AuditLogDto.AuditEvent(adminUser.getId(), AuditActionType.USER_ROLE_UPDATED, EntityEnum.USER,
+//                user.getId(), AuditStatus.SUCCESS, httpServletRequest, PublishAction.AUDIT_LOG));
     }
 
     @Override
@@ -134,8 +136,8 @@ public class UserServiceImpl implements UserService {
             user.syncRoles(request.roles());
         }
         userRepository.save(user);
-        publisher.publish( new AuditLogDto.AuditEvent(user.getId(), AuditAction.USER_ROLE_SYNCED, EntityEnum.USER,
-                user.getId(), AuditStatus.SUCCESS, httpServletRequest, PublishAction.AUDIT_LOG));
+//        publisher.publish( new AuditLogDto.AuditEvent(user.getId(), AuditActionType.USER_ROLE_SYNCED, EntityEnum.USER,
+//                user.getId(), AuditStatus.SUCCESS, httpServletRequest, PublishAction.AUDIT_LOG));
 
     }
 
@@ -151,8 +153,8 @@ public class UserServiceImpl implements UserService {
         user.setLockedUntil(null);
         user.setFailedLoginAttempts(0);
         userRepository.save(user);
-        publisher.publish( new AuditLogDto.AuditEvent(adminUser.getId(), AuditAction.USER_UNLOCKED, EntityEnum.USER,
-                user.getId(), AuditStatus.SUCCESS, request, PublishAction.AUDIT_LOG));
+//        publisher.publish( new AuditLogDto.AuditEvent(adminUser.getId(), AuditActionType.USER_UNLOCKED, EntityEnum.USER,
+//                user.getId(), AuditStatus.SUCCESS, request, PublishAction.AUDIT_LOG));
     }
 
     @Override
@@ -161,8 +163,8 @@ public class UserServiceImpl implements UserService {
         UserEntity user = userRepository.findById(userId).orElseThrow(
                 () -> new ResourceNotFoundException("User not found")
         );
-        publisher.publish( new AuditLogDto.AuditEvent(adminUser.getId(), AuditAction.GET_USER, EntityEnum.USER,
-                user.getId(), AuditStatus.SUCCESS, request, PublishAction.AUDIT_LOG));
+//        publisher.publish( new AuditLogDto.AuditEvent(adminUser.getId(), AuditActionType.GET_USER, EntityEnum.USER,
+//                user.getId(), AuditStatus.SUCCESS, request, PublishAction.AUDIT_LOG));
         return userMapper.toResponse(user);
     }
 

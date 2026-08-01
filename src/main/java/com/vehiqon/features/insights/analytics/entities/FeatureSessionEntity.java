@@ -1,7 +1,6 @@
 package com.vehiqon.features.insights.analytics.entities;
 
 import com.vehiqon.common.entity.BaseEntity;
-import com.vehiqon.features.insights.analytics.enums.EventType;
 import com.vehiqon.features.insights.analytics.enums.FeatureEnum;
 import jakarta.persistence.*;
 import lombok.*;
@@ -26,11 +25,12 @@ public class FeatureSessionEntity extends BaseEntity {
     @Column(name = "user_session_id", nullable = false)
     private UUID userSessionId;
 
-    @Enumerated(EnumType.STRING)
-    private EventType eventType;
+//    @Enumerated(EnumType.STRING)
+//    private EventType eventType;
 
     @Enumerated(EnumType.STRING)
-    private FeatureEnum featureName;
+    @Column(name = "feature")
+    private FeatureEnum feature;
 
     private LocalDateTime startedTime;
     private LocalDateTime lastActivityTime;

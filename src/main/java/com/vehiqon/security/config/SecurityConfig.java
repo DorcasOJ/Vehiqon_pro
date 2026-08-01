@@ -1,11 +1,8 @@
 package com.vehiqon.security.config;
 
-import com.vehiqon.CustomAccessDeniedHandler;
-import com.vehiqon.CustomAuthenticationEntryPoint;
-import com.vehiqon.common.exception.ResourceNotFoundException;
-import com.vehiqon.features.onboarding.repository.UserRepository;
-import com.vehiqon.security.jwt.JwtAuthenticationEntryPoint;
-import com.vehiqon.security.jwt.JwtAuthenticationFilter;
+import com.vehiqon.security.filter.JwtAuthenticationEntryPoint;
+import com.vehiqon.security.filter.JwtAuthenticationFilter;
+import com.vehiqon.security.filter.RequestMetadataFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,8 +12,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -27,12 +22,9 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-//    private final CustomerUserDetailsService userDetailsService;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
-//    private final CustomAccessDeniedHandler customAccessDeniedHandler;
-//    private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
-
+    private final RequestMetadataFilter requestContextFilter;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
@@ -62,6 +54,8 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
 
+                .addFilterBefore(requestContextFilter,
+                        UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtAuthenticationFilter,
                         UsernamePasswordAuthenticationFilter.class)
                 .sessionManagement(

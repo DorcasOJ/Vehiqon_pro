@@ -1,30 +1,30 @@
 package com.vehiqon.security.config;
 
-import com.vehiqon.features.onboarding.entity.UserEntity;
-import com.vehiqon.features.onboarding.repository.UserRepository;
-import jakarta.annotation.Nullable;
-import jakarta.validation.constraints.NotNull;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
-public class WebConfig {
+public class WebConfig implements WebMvcConfigurer {
 
-    private final UserRepository userRepository;
+//    private final AuditInterceptor auditInterceptor;
 
-    public WebConfig(UserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
+//    public WebConfig(AuditInterceptor auditInterceptor, UserRepository userRepository) {
+//        this.auditInterceptor = auditInterceptor;
+//    }
+//
+//    @Override
+//    public void addInterceptors(InterceptorRegistry registry) {
+//        registry.addInterceptor(auditInterceptor)
+//                .addPathPatterns("/**");
+//    }
 
-    public UserDetailsService getUserEntity() {
-        return new UserDetailsService() {
-            @Override
-            public UserDetails loadUserByUsername(@Nullable String username) throws UsernameNotFoundException {
-                return userRepository.findByEmail(username)
-                        .orElseThrow(() -> new UsernameNotFoundException(""));
-            }
-        };
-    }
+    //    public UserDetailsService getUserEntity() {
+//        return new UserDetailsService() {
+//            @Override
+//            pub//lic UserDetails loadUserByUsername(@Nullable String username) throws UsernameNotFoundException {
+//                return userRepository.findByEmail(username)
+//                        .orElseThrow(() -> new UsernameNotFoundException(""));
+//            }
+//        };
+//    }
 }

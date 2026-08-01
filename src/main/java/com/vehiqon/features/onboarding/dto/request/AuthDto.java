@@ -8,7 +8,7 @@ public class AuthDto {
     private AuthDto(){}
 
     public record LoginRequest(
-            @Schema(example = "wera@example.com",
+            @Schema(example = "john@email.com",
                     description = "User email"
             )
             @Email @NotBlank String email,

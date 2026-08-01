@@ -2,10 +2,7 @@ package com.vehiqon.features.insights.analytics.entities.aggregation;
 
 import com.vehiqon.common.entity.BaseEntity;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -26,10 +23,15 @@ public class UserStatisticsEntity extends BaseEntity {
 
     @Column(name = "user_id", nullable = false)
     private UUID userId;
-    private Long totalSessions;
-    private Long totalEvents;
-    private Long totalTimeSpent;
-    private Long totalMaintenanceCost;
+
+    @Builder.Default
+    private Long totalSessions = 0L;
+    @Builder.Default
+    private Long totalEvents = 0L;
+    @Builder.Default
+    private Long totalTimeSpent = 0L;
+    @Builder.Default
+    private Long totalMaintenanceCost =0L;
     private Long maintenanceCount;
 
     private Long totalPayments;
