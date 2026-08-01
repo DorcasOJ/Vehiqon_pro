@@ -28,7 +28,8 @@ public enum AuditActionType {
 
     VEHICLE_REGISTERED("User registered a vehicle"),
     VEHICLE_UPDATED("User Updated Vehicle details"),
-    VEHICLE_DELETED("User deleted a Vehicle");
+    VEHICLE_DELETED("User deleted a Vehicle"),
+    VEHICLE_VIEWED("User viewed Vehicle");
 
 //    GET_USER("Admin view user"),
 

@@ -1,7 +1,13 @@
 package com.vehiqon.features.onboarding.controller;
 
 import com.vehiqon.common.dto.response.ApiResponse;
+import com.vehiqon.common.enums.EntityEnum;
 import com.vehiqon.common.mapper.ApiResponseMapper;
+import com.vehiqon.features.insights.analytics.enums.EntityIdSource;
+import com.vehiqon.features.insights.analytics.enums.EventType;
+import com.vehiqon.features.insights.analytics.service.around.AnalyticsAction;
+import com.vehiqon.features.insights.auditLog.enums.AuditActionType;
+import com.vehiqon.features.insights.auditLog.service.around.AuditAction;
 import com.vehiqon.features.onboarding.dto.UserDto;
 import com.vehiqon.features.onboarding.dto.response.UserResponse;
 import com.vehiqon.features.onboarding.mapper.UserMapper;
@@ -30,15 +36,30 @@ public class UserController {
 //        return "Hello World";
 //    }
 
+
+    @AuditAction(
+            value = AuditActionType.USER_VIEWS_PROFILE,
+            entityType = EntityEnum.USER,
+            entityIdSource = EntityIdSource.CURRENT_USER
+    )
     @GetMapping("/profile")
     public ResponseEntity<ApiResponse<UserDto.UserResponse>> getProfile(HttpServletRequest httpServletRequest) {
 //        UserEntity user = (UserEntity) authentication.getPrincipal();
         return ResponseEntity.ok(
                 apiResponseMapper.toResponse(userService.getProfile(httpServletRequest))
         );
-
     }
 
+
+    @AnalyticsAction(
+            value = EventType.PROFILE_UPDATED,
+            entityIdSource = EntityIdSource.CURRENT_USER
+    )
+    @AuditAction(
+            value = AuditActionType.USER_PROFILE_UPDATED,
+            entityType = EntityEnum.USER,
+            entityIdSource = EntityIdSource.CURRENT_USER
+    )
     @PatchMapping("/profile")
     public ResponseEntity<ApiResponse<UserDto.UserResponse>> updateProfile(
             @Valid @RequestBody UserDto.UpdateUserRequest request, HttpServletRequest httpServletRequest
@@ -49,17 +70,3 @@ public class UserController {
     }
 }
 
-//    @Operation(
-//            summary = "Create new User Account",
-//            description = "Creating a new user and assigning an account ID"
-//    )
-//    @io.swagger.v3.oas.annotations.responses.ApiResponse(
-//            responseCode = "201",
-//            description = "Http Status 201 CREATED"
-//    )
-//    @PostMapping
-//    public ResponseEntity<ApiResponse<UserResponse>> createUser(@Valid @RequestBody CreateUserRequest request) {
-//
-//        return ResponseEntity.ok(userService.createUser(request)) ;
-//    }
-//}

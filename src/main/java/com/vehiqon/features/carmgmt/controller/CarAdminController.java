@@ -6,7 +6,6 @@ import com.vehiqon.features.carmgmt.dto.CarDto;
 import com.vehiqon.features.carmgmt.dto.response.CarDetailsResponse;
 import com.vehiqon.features.carmgmt.enums.CarStatus;
 import com.vehiqon.features.carmgmt.service.CarService;
-import com.vehiqon.features.insights.analytics.dto.requestScope.AnalyticsContext;
 import com.vehiqon.features.insights.analytics.enums.EntityIdSource;
 import com.vehiqon.features.insights.analytics.enums.EventType;
 import com.vehiqon.features.insights.analytics.service.around.AnalyticsAction;
@@ -57,7 +56,7 @@ public class CarAdminController {
 
 
     @AnalyticsAction(
-            value = EventType.CAR_VIEWED,
+            value = EventType.VEHICLE_VIEWED,
             entityIdSource = EntityIdSource.PATH_VARIABLE,
             entityIdParam = "id"
     )

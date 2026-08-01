@@ -10,6 +10,7 @@ import com.vehiqon.common.utils.GenerateOrHashTokenUtils;
 import com.vehiqon.features.insights.InsightEventPublisher;
 import com.vehiqon.features.insights.Notification.dto.NotificationDto;
 import com.vehiqon.features.insights.Notification.enums.NotificationEvent;
+import com.vehiqon.features.insights.analytics.dto.requestScope.AnalyticsContext;
 import com.vehiqon.features.insights.auditLog.enums.AuditActionType;
 import com.vehiqon.features.insights.auditLog.enums.AuditStatus;
 import com.vehiqon.features.insights.enums.PublishAction;
@@ -33,6 +34,10 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.RecordComponent;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -49,9 +54,8 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final GenerateOrHashTokenUtils tokenUtils;
-//    private final AuditLogService auditLogService;
+    private final AnalyticsContext analyticsContext;
     private final InsightEventPublisher publisher;
-//    private final CurrentUserService currentUserService;
 
     @Override
     @Transactional
@@ -90,28 +94,27 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDto.UserResponse updateProfile(UserDto.UpdateUserRequest request, HttpServletRequest httpServletRequest) {
         UserEntity user = getAuthenticatedUser();
+
         userMapper.updateEntity(request, user);
-        UserDto.UserResponse response = userMapper.toResponse(userRepository.save(user));
-//        publisher.publish( new AuditLogDto.AuditEvent(user.getId(), AuditActionType.USER_PROFILE_UPDATED, EntityEnum.USER,
+        //        publisher.publish( new AuditLogDto.AuditEvent(user.getId(), AuditActionType.USER_PROFILE_UPDATED, EntityEnum.USER,
 //                user.getId(), AuditStatus.SUCCESS, httpServletRequest, PublishAction.AUDIT_LOG));
+        UserDto.UserResponse response = userMapper.toResponse(userRepository.save(user));
+        Map<String, Object> updatedFields = getUpdatedFields(request);
+        analyticsContext.put("fieldCount", updatedFields.size());
+        analyticsContext.put("updatedFields", updatedFields);
+        analyticsContext.put("updateSource", "profile");
         return response;
     }
 
     @Override
     public UserDto.UserResponse getProfile(HttpServletRequest httpServletRequest) {
         UserEntity user = getAuthenticatedUser();
-//        String salt = org.springframework.security.crypto.keygen.KeyGenerators.string().generateKey();
-//        publisher.publish( new AuditLogDto.AuditEvent(user.getId(), AuditActionType.USER_VIEWS_PROFILE, EntityEnum.USER,
-//                user.getId(), AuditStatus.SUCCESS, httpServletRequest, PublishAction.AUDIT_LOG));
-
         return userMapper.toResponse(user);
     }
 
     @Override
     @Transactional
     public void updateRoles(UUID userId, UserDto.UpdateRolesRequest request,  HttpServletRequest httpServletRequest) {
-        UserEntity adminUser = getAuthenticatedUser();
-
         UserEntity user = userRepository.findById(userId).orElseThrow(() ->
                 new BadRequestException("Role Update Failed, User not found"));
 
@@ -123,9 +126,7 @@ public class UserServiceImpl implements UserService {
             user.addRoles(request.add());
         }
         userRepository.save(user);
-//        publisher.publish( new AuditLogDto.AuditEvent(adminUser.getId(), AuditActionType.USER_ROLE_UPDATED, EntityEnum.USER,
-//                user.getId(), AuditStatus.SUCCESS, httpServletRequest, PublishAction.AUDIT_LOG));
-    }
+   }
 
     @Override
     @Transactional
@@ -136,9 +137,6 @@ public class UserServiceImpl implements UserService {
             user.syncRoles(request.roles());
         }
         userRepository.save(user);
-//        publisher.publish( new AuditLogDto.AuditEvent(user.getId(), AuditActionType.USER_ROLE_SYNCED, EntityEnum.USER,
-//                user.getId(), AuditStatus.SUCCESS, httpServletRequest, PublishAction.AUDIT_LOG));
-
     }
 
     @Override
@@ -182,6 +180,21 @@ public class UserServiceImpl implements UserService {
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         return userRepository.findByEmail(userDetails.getUsername())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+    }
+
+    private Map<String, Object> getUpdatedFields(Object record) {
+        Map<String, Object> updatedFields = new LinkedHashMap<>();
+        for(RecordComponent component : record.getClass().getRecordComponents()) {
+            try {
+                Object value = component.getAccessor().invoke(record);
+                if(value != null) {
+                    updatedFields.put(component.getName(), value);
+                }
+            } catch (Exception e) {
+                throw new BadRequestException("Failed to read record component." + e.getMessage());
+            }
+        }
+        return updatedFields;
     }
 
 
