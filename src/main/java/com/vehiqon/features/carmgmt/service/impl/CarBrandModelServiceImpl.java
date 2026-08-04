@@ -7,7 +7,7 @@ import com.vehiqon.features.carmgmt.entities.BrandEntity;
 import com.vehiqon.features.carmgmt.mapper.CarBrandModelMapper;
 import com.vehiqon.features.carmgmt.repository.CarBrandRepository;
 import com.vehiqon.features.carmgmt.repository.CarModelRepository;
-import com.vehiqon.features.carmgmt.service.CarBrandService;
+import com.vehiqon.features.carmgmt.service.CarBrandModelService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -16,11 +16,12 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class CarBrandServiceImpl implements CarBrandService {
+public class CarBrandServiceImpl implements CarBrandModelService {
 
     private final CarBrandRepository brandRepository;
     private final CarModelRepository modelRepository;
     private final CarBrandModelMapper carBrandModelMapper;
+    private final CarModelRepository carModelRepository;
 
     @Override
     public List<CarBrandDto.CarBrandResponse> getAllBrands() {
@@ -46,5 +47,28 @@ public class CarBrandServiceImpl implements CarBrandService {
                 .map(model -> new CarModelDto.CarModelResponse(model.getId(), model.getName()))
                 .toList();
 
+    }
+
+    @Override
+    public List<CarModelDto.CarModelResponse> getAllModels() {
+        return carModelRepository.findAll().stream()
+                .map(carBrandModelMapper::toCarModelResponse)
+                .toList();
+    }
+
+    @Override
+    public List<CarModelDto.CarModelResponse> getModelsByBrand(UUID brandId) {
+        BrandEntity brand = brandRepository.findById(brandId).orElseThrow(() -> new ResourceNotFoundException("Brand not found"));
+        return carModelRepository.findAllByCarBrandId(brand.getId()).stream()
+                .map(carBrandModelMapper::toCarModelResponse)
+                .toList();
+    }
+
+    @Override
+    public CarModelDto.CarModelResponse getModel(UUID id) {
+        return carBrandModelMapper.toCarModelResponse(
+                carModelRepository.findById(id).orElseThrow(() ->
+                        new ResourceNotFoundException("Model not found"))
+        );
     }
 }
