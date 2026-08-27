@@ -1,7 +1,7 @@
 package com.vehiqon.integrations.nomba.service.impl;
 
 import com.vehiqon.common.exception.BadRequestException;
-import com.vehiqon.common.service.TokenEncryptionService;
+import com.vehiqon.common.utils.TokenEncryptionService;
 import com.vehiqon.common.utils.GenerateOrHashTokenUtils;
 import com.vehiqon.features.wallet.mapper.NombaMapper;
 import com.vehiqon.integrations.nomba.dto.NombaDto;

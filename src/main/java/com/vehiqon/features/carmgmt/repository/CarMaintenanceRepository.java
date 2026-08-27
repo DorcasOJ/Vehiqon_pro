@@ -38,11 +38,11 @@ public interface CarMaintenanceRepository extends JpaRepository<CarMaintenanceEn
 //        FROM MaintenanceReminderEntity mr
 //        JOIN CarEntity c ON mr.carId = c.id
 //        WHERE c.userId = :userId
-//          AND mr.status = :status
+//          AND mr.documentStatus = :documentStatus
 //    """)
 //    List<MaintenanceReminderEntity> findAllByUserIdAndStatus(
 //            @Param("userId") UUID userId,
-//            @Param("status") MaintenanceStatus status
+//            @Param("documentStatus") MaintenanceStatus documentStatus
 //    );
 //
 //
@@ -190,4 +190,4 @@ public interface CarMaintenanceRepository extends JpaRepository<CarMaintenanceEn
 //SELECT *
 //FROM maintenance_reminders
 //WHERE scheduled_at <= NOW()
-//AND status = 'PENDING'
+//AND documentStatus = 'PENDING'

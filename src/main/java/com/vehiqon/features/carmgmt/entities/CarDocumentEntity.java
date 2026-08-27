@@ -4,6 +4,7 @@ package com.vehiqon.features.carmgmt.entities;
 import com.vehiqon.common.entity.BaseWithDeleteEntity;
 import com.vehiqon.features.carmgmt.enums.DocumentStatus;
 import com.vehiqon.features.carmgmt.enums.DocumentType;
+import com.vehiqon.features.carmgmt.enums.VerificationStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -18,28 +19,33 @@ import java.util.UUID;
 @SuperBuilder
 @Entity
 @Table(name="car_documents")
-public class CarDocuments extends BaseWithDeleteEntity {
+public class CarDocumentEntity extends BaseWithDeleteEntity {
 
     private UUID carId;
 
     @Enumerated(EnumType.STRING)
     private DocumentType documentType;
+    private String documentName;
 
     private String originalFileName;
     private String storagePath;
-    private String mimeType;
-    private Integer size;
+    private String contentType;
+    private Long fileSize;
 
     private String documentNumber;
     private LocalDateTime issuedAt;
     private String issuer;
     private LocalDateTime expiresAt;
-    private DocumentStatus status;
+    private DocumentStatus documentStatus;
 
     @Builder.Default
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private boolean verified = false;
-
+    private VerificationStatus verificationStatus = VerificationStatus.PENDING;
     private UUID verifiedBy;
     private LocalDateTime verifiedAt;
+
+    private UUID rejectedBy;
+    private LocalDateTime rejectedAt;
+    private String rejectionReason;
 }

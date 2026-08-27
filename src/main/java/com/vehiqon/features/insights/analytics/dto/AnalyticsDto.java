@@ -16,8 +16,6 @@ public class AnalyticsDto {
 
     private AnalyticsDto(){}
 
-
-
     public record AnalyticsEvent (
     UUID userId,
     EventType eventType,
@@ -26,7 +24,6 @@ public class AnalyticsDto {
     LocalDateTime occurredAt,
     PublishAction publishAction,
     SessionContext sessionData
-
     ) implements ConsumerEvent {}
 
 //    public record FeatureUsage(){}

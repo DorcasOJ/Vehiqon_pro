@@ -108,8 +108,8 @@ public class UserDto {
             String phoneNumber,
             Set<RoleEnum> roles,
             String status,
-            String gender,
-            String bvn
+            String gender
+//            String bvn
     ){}
 
 }

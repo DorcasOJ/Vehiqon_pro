@@ -1,21 +1,21 @@
 package com.vehiqon.features.onboarding.service.impl;
 
-import com.vehiqon.common.enums.EntityEnum;
 import com.vehiqon.common.enums.RoleEnum;
 import com.vehiqon.common.enums.UserStatus;
 import com.vehiqon.common.exception.BadRequestException;
 import com.vehiqon.common.exception.ResourceAlreadyExistException;
 import com.vehiqon.common.exception.ResourceNotFoundException;
 import com.vehiqon.common.utils.GenerateOrHashTokenUtils;
+import com.vehiqon.features.carmgmt.dto.response.CarDetailsResponse;
+import com.vehiqon.features.carmgmt.enums.CarStatus;
 import com.vehiqon.features.insights.InsightEventPublisher;
 import com.vehiqon.features.insights.Notification.dto.NotificationDto;
 import com.vehiqon.features.insights.Notification.enums.NotificationEvent;
 import com.vehiqon.features.insights.analytics.dto.requestScope.AnalyticsContext;
-import com.vehiqon.features.insights.auditLog.enums.AuditActionType;
-import com.vehiqon.features.insights.auditLog.enums.AuditStatus;
+import com.vehiqon.features.insights.auditLog.dto.requestScope.AuditContext;
 import com.vehiqon.features.insights.enums.PublishAction;
-import com.vehiqon.features.insights.auditLog.dto.AuditLogDto;
 import com.vehiqon.features.onboarding.dto.UserDto;
+import com.vehiqon.features.onboarding.dto.response.UserResponse;
 import com.vehiqon.features.onboarding.entity.UserEntity;
 import com.vehiqon.features.onboarding.mapper.UserMapper;
 import com.vehiqon.features.onboarding.mapper.VerificationTokenMapper;
@@ -27,6 +27,10 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -34,9 +38,10 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.RecordComponent;
+import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -55,12 +60,13 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
     private final GenerateOrHashTokenUtils tokenUtils;
     private final AnalyticsContext analyticsContext;
+    private final AuditContext auditContext;
     private final InsightEventPublisher publisher;
 
     @Override
     @Transactional
     public UserDto.UserResponse createUser(UserDto.CreateUserRequest request) {
-        if(userRepository.existsByEmail(request.email())){
+        if(userRepository.existsByEmailAndDeletedFalse(request.email())){
             throw new ResourceAlreadyExistException("Account already exist for this Email. Kindly Login.");
         }
         UserEntity newUser = userMapper.toEntity(request);
@@ -88,7 +94,6 @@ public class UserServiceImpl implements UserService {
                 new NotificationDto.VerifyEmail(PublishAction.NOTIFICATION, savedUser.getId(), savedUser.getEmail(), url,
                         NotificationEvent.VERIFY_EMAIL)
         );
-
     }
 
     @Override
@@ -96,20 +101,37 @@ public class UserServiceImpl implements UserService {
         UserEntity user = getAuthenticatedUser();
 
         userMapper.updateEntity(request, user);
-        //        publisher.publish( new AuditLogDto.AuditEvent(user.getId(), AuditActionType.USER_PROFILE_UPDATED, EntityEnum.USER,
-//                user.getId(), AuditStatus.SUCCESS, httpServletRequest, PublishAction.AUDIT_LOG));
+
         UserDto.UserResponse response = userMapper.toResponse(userRepository.save(user));
         Map<String, Object> updatedFields = getUpdatedFields(request);
-        analyticsContext.put("fieldCount", updatedFields.size());
-        analyticsContext.put("updatedFields", updatedFields);
-        analyticsContext.put("updateSource", "profile");
+        analyticsContext.recordUpdate("profile", updatedFields);
+        auditContext.recordContactChange(updatedFields,user);
         return response;
     }
 
     @Override
-    public UserDto.UserResponse getProfile(HttpServletRequest httpServletRequest) {
+    public UserDto.UserResponse getProfile() {
         UserEntity user = getAuthenticatedUser();
         return userMapper.toResponse(user);
+    }
+
+//    ADMIN
+    @Override
+    public Page<UserDto.UserResponse> getAllUser(Pageable pageable) {
+        Page<UserEntity> allUsers = userRepository.findAll(pageable);
+        return allUsers.map(userMapper::toResponse);
+    }
+
+    @Override
+    public Page<UserDto.UserResponse> searchUser(String query, Pageable pageable) {
+        Page<UserEntity> usersFound = userRepository.searchUsersForAdmin(query, pageable)
+                .orElseThrow(
+                        () -> new ResourceNotFoundException("No users found")
+                );
+        return usersFound.map(user -> new UserDto.UserResponse(
+                user.getId(), user.getFirstName(), user.getLastName(), user.getEmail(),
+                user.getPhoneNumber(), user.getRoles(), user.getStatus(), user.getGender()
+        ));
     }
 
     @Override
@@ -126,6 +148,9 @@ public class UserServiceImpl implements UserService {
             user.addRoles(request.add());
         }
         userRepository.save(user);
+        Map<String, Object> updatedFields = getUpdatedFields(request);
+        analyticsContext.recordUpdate("user_roles", updatedFields);
+        auditContext.recordChange(updatedFields,user);
    }
 
     @Override
@@ -137,6 +162,8 @@ public class UserServiceImpl implements UserService {
             user.syncRoles(request.roles());
         }
         userRepository.save(user);
+        Map<String, Object> updatedFields = getUpdatedFields(request);
+        auditContext.recordChange(updatedFields,user);
     }
 
     @Override
@@ -151,25 +178,70 @@ public class UserServiceImpl implements UserService {
         user.setLockedUntil(null);
         user.setFailedLoginAttempts(0);
         userRepository.save(user);
-//        publisher.publish( new AuditLogDto.AuditEvent(adminUser.getId(), AuditActionType.USER_UNLOCKED, EntityEnum.USER,
-//                user.getId(), AuditStatus.SUCCESS, request, PublishAction.AUDIT_LOG));
-    }
+   }
 
     @Override
-    public UserDto.UserResponse getUser(UUID userId, HttpServletRequest request) {
-        UserEntity adminUser = getAuthenticatedUser();
+    public UserDto.UserResponse getUser(UUID userId) {
         UserEntity user = userRepository.findById(userId).orElseThrow(
                 () -> new ResourceNotFoundException("User not found")
         );
-//        publisher.publish( new AuditLogDto.AuditEvent(adminUser.getId(), AuditActionType.GET_USER, EntityEnum.USER,
-//                user.getId(), AuditStatus.SUCCESS, request, PublishAction.AUDIT_LOG));
-        return userMapper.toResponse(user);
+      return userMapper.toResponse(user);
+    }
+
+    @Override
+    @Transactional
+    public void deleteUser(UUID userId) {
+        UUID adminId = getAuthenticatedUser().getId();
+        UserEntity user = userRepository.findByIdAndDeletedFalse(userId).orElseThrow(
+                () -> new ResourceNotFoundException("User not found")
+        );
+        user.softDelete(adminId);
+        userRepository.save(user);
+        auditContext.recordDelete(userId, adminId, "users");
+    }
+
+    @Override
+    @Transactional
+    public void restoreUser(UUID userId) {
+        UserEntity user = userRepository.findByIdAndDeletedTrue(userId).orElseThrow(
+                () -> new ResourceNotFoundException("User not found")
+        );
+        user.restore();
+        userRepository.save(user);
+    }
+
+    @Override
+    @Transactional
+    public void deleteMultipleUser(List<UUID> userIds) {
+        LocalDateTime now = LocalDateTime.now();
+        UUID adminId = getAuthenticatedUser().getId();
+        List<UUID> distinctIds = userIds.stream().distinct().toList();
+
+        if(!doAllUsersExists(distinctIds)) {
+            List<UUID> nonExistingIds = findUserIdsThatDoNotExist(distinctIds);
+            throw new ResourceNotFoundException("Failed. User Id(s) do not exist." + nonExistingIds);
+        }
+        int deletedCount = userRepository.softDeleteAllByIdIn(distinctIds, now, adminId);
+        auditContext.recordMultipleDelete(distinctIds, adminId, deletedCount, "users");
+        if (deletedCount != distinctIds.size()) {
+            throw new BadRequestException("Something went wrong. All users were not deleted.");
+        }
+    }
+
+    @Override
+    @Transactional
+    public void restoreMultipleUser(List<UUID> userIds) {
+        UUID adminId = getAuthenticatedUser().getId();
+        List<UUID> distinctIds = userIds.stream().distinct().toList();
+        int restoredCount = userRepository.restoreAllByIdIn(distinctIds);
+        auditContext.recordMultipleRestored(distinctIds, restoredCount, "users");
+        if (restoredCount != distinctIds.size()) {
+            throw new BadRequestException("Something went wrong. All users were not deleted.");
+        }
     }
 
     private UserEntity getAuthenticatedUser() {
-//        CustomerUserDetails authenticatedUser = authService.getAuthenticatedUser();
-//        return authenticatedUser.user();
-        Authentication authentication =
+       Authentication authentication =
                 SecurityContextHolder.getContext().getAuthentication();
 
         if (authentication == null || !authentication.isAuthenticated()
@@ -178,7 +250,7 @@ public class UserServiceImpl implements UserService {
                     "User is not authenticated");
         }
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        return userRepository.findByEmail(userDetails.getUsername())
+        return userRepository.findByEmailAndDeletedFalse(userDetails.getUsername())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
     }
 
@@ -195,6 +267,22 @@ public class UserServiceImpl implements UserService {
             }
         }
         return updatedFields;
+    }
+
+
+    private boolean doAllUsersExists(List<UUID> userIds) {
+        if (userIds == null || userIds.isEmpty()) return true;
+        List<UUID> distinctIds = userIds.stream().distinct().toList();
+        long existingCount = userRepository.countByIdInAndDeletedFalse(distinctIds);
+        return existingCount == distinctIds.size();
+    }
+
+    private List<UUID> findUserIdsThatDoNotExist(List<UUID> userIds) {
+        if (userIds == null || userIds.isEmpty()) return List.of();
+        List<UUID> existingIds =userRepository.findExistingIdsByIdIn(userIds);
+        return userIds.stream()
+                .filter( id -> !existingIds.contains(id))
+                .toList();
     }
 
 

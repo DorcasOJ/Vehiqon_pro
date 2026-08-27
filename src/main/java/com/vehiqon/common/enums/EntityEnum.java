@@ -4,6 +4,7 @@ public enum EntityEnum {
     NONE,
     USER,
     VEHICLE,
+    VEHICLE_DOCUMENT,
     SUBSCRIPTION_PLAN,
     USER_SUBSCRIPTION,
     USER_PERSONALISATION,

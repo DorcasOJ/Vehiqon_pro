@@ -1,8 +1,7 @@
-package com.vehiqon.common.mapper;
+package com.vehiqon.common.dto.mapper;
 
 import com.vehiqon.common.dto.response.ApiResponse;
 import com.vehiqon.common.utils.AccountUtils;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component

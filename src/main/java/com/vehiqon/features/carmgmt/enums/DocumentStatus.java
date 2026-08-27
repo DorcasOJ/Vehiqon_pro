@@ -1,13 +1,7 @@
 package com.vehiqon.features.carmgmt.enums;
 
-public enum DocumentType {
-    INSURANCE,
-    ROAD_WORTHINESS,
-    VEHICLE_LICENCE,
-    VEHICLE_REGISTRATION,
-    EMISSION_CERTIFICATE,
-    CUSTOMS_PAPERS,
-    VEHICLE_INSPECTION,
-    PROOF_OF_OWNERSHIP,
-    PURCHASE_RECEIPT
+public enum DocumentStatus {
+    ACTIVE,
+    EXPIRED,
+    PROCESSING
 }

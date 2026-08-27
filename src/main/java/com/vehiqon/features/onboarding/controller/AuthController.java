@@ -2,7 +2,7 @@ package com.vehiqon.features.onboarding.controller;
 
 import com.vehiqon.common.dto.response.ApiResponse;
 import com.vehiqon.common.enums.EntityEnum;
-import com.vehiqon.common.mapper.ApiResponseMapper;
+import com.vehiqon.common.dto.mapper.ApiResponseMapper;
 import com.vehiqon.features.insights.analytics.enums.EntityIdSource;
 import com.vehiqon.features.insights.analytics.enums.EventType;
 import com.vehiqon.features.insights.analytics.service.around.AnalyticsAction;

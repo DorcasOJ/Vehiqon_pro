@@ -1,12 +1,12 @@
 package com.vehiqon.features.carmgmt.service.impl;
 
-import com.vehiqon.common.dto.RequestContext;
-import com.vehiqon.common.enums.EntityEnum;
 import com.vehiqon.common.exception.BadRequestException;
 import com.vehiqon.common.exception.ResourceNotFoundException;
+import com.vehiqon.features.carmgmt.dto.CarDocumentDto;
 import com.vehiqon.features.carmgmt.dto.CarDto;
 import com.vehiqon.features.carmgmt.dto.response.CarDetailsResponse;
 import com.vehiqon.features.carmgmt.entities.BrandEntity;
+import com.vehiqon.features.carmgmt.entities.CarDocumentEntity;
 import com.vehiqon.features.carmgmt.entities.CarEntity;
 import com.vehiqon.features.carmgmt.entities.CarModelEntity;
 import com.vehiqon.features.carmgmt.enums.CarStatus;
@@ -16,13 +16,8 @@ import com.vehiqon.features.carmgmt.repository.CarBrandRepository;
 import com.vehiqon.features.carmgmt.repository.CarModelRepository;
 import com.vehiqon.features.carmgmt.repository.CarRepository;
 import com.vehiqon.features.carmgmt.service.CarService;
-import com.vehiqon.features.insights.InsightEventPublisher;
-import com.vehiqon.features.insights.analytics.dto.AnalyticsDto;
 import com.vehiqon.features.insights.analytics.dto.requestScope.AnalyticsContext;
-import com.vehiqon.features.insights.auditLog.dto.AuditLogDto;
-import com.vehiqon.features.insights.auditLog.enums.AuditActionType;
-import com.vehiqon.features.insights.auditLog.enums.AuditStatus;
-import com.vehiqon.features.insights.enums.PublishAction;
+import com.vehiqon.features.insights.auditLog.dto.requestScope.AuditContext;
 import com.vehiqon.features.onboarding.entity.UserEntity;
 import com.vehiqon.features.onboarding.repository.UserRepository;
 import com.vehiqon.features.onboarding.service.AuthService;
@@ -33,6 +28,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -46,8 +42,7 @@ public class CarServiceImpl implements CarService {
     private final UserRepository userRepository;
     private final CarMapper carMapper;
     private final CarResponseMapper carResponseMapper;
-    private final InsightEventPublisher publisher;
-    private final RequestContext requestContext;
+    private final AuditContext auditContext;
     private final AnalyticsContext analyticsContext;
 
 
@@ -70,99 +65,234 @@ public class CarServiceImpl implements CarService {
         carMapping.setCarBrandId(brand.getId());
         carMapping.setCarModelId(model.getId());
         carMapping.setStatus(CarStatus.INACTIVE);
-        //        publisher.publish( new AuditLogDto.AuditEvent(userId, AuditActionType.VEHICLE_REGISTERED, EntityEnum.USER,
-//                userId, AuditStatus.SUCCESS, context.request(), PublishAction.AUDIT_LOG));
-
-
         return carResponseMapper.toResponse(carMapper.toResponse(carRepository.save(carMapping)));
     }
 
 
     @Override
-    public List<CarDetailsResponse> getMyCars() {
+    public Page<CarDetailsResponse> getMyCars(Pageable pageable) {
         CustomerUserDetails authenticatedUser = authService.getAuthenticatedUser();
-
-        return carRepository.findCarsDetailsByUserId(authenticatedUser.user().getId()).orElseThrow(() -> new ResourceNotFoundException("Cars not found"));
+        return carRepository.findCarsDetailsByUserId(authenticatedUser.user().getId(),
+                pageable).orElseThrow(() -> new ResourceNotFoundException("Cars not found"));
     }
 
     @Override
     public CarDetailsResponse getCar(UUID carId) {
         CustomerUserDetails authenticatedUser = authService.getAuthenticatedUser();
-
-        return carRepository.findCarDetails(carId,authenticatedUser.user().
-getId())
+        return carRepository.findCarDetailsByUser(carId,authenticatedUser.user().getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Car not found"));
 
     }
 
-    @Transactional()
-    public Page<CarDetailsResponse> searchCars(String query, UUID brandId, CarStatus status, Pageable pageable) {
+    @Override
+    @Transactional
+    public List<CarDto.CarEntityResponse> getCarsDeleted() {
         UUID userId = authService.getAuthenticatedUser().user().getId();
-        Page<CarDetailsResponse> searchResult = carRepository.searchCars(userId, query, brandId, status, pageable).orElseThrow(() -> new ResourceNotFoundException("No search result"));
-        analyticsContext.recordSearch(query,  searchResult.getNumberOfElements(),
-                searchResult.getTotalElements(), searchResult.getNumber(), searchResult.getSize());
-        return searchResult;
+        List<CarEntity> carEntity = carRepository.findByUserIdAndDeletedTrue(userId)
+                .orElseThrow(
+                        () -> new ResourceNotFoundException("No Deleted Cars")
+                );
+        return carEntity.stream().map(
+                carMapper::toResponse
+        ).toList();
     }
+
 
     @Override
     public CarDto.CarResponse update(UUID carId, CarDto.UpdateCarRequest request) {
         CustomerUserDetails authenticatedUser = authService.getAuthenticatedUser();
-
-        CarEntity car = carRepository.findByIdAndUserId(carId, authenticatedUser.user().
-getId())
+        CarEntity car = carRepository.findByIdAndUserIdAndDeletedFalse(carId, authenticatedUser.user().getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Car not found"));
-
         validateUpdateFields(request, car);
         carMapper.updateEntity(request, car);
-
-        return carResponseMapper.toResponse(carMapper.toResponse(carRepository.save(car))
-        );
-
+        return carResponseMapper.toResponse(carMapper.toResponse(carRepository.save(car)));
     }
 
-//    @Override
-//    public void deleteCar(UUID carId) {
-//        CustomerUserDetails authenticatedUser = authService.getAuthenticatedUser();
-//
-//        CarEntity car = carRepository.findByIdAndUser(carId, user)
-//                .orElseThrow(() -> new ResourceNotFoundException("Car not found"));
-//
-//        carRepository.delete(car);
-//    }
-
+    @Override
+    public CarDto.CarStatisticsResponse getCarStatistics() {
+        UUID userId = authService.getAuthenticatedUser().user().getId();
+        return carRepository.getCarStatistics(userId);
+    }
 
     @Override
-    public List<CarDetailsResponse> getCarsByUser(UUID userId) {
+    @Transactional
+    public void deleteCar(UUID carId) {
+        UUID userId = authService.getAuthenticatedUser().user().getId();
+        CarEntity car = carRepository.findByIdAndUserIdAndDeletedFalse(carId, userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Car not found"));
+        car.softDelete(userId);
+        carRepository.save(car);
+        auditContext.recordDelete(car.getId(), userId, "cars");
+    }
+
+    @Override
+    @Transactional
+    public void restoreCar(UUID carId) {
+        UUID userId = authService.getAuthenticatedUser().user().getId();
+        CarEntity car = carRepository.findByIdAndUserIdAndDeletedTrue(carId, userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Car not found"));
+        car.restore();
+        carRepository.save(car);
+        auditContext.recordRestore(car.getId(), userId,"cars");
+    }
+
+    @Override
+    @Transactional
+    public void deleteMultipleCarsForUser(List<UUID> carIds) {
+        LocalDateTime now = LocalDateTime.now();
+        UUID userId = authService.getAuthenticatedUser().user().getId();
+        List<UUID> distinctIds = carIds.stream().distinct().toList();
+
+        if(!doAllCarsExistForUser(distinctIds, userId)) {
+            List<UUID> nonExistingIds = findCarIdsThatDoNotExistInUser(carIds, userId);
+            throw new ResourceNotFoundException("Failed. Car Id(s) do not exist for this user." + nonExistingIds);
+        }
+
+        int deletedCount = carRepository.softDeleteByIdInAndUserId(carIds, userId, now, userId);
+        auditContext.recordMultipleDelete(carIds, userId, deletedCount, "cars");
+        if (deletedCount != carIds.size()) {
+            throw new BadRequestException("Something went wrong. All cars were not deleted.");
+        }
+    }
+
+
+//    ADMIN
+
+    @Override
+    public Page<CarDetailsResponse> getAllCars(Pageable pageable) {
+        return carRepository.findAllCarDetails(pageable).orElseThrow(
+                () -> new ResourceNotFoundException("No car found")
+        );
+    }
+
+    @Override
+    public CarDetailsResponse getCarById(UUID carId) {
+        return carRepository.findCarDetailsById(carId).orElseThrow(
+                ()-> new ResourceNotFoundException("Car not found")
+        );
+    }
+
+    @Transactional()
+    @Override
+    public Page<CarDetailsResponse> searchCars(String query, UUID brandId, CarStatus status, Pageable pageable) {
+//        UUID userId = authService.getAuthenticatedUser().user().getId();
+        //        analyticsContext.recordSearch(query,  searchResult.getNumberOfElements(),
+//                searchResult.getTotalElements(), searchResult.getNumber(), searchResult.getSize());
+        return carRepository.searchCarsForAdmin(query, brandId, status, pageable).orElseThrow(() -> new ResourceNotFoundException("No search result"));
+    }
+
+    @Override
+    public Page<CarDetailsResponse> getCarsByUser(UUID userId, Pageable pageable) {
         UserEntity user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        return carRepository.findCarsDetailsByUserId(user.getId()).orElseThrow(() -> new ResourceNotFoundException("Cars not found"));
+        return carRepository.findCarsDetailsByUserId(user.getId(), pageable).orElseThrow(
+                () -> new ResourceNotFoundException("Cars not found"));
     }
 
     @Override
     public CarDetailsResponse getUserCar(UUID userId, UUID carId) {
-        UserEntity user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-
-        return carRepository.findCarDetails(carId, user.getId())
+        return carRepository.findCarDetailsByUser(carId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Car not found"));
 
     }
 
     @Override
-    public CarDto.CarResponse updateUserCar(UUID userId, UUID carId, CarDto.UpdateCarRequest request) {
-        UserEntity user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-
-        CarEntity car = carRepository.findByIdAndUserId(carId, user.getId())
+    public CarDto.CarResponse updateUserCar(UUID carId, CarDto.UpdateCarRequest request) {
+        CarEntity car = carRepository.findByIdAndDeletedFalse(carId)
                 .orElseThrow(() -> new ResourceNotFoundException("Car not found"));
         validateUpdateFields(request, car);
-
         carMapper.updateEntity(request, car);
-
         CarEntity savedCar = carRepository.save(car);
         return carResponseMapper.toResponse(carMapper.toResponse(savedCar));
 
+    }
+
+    @Override
+    @Transactional
+    public void deleteCarByAdmin(UUID carId) {
+        UUID userId = authService.getAuthenticatedUser().user().getId();
+        CarEntity car = carRepository.findById(carId).orElseThrow(
+                () -> new ResourceNotFoundException("Failed. Car does not exist")
+        );
+        car.softDelete(userId);
+        carRepository.save(car);
+        auditContext.recordDelete(carId, userId,"cars");
+    }
+
+    @Override
+    @Transactional
+    public void deleteMultipleCarByAdmin(List<UUID> carIds) {
+        LocalDateTime now = LocalDateTime.now();
+        UUID userId = authService.getAuthenticatedUser().user().getId();
+        List<UUID> distinctIds = carIds.stream().distinct().toList();
+
+        if(!doAllCarsExists(distinctIds)) {
+            List<UUID> nonExistingIds = findCarIdsThatDoNotExist(distinctIds);
+            throw new ResourceNotFoundException("Failed. Car Id(s) do not exist." + nonExistingIds);
+        }
+        int deletedCount = carRepository.softDeleteAllByIdIn(distinctIds, now, userId);
+        auditContext.recordMultipleDelete(carIds, userId, deletedCount, "cars");
+        if (deletedCount != distinctIds.size()) {
+            throw new BadRequestException("Something went wrong. All cars were not deleted.");
+        }
+    }
+
+    @Override
+    @Transactional
+    public void restoreCarByAdmin(UUID carId) {
+        UUID userId = authService.getAuthenticatedUser().user().getId();
+        CarEntity car = carRepository.findByIdAndDeletedTrue(carId)
+                .orElseThrow(() -> new ResourceNotFoundException("Car not found"));
+        car.restore();
+        carRepository.save(car);
+        auditContext.recordDelete(car.getId(), userId,"cars");
+    }
+
+    @Override
+    @Transactional
+    public void restoreMultipleCars(List<UUID> carIds) {
+        UUID userId = authService.getAuthenticatedUser().user().getId();
+        List<UUID> distinctIds = carIds.stream().distinct().toList();
+
+        if(!doAllCarsExists(distinctIds)) {
+            List<UUID> nonExistingIds = findCarIdsThatDoNotExist(distinctIds);
+            throw new ResourceNotFoundException("Failed. Car Id(s) do not exist." + nonExistingIds);
+        }
+        int restoredCount = carRepository.restoreAllByIdIn(distinctIds);
+        auditContext.recordMultipleRestored(carIds, restoredCount, "cars");
+        if (restoredCount != distinctIds.size()) {
+            throw new BadRequestException("Something went wrong. All cars were not deleted.");
+        }
+    }
+
+    private boolean doAllCarsExistForUser(List<UUID> distinctIds, UUID userId){
+        if (distinctIds == null || distinctIds.isEmpty()) return true;
+        long existingCount = carRepository.countByIdInAndUserIdAndDeletedFalse(distinctIds, userId);
+        return existingCount == distinctIds.size();
+    }
+
+    private List<UUID> findCarIdsThatDoNotExistInUser(List<UUID> carIds, UUID userId) {
+        if (carIds == null || carIds.isEmpty()) return List.of();
+        List<UUID> distinctIds = carIds.stream().distinct().toList();
+        List<UUID> existingIds =carRepository.findExistingIdsByInAndUserId(carIds, userId);
+        return distinctIds.stream()
+                .filter( id -> !existingIds.contains(id))
+                .toList();
+    }
+
+    private boolean doAllCarsExists(List<UUID> distinctIds) {
+        if (distinctIds == null || distinctIds.isEmpty()) return true;
+        long existingCount = carRepository.countByIdInAndDeletedFalse(distinctIds);
+        return existingCount == distinctIds.size();
+    }
+
+    private List<UUID> findCarIdsThatDoNotExist(List<UUID> carIds) {
+        if (carIds == null || carIds.isEmpty()) return List.of();
+        List<UUID> existingIds =carRepository.findExistingIdsByIdIn(carIds);
+        return carIds.stream()
+                .filter( id -> !existingIds.contains(id))
+                .toList();
     }
 
     private void validateUpdateFields(CarDto.CarRequest request, CarEntity car ){
@@ -182,17 +312,17 @@ getId())
     }
 
     private void validateUniqueFields(CarDto.CarRequest request) {
-        if (request.vin() != null && carRepository.existsByVin(request.vin())) {
+        if (request.vin() != null && carRepository.existsByVinAndDeletedFalse(request.vin())) {
             throw new BadRequestException("VIN already exists");
         }
 
-        if (request.plateNumber() != null && carRepository.existsByPlateNumber(request.plateNumber())) {
+        if (request.plateNumber() != null && carRepository.existsByPlateNumberAndDeletedFalse(request.plateNumber())) {
             throw new BadRequestException("Plate number already exists");
         }
 
         if (request.engineNumber() != null && request.engineNumber() != null
                 && !request.engineNumber().isBlank()
-                && carRepository.existsByEngineNumber(request.engineNumber())) {
+                && carRepository.existsByEngineNumberAndDeletedFalse(request.engineNumber())) {
             throw new BadRequestException("Engine number already exists");
         }
     }

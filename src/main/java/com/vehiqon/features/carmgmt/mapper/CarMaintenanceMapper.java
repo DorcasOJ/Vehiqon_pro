@@ -1,6 +1,6 @@
 package com.vehiqon.features.carmgmt.mapper;
 
-import com.vehiqon.common.mapper.DateMapper;
+import com.vehiqon.common.dto.mapper.DateMapper;
 import org.mapstruct.*;
 
 @Mapper(componentModel = "spring",
@@ -9,7 +9,7 @@ public interface CarMaintenanceMapper {
 
 //    @Mapping(target = "id", ignore = true)
 //    @Mapping(target = "carId", ignore = true)
-//    @Mapping(target = "status", ignore = true)
+//    @Mapping(target = "documentStatus", ignore = true)
 //    @Mapping(target = "updatedAt", ignore = true)
 //    @Mapping(target = "createdAt", ignore = true)
 //    @Mapping(target = "notificationSent", ignore = true)

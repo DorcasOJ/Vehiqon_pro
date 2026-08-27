@@ -8,7 +8,6 @@ import com.vehiqon.features.insights.analytics.repository.FeatureSessionReposito
 import com.vehiqon.features.insights.analytics.service.*;
 import com.vehiqon.features.insights.enums.PublishAction;
 import com.vehiqon.features.onboarding.service.AuthService;
-import com.vehiqon.security.model.CustomerUserDetails;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,7 +17,6 @@ import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.util.Objects;
-import java.util.UUID;
 
 @Component
 @Slf4j
@@ -87,10 +85,10 @@ public class AnalyticsConsumer {
         } else {
             featureSessionEntity = featureSessionService.switchFeature(featureSessionEntity, event.sessionData().userSessionId(), event.eventType());
         }
-        System.out.println("Updated feature session");
+//        System.out.println("Updated feature session");
 
         analyticEventService.saveEvent(event, userSession.getId(), featureSessionEntity.getId());
-        System.out.println("saved event  session");
+//        System.out.println("saved event  session");
 
     }
 

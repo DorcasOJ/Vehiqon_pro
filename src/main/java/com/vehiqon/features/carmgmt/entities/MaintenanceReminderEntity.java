@@ -2,6 +2,7 @@ package com.vehiqon.features.carmgmt.entities;
 
 
 import com.vehiqon.common.entity.BaseEntity;
+import com.vehiqon.common.entity.BaseWithDeleteEntity;
 import com.vehiqon.features.carmgmt.enums.NotificationChannelEnum;
 import com.vehiqon.features.carmgmt.enums.NotificationStatus;
 import jakarta.persistence.*;
@@ -18,7 +19,7 @@ import java.util.UUID;
 @SuperBuilder
 @Entity
 @Table(name="maintenance_reminders")
-public class MaintenanceReminderEntity extends BaseEntity {
+public class MaintenanceReminderEntity extends BaseWithDeleteEntity {
 
     @Column(name = "car_maintenance_id", nullable = false)
     private UUID carMaintenanceId;

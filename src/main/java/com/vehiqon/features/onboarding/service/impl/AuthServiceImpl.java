@@ -2,6 +2,7 @@ package com.vehiqon.features.onboarding.service.impl;
 
 import com.vehiqon.common.dto.RequestContext;
 import com.vehiqon.common.enums.EntityEnum;
+import com.vehiqon.common.enums.RoleEnum;
 import com.vehiqon.common.enums.VerificationTokenTypeEnum;
 import com.vehiqon.common.exception.*;
 import com.vehiqon.common.utils.GenerateOrHashTokenUtils;
@@ -107,7 +108,7 @@ public class AuthServiceImpl implements AuthService {
     public LoginResponse login(AuthDto.LoginRequest request) {
         String email = request.email();
         rateLimitService.validateLogin(request.email(),httpRequestUtils.getClientIp(httpServletRequest) );
-        Optional<UserEntity> userOpt = userRepository.findByEmail(email);
+        Optional<UserEntity> userOpt = userRepository.findByEmailAndDeletedFalse(email);
 
         try {
             Authentication authenticate = authenticationManager.authenticate(
@@ -123,21 +124,6 @@ public class AuthServiceImpl implements AuthService {
             if (requestContext.getDeviceId() == null || requestContext.getDeviceId().isEmpty()){
                 requestContext.setDeviceId(UUID.randomUUID().toString());
             }
-            log.info("""
-            RequestContext:
-            deviceId={}
-            ip={}
-            browser={}
-            os={}
-            platform={}
-            device={}
-            """,
-                    requestContext.getDeviceId(),
-                    requestContext.getIpAddress(),
-                    requestContext.getBrowser(),
-                    requestContext.getOperatingSystem(),
-                    requestContext.getPlatform(),
-                    requestContext.getDevice());
             AnalyticsDto.SessionContext sessionContext = requestContext.toSessionContext(user.getId(), userSessionId);
             analyticService.sessionForLogin(sessionContext, metadata);
 
@@ -227,7 +213,7 @@ public class AuthServiceImpl implements AuthService {
                     AuthDto.ResendVerificationRequest request
     ) {
         Optional<UserEntity> optionalUser =
-                    userRepository.findByEmail(request.email());
+                    userRepository.findByEmailAndDeletedFalse(request.email());
 
             if (optionalUser.isEmpty()) {
                 return "If an account exists with this email, a verification email has been sent.";
@@ -263,13 +249,13 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public CustomerUserDetails getAuthenticatedUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        log.info("Authentication={}",
-                SecurityContextHolder.getContext().getAuthentication());
+//        log.info("Authentication={}",
+//                SecurityContextHolder.getContext().getAuthentication());
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new BadRequestException("User is not authenticated");
         }
         CustomerUserDetails userDetails = (CustomerUserDetails) authentication.getPrincipal();
-        UserEntity user = userRepository.findByEmail(Objects.requireNonNull(userDetails).getUsername())
+        UserEntity user = userRepository.findByEmailAndDeletedFalse(Objects.requireNonNull(userDetails).getUsername())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         UUID sessionId = userDetails.deviceId();
@@ -278,13 +264,20 @@ public class AuthServiceImpl implements AuthService {
 
     }
 
+    @Override
+    public boolean isAdmin() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return Objects.requireNonNull(authentication).getAuthorities().stream()
+                .anyMatch(a -> Objects.equals(a.getAuthority(), RoleEnum.ROLE_ADMIN.name()));
+    }
+
 
     @Override
     public String logout(AuthDto.LogoutRequest request) {
         CustomerUserDetails authenticatedUser = getAuthenticatedUser();
 
         RefreshTokenEntity refreshToken = refreshTokenRepository.findByToken(request.refreshToken())
-                .orElseThrow(() -> new TokenNotFoundException("Token not found"));
+                .orElseThrow(() -> new ResourceNotFoundException( "Token", request.refreshToken()));
         refreshToken.setRevoked(true);
         refreshToken.setExpired(true);
         refreshToken.setRevokedAt(LocalDateTime.now());
@@ -335,7 +328,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public String forgotPassword(AuthDto.ForgotPasswordRequest request) {
-        Optional<UserEntity> userOpt = userRepository.findByEmail(request.email());
+        Optional<UserEntity> userOpt = userRepository.findByEmailAndDeletedFalse(request.email());
         rateLimitService.validateForgotPassword(request.email(), httpRequestUtils.getClientIp(httpServletRequest) );
         userOpt.ifPresent(user ->{
             passwordResetTokenRepository.markAllAsUsedByUserId(user.getId());

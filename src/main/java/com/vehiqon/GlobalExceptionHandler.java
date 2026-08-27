@@ -1,10 +1,14 @@
 package com.vehiqon;
 
+import com.vehiqon.common.dto.RequestContext;
+import com.vehiqon.common.dto.response.ApiError;
 import com.vehiqon.common.dto.response.ApiResponse;
+import com.vehiqon.common.dto.response.ErrorDetail;
 import com.vehiqon.common.exception.BusinessException;
-import com.vehiqon.common.exception.ResourceNotFoundException;
 import com.vehiqon.common.utils.AccountUtils;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -20,12 +24,40 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestControllerAdvice
+@RequiredArgsConstructor
 @Slf4j
 public class GlobalExceptionHandler {
 
+    private final RequestContext requestContext;
+
+    @ExceptionHandler(BusinessException.class)
+    public ResponseEntity<ApiError<ErrorDetail>> handleBusinessException(
+            BusinessException ex, HttpServletRequest request) {
+
+
+        ErrorDetail errorDetail = ErrorDetail.builder()
+                .code(ex.getErrorCode())
+                .message(ex.getMessage())
+                .details(null)
+                .build();
+
+        ApiError<ErrorDetail> apiError = ApiError.<ErrorDetail>builder()
+                .success(false)
+                .responseCode(String.valueOf(ex.getStatus().value()))
+                .message(ex.getMessage())
+                .error(errorDetail)
+                .path(request.getRequestURI())
+                .requestId(requestContext.getRequestId())
+                .build();
+
+        return new ResponseEntity<>(apiError, ex.getStatus());
+    }
+
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ApiResponse<Map<String, String>>> handleValidation(
-            MethodArgumentNotValidException ex
+    public ResponseEntity<ApiError<ErrorDetail>> handleValidationException(
+            MethodArgumentNotValidException ex,
+            HttpServletRequest request
     ) {
         Map<String, String> errors = new HashMap<>();
         ex.getBindingResult()
@@ -33,46 +65,66 @@ public class GlobalExceptionHandler {
                 .forEach(error ->
                         errors.putIfAbsent(error.getField(), error.getDefaultMessage())
                 );
-        ex.printStackTrace();
-        ApiResponse<Map<String, String>> response = ApiResponse.<Map<String, String>>builder()
-                .success(false)
-                .responseCode(AccountUtils.VALIDATION_ERROR_CODE)
-                .responseMessage(AccountUtils.VALIDATION_ERROR_MESSAGE)
-                .data(errors)
-                .build();
-        return ResponseEntity.badRequest().body(response);
-    }
 
-    @ExceptionHandler(BusinessException.class)
-    public ResponseEntity<ApiResponse<Object>> handleBusiness(
-            BusinessException ex) {
-        ex.printStackTrace();
-
-        ApiResponse<Object> response = ApiResponse.builder()
-                .success(false)
-                .responseCode("500")
-//                ex.getClass().getName() + ": " +
-                .responseMessage( ex.getMessage())
+        ErrorDetail errorDetail = ErrorDetail.builder()
+                .code("VALIDATION_FAILED")
+                .message("Input validation failed")
+                .details(errors)
                 .build();
 
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(response);
+        ApiError<ErrorDetail> apiError = ApiError.<ErrorDetail>builder()
+                .success(false)
+                .responseCode(String.valueOf(HttpStatus.BAD_REQUEST.value()))
+                .message("Invalid request payload")
+                .error(errorDetail)
+                .path(request.getRequestURI())
+                .requestId(requestContext.getRequestId())
+                .build();
+
+        return new ResponseEntity<>(apiError, HttpStatus.BAD_REQUEST);
+
     }
 
     @ExceptionHandler(DateTimeParseException.class)
-    public ResponseEntity<ApiResponse<Object>> handleBusiness(
-            DateTimeException ex) {
-        ex.printStackTrace();
+    public ResponseEntity<ApiError<ErrorDetail>> handleBusiness(
+            DateTimeException ex,  HttpServletRequest request) {
 
-        ApiResponse<Object> response = ApiResponse.builder()
-                .success(false)
-                .responseCode("500")
-//                ex.getClass().getName() + ": " +
-                .responseMessage( ex.getMessage())
+        ErrorDetail errorDetail = ErrorDetail.builder()
+                .code("500")
+                .message(ex.getMessage())
+                .details(null)
                 .build();
 
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(response);
+        ApiError<ErrorDetail> apiError = ApiError.<ErrorDetail>builder()
+                .success(false)
+                .responseCode("500")
+                .message(ex.getMessage())
+                .error(errorDetail)
+                .path(request.getRequestURI())
+                .requestId(requestContext.getRequestId())
+                .build();
+
+        return new ResponseEntity<>(apiError, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ApiError<ErrorDetail>> handleGlobalException(
+            Exception ex, HttpServletRequest request
+    ) {
+        ErrorDetail errorDetail = ErrorDetail.builder()
+                .code("INTERNAL_SERVER_ERROR")
+                .message("An unexpected error occurred")
+                .details(ex.getMessage())
+                .build();
+        ApiError<ErrorDetail> apiError = ApiError.<ErrorDetail>builder()
+                .success(false)
+                .responseCode(String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()))
+                .message("Internal Server error")
+                .error(errorDetail)
+                .path(request.getRequestURI())
+                .requestId(requestContext.getRequestId())
+                .build();
+        return new ResponseEntity<>(apiError, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
 
@@ -87,50 +139,50 @@ public class GlobalExceptionHandler {
 //                Instant.now()
 //        );
 //
-//        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+//        return ResponseEntity.documentStatus(HttpStatus.NOT_FOUND).body(error);
 //    }
 
-    @ExceptionHandler(DataIntegrityViolationException.class)
-    public ResponseEntity<ApiError> handleDataIntegrity(
-            DataIntegrityViolationException ex) {
-        log.error("Unhandled exception", ex);
-        ApiError error = new ApiError(
-                HttpStatus.CONFLICT.value(),
-                "Database Error",
-                "The operation violates a database constraint.",
-                Instant.now()
-        );
-
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
-    }
-
-    @ExceptionHandler(EntityNotFoundException.class)
-    public ResponseEntity<ApiError> handleEntityNotFound(
-            EntityNotFoundException ex) {
-        log.error("Unhandled exception", ex);
-        ApiError error = new ApiError(
-                HttpStatus.NOT_FOUND.value(),
-                "Entity Not Found",
-                ex.getMessage(),
-                Instant.now()
-        );
-
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
-    }
-
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiError> handleException(
-            Exception ex) {
-        log.error("Unhandled exception", ex);
-
-        ApiError error = new ApiError(
-                HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),
-                "An unexpected error occurred.",
-                Instant.now()
-        );
-
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(error);
-    }
+//    @ExceptionHandler(DataIntegrityViolationException.class)
+//    public ResponseEntity<ApiError> handleDataIntegrity(
+//            DataIntegrityViolationException ex) {
+//        log.error("Unhandled exception", ex);
+//        ApiError error = new ApiError(
+//                HttpStatus.CONFLICT.value(),
+//                "Database Error",
+//                "The operation violates a database constraint.",
+//                Instant.now()
+//        );
+//
+//        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+//    }
+//
+//    @ExceptionHandler(EntityNotFoundException.class)
+//    public ResponseEntity<ApiError> handleEntityNotFound(
+//            EntityNotFoundException ex) {
+//        log.error("Unhandled exception", ex);
+//        ApiError error = new ApiError(
+//                HttpStatus.NOT_FOUND.value(),
+//                "Entity Not Found",
+//                ex.getMessage(),
+//                Instant.now()
+//        );
+//
+//        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+//    }
+//
+//    @ExceptionHandler(Exception.class)
+//    public ResponseEntity<ApiError> handleException(
+//            Exception ex) {
+//        log.error("Unhandled exception", ex);
+//
+//        ApiError error = new ApiError(
+//                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+//                HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),
+//                "An unexpected error occurred.",
+//                Instant.now()
+//        );
+//
+//        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+//                .body(error);
+//    }
 }

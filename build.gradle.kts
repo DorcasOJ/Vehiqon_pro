@@ -30,19 +30,26 @@ dependencies {
 	implementation("com.bucket4j:bucket4j-core:8.10.1")
 	implementation("nl.basjes.parse.useragent:yauaa:8.1.1")
 //	implementation("com.maxmind.geoip2:geoip2:5.1.0")
-	implementation("org.springframework.boot:spring-boot-starter-actuator:4.1.0")
-	implementation("p6spy:p6spy:3.9.1")
+//	implementation("org.springframework.boot:spring-boot-starter-actuator:4.1.0")
 
-//	implementation ("org.springframework.boot:spring-boot-starter-data-redis")
+	implementation("p6spy:p6spy:3.9.1")
+	implementation("org.springframework.boot:spring-boot-starter-actuator")
+	implementation("org.springframework.boot:spring-boot-starter-data-redis:4.1.0")
+	implementation("org.springframework.boot:spring-boot-starter-micrometer-metrics")
+	implementation("io.github.llmagentbuilder:open-telemetry:0.4.3")
+	implementation("org.springframework.boot:spring-boot-starter-aspectj")
 
 	implementation ("org.flywaydb:flyway-core")
 	implementation("org.springframework.boot:spring-boot-starter-flyway")
 	implementation ("org.flywaydb:flyway-database-postgresql")
 
+
 	implementation("org.springframework.boot:spring-boot-starter-security")
 	implementation("io.jsonwebtoken:jjwt-api:0.12.7")
 	runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.7")
 	runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.7")
+
+
 
 
 	compileOnly("org.projectlombok:lombok")
@@ -53,6 +60,8 @@ dependencies {
 
 	testImplementation("org.springframework.boot:spring-boot-starter-data-jpa-test")
 	testImplementation("org.springframework.boot:spring-boot-starter-mail-test")
+	testImplementation("org.springframework.boot:spring-boot-starter-test")
+	testImplementation("org.springframework.security:spring-security-test")
 	testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
 	testCompileOnly("org.projectlombok:lombok")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")

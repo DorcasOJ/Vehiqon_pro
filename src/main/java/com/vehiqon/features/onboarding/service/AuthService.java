@@ -21,7 +21,7 @@ public interface AuthService {
     String resendVerificationEmail( AuthDto.ResendVerificationRequest request );
 
     CustomerUserDetails getAuthenticatedUser();
-
+    boolean isAdmin();
     String changePassword(AuthDto.ChangePasswordRequest request);
     String forgotPassword(AuthDto.ForgotPasswordRequest request );
     String resetPassword(AuthDto.ResetPasswordRequest request);

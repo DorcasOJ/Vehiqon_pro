@@ -7,9 +7,15 @@ import java.util.List;
 import java.util.UUID;
 
 
-public interface CarBrandService {
+public interface CarBrandModelService {
     List<CarBrandDto.CarBrandResponse> getAllBrands();
     CarBrandDto.CarBrandResponse getBrandByName(String name);
-
     List<CarModelDto.CarModelResponse> getModelsByBrandId(UUID brandId);
+
+    List<CarModelDto.CarModelResponse> getAllModels();
+
+    List<CarModelDto.CarModelResponse> getModelsByBrand(UUID brandId);
+
+    CarModelDto.CarModelResponse getModel(UUID id);
+
 }

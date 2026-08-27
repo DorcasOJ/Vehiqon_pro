@@ -9,11 +9,23 @@ public enum EventType {
     LOGOUT(FeatureEnum.AUTH, EntityEnum.USER),
     PASSWORD_CHANGED(FeatureEnum.AUTH, EntityEnum.USER),
     PROFILE_UPDATED(FeatureEnum.USER, EntityEnum.USER),
+    ROLE_UPDATED(FeatureEnum.USER, EntityEnum.USER),
+    ROLE_SYNCED(FeatureEnum.USER, EntityEnum.USER),
+    USER_DELETED(FeatureEnum.USER, EntityEnum.USER),
+    USER_RESTORED(FeatureEnum.USER, EntityEnum.USER),
+
 
     VEHICLE_CREATED(FeatureEnum.VEHICLE, EntityEnum.VEHICLE),
+    VEHICLE_DOCUMENT_UPLOADED(FeatureEnum.VEHICLE, EntityEnum.VEHICLE),
+    VEHICLE_DOCUMENT_UPDATED(FeatureEnum.VEHICLE, EntityEnum.VEHICLE),
+    VEHICLE_DOCUMENT_DELETED(FeatureEnum.VEHICLE, EntityEnum.VEHICLE),
+    VEHICLE_DOCUMENT_RESTORED(FeatureEnum.VEHICLE, EntityEnum.VEHICLE),
     VEHICLE_VIEWED(FeatureEnum.VEHICLE, EntityEnum.VEHICLE),
     VEHICLE_UPDATED(FeatureEnum.VEHICLE, EntityEnum.VEHICLE),
+    GET_VEHICLE_STATISTICS(FeatureEnum.VEHICLE, EntityEnum.VEHICLE),
     VEHICLE_DELETED(FeatureEnum.VEHICLE, EntityEnum.VEHICLE),
+    VEHICLE_RESTORED(FeatureEnum.VEHICLE, EntityEnum.VEHICLE),
+    VIEW_VEHICLE_DOCUMENT(FeatureEnum.VEHICLE, EntityEnum.VEHICLE),
     VEHICLE_SHARED(FeatureEnum.VEHICLE, EntityEnum.VEHICLE),
     SEARCHED_CAR(FeatureEnum.VEHICLE, EntityEnum.VEHICLE),
 

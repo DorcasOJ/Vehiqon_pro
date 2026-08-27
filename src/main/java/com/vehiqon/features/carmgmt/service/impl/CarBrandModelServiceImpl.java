@@ -16,7 +16,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class CarBrandServiceImpl implements CarBrandModelService {
+public class CarBrandModelServiceImpl implements CarBrandModelService {
 
     private final CarBrandRepository brandRepository;
     private final CarModelRepository modelRepository;
@@ -41,7 +41,7 @@ public class CarBrandServiceImpl implements CarBrandModelService {
     @Override
     public List<CarModelDto.CarModelResponse> getModelsByBrandId(UUID brandId) {
         BrandEntity brand = brandRepository.findById(brandId)
-                .orElseThrow(() -> new ResourceNotFoundException("Brand not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Brand", brandId));
         return modelRepository.findAllByCarBrandId(brand.getId())
                 .stream()
                 .map(model -> new CarModelDto.CarModelResponse(model.getId(), model.getName()))
@@ -58,7 +58,7 @@ public class CarBrandServiceImpl implements CarBrandModelService {
 
     @Override
     public List<CarModelDto.CarModelResponse> getModelsByBrand(UUID brandId) {
-        BrandEntity brand = brandRepository.findById(brandId).orElseThrow(() -> new ResourceNotFoundException("Brand not found"));
+        BrandEntity brand = brandRepository.findById(brandId).orElseThrow(() -> new ResourceNotFoundException("Brand", brandId));
         return carModelRepository.findAllByCarBrandId(brand.getId()).stream()
                 .map(carBrandModelMapper::toCarModelResponse)
                 .toList();
@@ -68,7 +68,7 @@ public class CarBrandServiceImpl implements CarBrandModelService {
     public CarModelDto.CarModelResponse getModel(UUID id) {
         return carBrandModelMapper.toCarModelResponse(
                 carModelRepository.findById(id).orElseThrow(() ->
-                        new ResourceNotFoundException("Model not found"))
+                        new ResourceNotFoundException("Model", id))
         );
     }
 }

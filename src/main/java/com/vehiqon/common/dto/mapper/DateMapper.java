@@ -1,4 +1,4 @@
-package com.vehiqon.common.mapper;
+package com.vehiqon.common.dto.mapper;
 
 import com.vehiqon.common.exception.BadRequestException;
 import org.mapstruct.Mapper;

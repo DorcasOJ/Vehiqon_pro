@@ -1,6 +1,7 @@
 package com.vehiqon.features.carmgmt.entities;
 
 import com.vehiqon.common.entity.BaseEntity;
+import com.vehiqon.common.entity.BaseWithDeleteEntity;
 import com.vehiqon.features.carmgmt.enums.*;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -22,7 +23,7 @@ import java.util.UUID;
 @SuperBuilder
 @Entity
 @Table(name="car_maintenance")
-public class CarMaintenanceEntity extends BaseEntity {
+public class CarMaintenanceEntity extends BaseWithDeleteEntity {
 
     @Column(name = "car_id", nullable = false)
     private UUID carId;

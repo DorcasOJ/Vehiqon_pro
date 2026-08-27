@@ -10,6 +10,7 @@ import org.springframework.web.context.annotation.RequestScope;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -27,13 +28,22 @@ public class AnalyticsContext {
         }
     }
 
-    public void recordSearch(String query, Integer result, Long totalResults,
+    public void recordUpdate(String updateSource, Map<String, Object> updatedFields) {
+        ArrayList<String> keyFields = new ArrayList<>(updatedFields.keySet());
+        metadata.put("fieldCount", updatedFields.size());
+        metadata.put("updatedFields", keyFields);
+        metadata.put("updateSource", updateSource);
+    }
+
+
+    public void recordSearch(String updateSource, String query, Integer result, Long totalResults,
                              Integer pageNumber, Integer pageSize){
         metadata.put("query", query);
         metadata.put("results",result);
         metadata.put("totalResults", totalResults);
         metadata.put("pageNumber", pageNumber);
         metadata.put("pageSize", pageSize);
+        metadata.put("updateSource", updateSource);
     }
 
     public void recordPayment(BigDecimal amount, String gateway, String currency) {

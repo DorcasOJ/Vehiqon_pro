@@ -3,7 +3,7 @@ package com.vehiqon.features.wallet.service.impl;
 import com.vehiqon.common.exception.BadRequestException;
 import com.vehiqon.common.exception.ResourceNotCreatedException;
 import com.vehiqon.common.exception.ResourceNotFoundException;
-import com.vehiqon.common.service.TokenEncryptionService;
+import com.vehiqon.common.utils.TokenEncryptionService;
 import com.vehiqon.features.onboarding.entity.UserEntity;
 import com.vehiqon.features.onboarding.service.AuthService;
 import com.vehiqon.features.wallet.entity.VirtualAccountEntity;

@@ -8,7 +8,9 @@ public enum AuditActionType {
     USER_LOGIN_FAILED("User login failed"),
     USER_PASSWORD_RESET_REQUESTED("User requested password reset"),
     USER_PASSWORD_RESET_COMPLETED("User reset password"),
-//    USER_EMAIL_VERIFIED("User email verified"),
+
+
+    //    USER_EMAIL_VERIFIED("User email verified"),
     USER_VERIFICATION_EMAIL_RESENT("Verification email resent"),
     USER_REQUESTED_VERIFICATION_EMAIL_TOKEN("Verification email token requested"),
     USER_LOGGED_OUT("user logged out"),
@@ -21,15 +23,27 @@ public enum AuditActionType {
 
     USER_PROFILE_UPDATED("User updated profile"),
     USER_VIEWS_PROFILE("User viewed profile"),
-    USER_ROLE_UPDATED("User role updated"),
-    USER_ROLE_SYNCED("User role synced"),
-    USER_UNLOCKED("User is now unlocked to login"),
+    ROLE_UPDATED("User role updated"),
+    ROLE_SYNCED("User role synced"),
     GET_USER("Admin view user"),
+    USER_DELETED("User deleted by admin"),
+    USER_RESTORED("User restored by admin"),
 
     VEHICLE_REGISTERED("User registered a vehicle"),
+    VEHICLE_DOCUMENT_UPLOADED("User uploaded a vehicle document"),
+    VEHICLE_DOCUMENT_UPDATED("User uploaded a vehicle document"),
+    VEHICLE_DOCUMENT_DELETED("User uploaded a vehicle document"),
+    VEHICLE_DOCUMENT_RESTORED("User uploaded a vehicle document"),
     VEHICLE_UPDATED("User Updated Vehicle details"),
+    VEHICLE_VIEWED("User viewed Vehicle"),
+    GET_VEHICLE_STATISTICS("User viewed Vehicle Statistics"),
     VEHICLE_DELETED("User deleted a Vehicle"),
-    VEHICLE_VIEWED("User viewed Vehicle");
+    VEHICLE_RESTORED("Admin restored a deleted Vehicle"),
+    VEHICLE_DOCUMENT_VERIFIED("Admin approved a user Vehicle document"),
+    VEHICLE_DOCUMENT_REJECTED("Admin rejected a user Vehicle document"),
+    VIEW_VEHICLE_DOCUMENT("User view one or all Vehicle documents"),
+
+    SEARCH("User seared for an entity");
 
 //    GET_USER("Admin view user"),
 

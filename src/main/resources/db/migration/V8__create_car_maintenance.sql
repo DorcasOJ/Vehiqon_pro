@@ -19,6 +19,9 @@ CREATE TABLE IF NOT EXISTS car_maintenance (
     workshop VARCHAR(255),
     notes TEXT,
 
+    deleted BOOLEAN NOT NULL DEFAULT FALSE,
+    deleted_at TIMESTAMP,
+    deleted_by UUID,
     created_at TIMESTAMP,
     updated_at TIMESTAMP,
 
@@ -33,9 +36,7 @@ CREATE TABLE IF NOT EXISTS car_maintenance (
         ON DELETE SET NULL
 );
 
-CREATE INDEX IF NOT EXISTS idx_car_maintenance_car
-    ON car_maintenance(car_id);
-
-CREATE INDEX IF NOT EXISTS idx_car_maintenance_user
-    ON car_maintenance(user_id);
-
+CREATE INDEX idx_car_maintenance_car_deleted_at
+    ON car_maintenance(car_id, deleted_at);
+CREATE INDEX idx_car_maintenance_user_deleted_at
+    ON car_maintenance(user_id, deleted_at);

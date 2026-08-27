@@ -13,6 +13,7 @@ import java.util.UUID;
 @Setter
 @RequestScope
 public class RequestContext {
+    private String requestId;
     private String ipAddress;
     private String city;
     private String country;

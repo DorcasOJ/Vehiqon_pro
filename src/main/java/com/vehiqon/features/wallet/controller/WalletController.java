@@ -1,7 +1,7 @@
 package com.vehiqon.features.wallet.controller;
 
 import com.vehiqon.common.dto.response.ApiResponse;
-import com.vehiqon.common.mapper.ApiResponseMapper;
+import com.vehiqon.common.dto.mapper.ApiResponseMapper;
 import com.vehiqon.features.wallet.service.VirtualAccountService;
 import com.vehiqon.integrations.nomba.dto.NombaDto;
 import com.vehiqon.integrations.nomba.service.NombaTokenService;

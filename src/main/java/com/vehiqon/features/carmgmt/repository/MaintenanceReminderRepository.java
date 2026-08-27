@@ -38,11 +38,11 @@ public interface MaintenanceReminderRepository extends JpaRepository<Maintenance
 
     @Query("""
             SELECT r FROM MaintenanceReminderEntity r
-            WHERE r.notificationStatus = :status
+            WHERE r.notificationStatus = :documentStatus
             AND r.scheduledAt <= :now
             ORDER BY r.scheduledAt
             """)
-    Optional<List<MaintenanceReminderEntity>> findDueReminders(@Param("status") NotificationStatus notificationStatus,
+    Optional<List<MaintenanceReminderEntity>> findDueReminders(@Param("documentStatus") NotificationStatus notificationStatus,
                                                                @Param("now") Instant now);
 
     @Query("""

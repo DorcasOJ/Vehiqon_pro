@@ -1,19 +1,8 @@
 package com.vehiqon.features.carmgmt.controller;
 
-import com.vehiqon.common.dto.response.ApiResponse;
-import com.vehiqon.common.mapper.ApiResponseMapper;
-import com.vehiqon.features.carmgmt.dto.MaintenanceReminderDto;
-import com.vehiqon.features.carmgmt.dto.response.MaintenanceReminderResponse;
-import com.vehiqon.features.carmgmt.service.CarMaintenanceService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.UUID;
 
 @RequestMapping("/api/maintenance")
 @AllArgsConstructor
@@ -27,7 +16,7 @@ public class CarMaintenanceController {
 //    public ResponseEntity<ApiResponse<MaintenanceReminderDto.MaintenanceResponse>> create(
 //            @Valid @RequestBody MaintenanceReminderDto.CreateMaintenanceRequest request
 //            ) {
-//        return ResponseEntity.status(HttpStatus.CREATED)
+//        return ResponseEntity.documentStatus(HttpStatus.CREATED)
 //                .body(apiResponseMapper.toResponse(
 //                        maintenanceService.create(request)
 //                ));

@@ -1,7 +1,7 @@
 package com.vehiqon.features.carmgmt.service;
 
+import com.vehiqon.features.carmgmt.dto.CarDocumentDto;
 import com.vehiqon.features.carmgmt.dto.CarDto;
-import com.vehiqon.features.carmgmt.dto.request.CreateCarRequest;
 import com.vehiqon.features.carmgmt.dto.response.CarDetailsResponse;
 import com.vehiqon.features.carmgmt.enums.CarStatus;
 import org.springframework.data.domain.Page;
@@ -13,17 +13,28 @@ import java.util.UUID;
 
 public interface CarService {
     CarDto.CarResponse registerCar(CarDto.CreateCarRequest request);
-    List<CarDetailsResponse> getMyCars();
+    Page<CarDetailsResponse> getMyCars(Pageable pageable);
     CarDetailsResponse getCar( UUID carId);
     CarDto.CarResponse update(UUID carId, CarDto.UpdateCarRequest request);
-
-//    void deleteCar(UUID carId);
+    void deleteCar(UUID carId);
+    void restoreCar(UUID carId);
+    CarDto.CarStatisticsResponse getCarStatistics();
+    List<CarDto.CarEntityResponse> getCarsDeleted();
 
     // Admin operations
-    List<CarDetailsResponse> getCarsByUser(UUID userId);
+    Page<CarDetailsResponse> getAllCars(Pageable pageable);
+    CarDetailsResponse getCarById(UUID carId);
+    Page<CarDetailsResponse> getCarsByUser(UUID userId, Pageable pageable);
     CarDetailsResponse getUserCar(UUID userId, UUID carId);
-    CarDto.CarResponse updateUserCar(UUID userId, UUID carId, CarDto.UpdateCarRequest request);
+    CarDto.CarResponse updateUserCar(UUID carId, CarDto.UpdateCarRequest request);
+    void deleteMultipleCarsForUser(List<UUID> carIds);
+    void deleteCarByAdmin(UUID carId);
+    void deleteMultipleCarByAdmin(List<UUID> carIds);
+    void restoreMultipleCars(List<UUID> carIds);
+    void restoreCarByAdmin(UUID carId);
 
-//    both
+    //    both
     Page<CarDetailsResponse> searchCars(String query, UUID brandId, CarStatus status, Pageable pageable);
+
+//    Page<CarDocumentDto.CarDocumentResponse> getDocuments(UUID carId);
 }

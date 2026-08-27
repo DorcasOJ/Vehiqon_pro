@@ -1,4 +1,4 @@
-package com.vehiqon.integrations.nomba.client;
+package com.vehiqon.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

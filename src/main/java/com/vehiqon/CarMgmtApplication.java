@@ -20,6 +20,4 @@ public class CarMgmtApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(CarMgmtApplication.class, args);
 	}
-
-
 }

@@ -2,13 +2,13 @@ package com.vehiqon.security.config;
 
 import com.vehiqon.common.dto.RequestContext;
 import com.vehiqon.common.utils.HttpRequestUtils;
-import com.vehiqon.features.insights.analytics.dto.AnalyticsDto;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nl.basjes.parse.useragent.UserAgent;
 import nl.basjes.parse.useragent.UserAgentAnalyzer;
+import org.slf4j.MDC;
 import org.springframework.stereotype.Component;
 
 import java.util.Locale;
@@ -44,6 +44,13 @@ public class UserAgentParserService {
         }
         String deviceId = request.getHeader("X-Device-Id");
         requestContext.setDeviceId(deviceId);
+
+        String requestId = request.getHeader("X-Request-Id");
+        if(requestId.isBlank()) {
+            requestId = UUID.randomUUID().toString();
+        }
+        requestContext.setRequestId(requestId);
+        MDC.put("requestId", requestId);
 
         String clientIp = httpRequestUtils.getClientIp(request);
         boolean isLocalhost = "127.0.0.1".equals(clientIp)

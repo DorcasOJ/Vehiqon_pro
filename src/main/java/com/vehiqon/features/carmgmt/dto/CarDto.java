@@ -2,6 +2,7 @@ package com.vehiqon.features.carmgmt.dto;
 
 
 import com.vehiqon.features.carmgmt.enums.*;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 
 import java.time.LocalDate;
@@ -54,17 +55,34 @@ public class CarDto {
             @NotNull(message = "Brand cannot be null") UUID carBrandId,
             @NotNull(message = "Model cannot be null") UUID carModelId,
             String nickname,
+            @Schema(example = "123456")
             @NotBlank(message = "VIN is required") String vin,
+
+            @Schema(example = "GH3456")
             @NotBlank(message = "PlateNumber is required") String plateNumber,
+
             @NotNull(message = "Fuel type cannot be null") FuelType fuelType,
+
+            @Schema(example = "black")
             String color,
+
+            @Schema(example = "658JH456")
             String engineNumber,
+
+            @Schema(example = "AUTOMATIC")
             @NotNull(message = "Transmission type cannot be null")
             TransmissionEnum transmission,
+            @Schema(example = "300")
             @PositiveOrZero Long odometer,
+
+            @Schema(example = "2000")
             @Min(1900) @Max(2100) Integer year,
+
+            @Schema(example = "25-05-2025")
             String purchaseDate,
+            @Schema(example = "25-05-2030")
             String licenseExpiry,
+            @Schema(example = "ACTIVE")
             CarStatus status
     )  implements CarRequest {
     }
@@ -95,4 +113,10 @@ public class CarDto {
         UUID carModelId();
 
     }
+
+    public record CarStatisticsResponse(
+            long totalCars,
+            long activeCars,
+            long deletedCars
+    ){}
 }

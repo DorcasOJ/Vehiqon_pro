@@ -7,8 +7,11 @@ import com.vehiqon.features.onboarding.entity.UserEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -20,7 +23,8 @@ import java.util.UUID;
 @SuperBuilder
 @Entity
 @Table(name="cars")
-public class CarEntity extends BaseEntity {
+//@SQLDelete(sql ="UPDATE cars SET deleted = true, deleted_at = NOW(), deleted_by = ? WHERE id = ?")
+public class CarEntity extends BaseWithDeleteEntity {
 
     private String nickname;
 
@@ -60,6 +64,5 @@ public class CarEntity extends BaseEntity {
 
     @Column(name = "car_model_id", nullable = false)
     private UUID carModelId;
-
 
 }

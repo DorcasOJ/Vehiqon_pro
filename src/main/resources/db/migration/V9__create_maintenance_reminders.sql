@@ -14,6 +14,9 @@ CREATE TABLE IF NOT EXISTS maintenance_reminders (
     notification_channel VARCHAR(30) NOT NULL DEFAULT 'EMAIL',
     attempt_count INTEGER NOT NULL DEFAULT 0,
 
+    deleted BOOLEAN NOT NULL DEFAULT FALSE,
+    deleted_at TIMESTAMP,
+    deleted_by UUID,
     created_at TIMESTAMP,
     updated_at TIMESTAMP,
 
@@ -24,8 +27,7 @@ CREATE TABLE IF NOT EXISTS maintenance_reminders (
 
 );
 
-CREATE INDEX IF NOT EXISTS idx_maintenance_reminder_schedule
-    ON maintenance_reminders(notification_status, scheduled_at);
-
-CREATE INDEX IF NOT EXISTS idx_maintenance_reminder_maintenance
-    ON maintenance_reminders(car_maintenance_id);
+CREATE INDEX idx_maintenance_reminders_schedule_deleted_at
+    ON maintenance_reminders(notification_status, scheduled_at, deleted_at);
+CREATE INDEX idx_maintenance_reminders_car_maintenance_deleted_at
+    ON maintenance_reminders(car_maintenance_id, deleted_at);

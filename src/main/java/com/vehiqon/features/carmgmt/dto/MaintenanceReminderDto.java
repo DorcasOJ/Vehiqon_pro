@@ -61,7 +61,7 @@ public class MaintenanceReminderDto {
 //            String title,
 //            String description,
 //            MaintenanceType type,
-//            MaintenanceStatus status,
+//            MaintenanceStatus documentStatus,
 //            LocalDate appointmentDate,
 //            LocalTime appointmentTime,
 //            LocalDate notificationDate,

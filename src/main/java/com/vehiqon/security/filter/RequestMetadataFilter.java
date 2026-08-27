@@ -16,6 +16,7 @@ import java.io.IOException;
 @Component
 @RequiredArgsConstructor
 public class RequestMetadataFilter extends OncePerRequestFilter {
+
     private final UserAgentParserService userAgentParserService;
     private final ObjectProvider<RequestContext> requestContextProvider;
 
@@ -26,6 +27,7 @@ public class RequestMetadataFilter extends OncePerRequestFilter {
 
         RequestContext requestContext = requestContextProvider.getObject();
         userAgentParserService.parse(request, requestContext);
+        response.setHeader("X-Request-Id", requestContext.getRequestId());
         filterChain.doFilter(request, response);
     }
 }

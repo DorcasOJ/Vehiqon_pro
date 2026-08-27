@@ -1,12 +1,11 @@
 package com.vehiqon.features.insights.auditLog.consumer;
 
 import com.vehiqon.common.exception.BadRequestException;
-import com.vehiqon.features.insights.enums.PublishAction;
 import com.vehiqon.features.insights.auditLog.dto.AuditLogDto;
 import com.vehiqon.features.insights.auditLog.service.AuditLogService;
+import com.vehiqon.features.insights.enums.PublishAction;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
@@ -20,8 +19,7 @@ public class AuditLogConsumer {
 
     @Async("asyncTaskExecutor")
 //    @EventListener
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT,
-            fallbackExecution = true)
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void consume(AuditLogDto.AuditEvent event) {
         if(event.userId() == null) {
             throw new BadRequestException("User Id is required");
@@ -35,12 +33,9 @@ public class AuditLogConsumer {
             log.error("Failed to process analytics event {}", event, e);
 //            throw new BadRequestException(e.getMessage());
         }
-
-
     }
 
     @Async("asyncTaskExecutor")
-    @EventListener
     @TransactionalEventListener(phase = TransactionPhase.AFTER_ROLLBACK)
     public void handleRollback(AuditLogDto.AuditEvent event) {
         if(event.userId() == null) {
@@ -53,7 +48,6 @@ public class AuditLogConsumer {
             auditLogService.logFailure(event);
         } catch (Exception e) {
             log.error("Failed to process analytics event {}", event, e);
-//            throw new BadRequestException(e.getMessage());
         }
     }
 }

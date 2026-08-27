@@ -11,7 +11,7 @@ public class DashboardDto {
 //
 //            UnreadNotifications,
 //
-//            Subscription status
+//            Subscription documentStatus
 //
 //            Total maintenance cost
 //

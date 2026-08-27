@@ -1,16 +1,20 @@
 package com.vehiqon.features.onboarding.entity;
 
 import com.vehiqon.common.entity.BaseEntity;
+import com.vehiqon.common.entity.BaseWithDeleteEntity;
 import com.vehiqon.common.enums.RoleEnum;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
@@ -23,7 +27,8 @@ import java.util.UUID;
 @SuperBuilder
 @Entity
 @Table(name="users")
-public class UserEntity extends BaseEntity implements UserDetails {
+//@SQLDelete(sql ="UPDATE users SET deleted = true, deleted_at = NOW() WHERE id = ?")
+public class UserEntity extends BaseWithDeleteEntity implements UserDetails {
     @Column(name = "first_name")
     private String firstName;
 
@@ -62,12 +67,6 @@ public class UserEntity extends BaseEntity implements UserDetails {
     private Instant lockedUntil;
 
     private Instant lastFailedLoginAt;
-
-    @Transient
-    private UUID sessionId;
-
-    @Transient
-    private UUID jti;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -111,25 +110,12 @@ public class UserEntity extends BaseEntity implements UserDetails {
 
     public void lock(Duration duration) {
         lockedUntil = Instant.now().plus(duration);
-        failedLoginAttempts =0;
+        failedLoginAttempts = 0;
     }
-
 
     public void incrementFailedLoginAttempt() {
         failedLoginAttempts++;
     }
-
-//    public void addRole(RoleEnum role) {
-//        if(role != null) {
-//            this.roles.add(role);
-//        }
-//    }
-//
-//    public void removeRole(RoleEnum role) {
-//        if(role != null) {
-//            this.roles.remove(role);
-//        }
-//    }
 
     public void addRoles(Collection<RoleEnum> rolesToAdd) {
         if(rolesToAdd != null && !rolesToAdd.isEmpty()) {

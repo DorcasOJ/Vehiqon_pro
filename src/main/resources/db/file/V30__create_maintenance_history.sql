@@ -8,6 +8,9 @@ CREATE TABLE IF NOT EXISTS maintenance_notification_history (
     error_message TEXT,
     attempted_at TIMESTAMP NOT NULL,
 
+    deleted BOOLEAN NOT NULL DEFAULT FALSE,
+    deleted_at TIMESTAMP,
+    deleted_by UUID,
     created_at TIMESTAMP,
     updated_at TIMESTAMP,
 
@@ -17,6 +20,5 @@ CREATE TABLE IF NOT EXISTS maintenance_notification_history (
         ON DELETE CASCADE
 );
 
-CREATE INDEX IF NOT EXISTS idx_maintenance_history_car_maintenance
-    ON maintenance_notification_history(maintenance_reminder_id);
-
+CREATE INDEX idx_maintenance_notification_history_reminder_deleted_at
+    ON maintenance_notification_history(maintenance_reminder_id, deleted_at)

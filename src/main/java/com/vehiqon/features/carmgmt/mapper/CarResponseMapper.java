@@ -5,7 +5,7 @@ import com.vehiqon.features.carmgmt.dto.CarBrandDto;
 import com.vehiqon.features.carmgmt.dto.CarDto;
 import com.vehiqon.features.carmgmt.dto.CarModelDto;
 import com.vehiqon.features.carmgmt.repository.CarBrandRepository;
-import com.vehiqon.features.carmgmt.repository.ModelRepository;
+import com.vehiqon.features.carmgmt.repository.CarModelRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -13,17 +13,17 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class CarResponseMapper {
     private final CarBrandRepository carBrandRepository;
-    private final ModelRepository modelRepository;
+    private final CarModelRepository modelRepository;
     private final CarBrandModelMapper carBrandModelMapper;
 
         public CarDto.CarResponse toResponse(CarDto.CarEntityResponse car) {
             CarBrandDto.CarBrandResponse carBrand = carBrandModelMapper.toCarBrandResp(
                     carBrandRepository.findById(car.carBrandId()).orElseThrow(() ->
-                            new ResourceNotFoundException("Car Brand not found")));
+                            new ResourceNotFoundException("Car", car.carBrandId())));
 
             CarModelDto.CarModelResponse carModel = carBrandModelMapper.toCarModelResponse(
                     modelRepository.findById(car.carModelId()).orElseThrow(
-                            () -> new ResourceNotFoundException("Car Model not found")
+                            () -> new ResourceNotFoundException("Car", car.carModelId())
                     ));
             return new CarDto.CarResponse(car.id(), car.nickname(), car.vin(), car.plateNumber(),
                 car.color(), car.year(), car.engineNumber(), car.fuelType(), car.transmission(),

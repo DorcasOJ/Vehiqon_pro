@@ -1,6 +1,5 @@
-package com.vehiqon.common.service;
+package com.vehiqon.common.utils;
 
-import com.vehiqon.common.exception.BadRequestException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.encrypt.TextEncryptor;
 import org.springframework.stereotype.Service;

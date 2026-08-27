@@ -6,8 +6,10 @@ import com.vehiqon.common.utils.HttpRequestUtils;
 import com.vehiqon.features.insights.InsightEventPublisher;
 import com.vehiqon.features.insights.analytics.enums.EntityIdSource;
 import com.vehiqon.features.insights.auditLog.dto.AuditLogDto;
+import com.vehiqon.features.insights.auditLog.dto.requestScope.AuditContext;
 import com.vehiqon.features.insights.auditLog.enums.AuditActionType;
 import com.vehiqon.features.insights.auditLog.enums.AuditStatus;
+import com.vehiqon.features.insights.auditLog.service.RequestedMetadataService;
 import com.vehiqon.features.insights.enums.PublishAction;
 import com.vehiqon.features.onboarding.service.AuthService;
 import com.vehiqon.security.model.CustomerUserDetails;
@@ -20,6 +22,7 @@ import org.aspectj.lang.annotation.Aspect;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerMapping;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -32,6 +35,8 @@ public class AuditAspect {
     private final AuthService authService;
     private final HttpServletRequest request;
     private final InsightEventPublisher publisher;
+    private final AuditContext auditContext;
+    private final RequestedMetadataService metadataService;
     private final HttpRequestUtils httpRequestUtils;
 
     @Around("@annotation(auditAction)")
@@ -46,12 +51,6 @@ public class AuditAspect {
         Map<String, Object> metadata = new HashMap<>();
         AuditActionType action = auditAction.value();
 
-        metadata.put("path", request.getRequestURI());
-        metadata.put("method", request.getMethod());
-        metadata.put("ip",httpRequestUtils.getClientIp(request));
-        metadata.put("userAgent", request.getHeader("User-Agent"));
-        metadata.put("jti",jti);
-
         EntityEnum entity = auditAction.entityType();
         UUID entityId = resolveEntityId(auditAction, userId);
         AuditStatus status = AuditStatus.SUCCESS;
@@ -65,6 +64,10 @@ public class AuditAspect {
             metadata.put("error", e.getMessage());
             throw new BadRequestException(e.getMessage());
         } finally {
+            metadata.putAll(metadataService.createMetadata());
+            metadata.putAll(auditContext.getMetadata());
+            metadata.put("jti",jti);
+
             publisher.publish(new AuditLogDto.AuditEvent(
                     userId, action , entity, entityId,
                     status, PublishAction.AUDIT_LOG, metadata
