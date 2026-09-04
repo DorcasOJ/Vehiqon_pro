@@ -1,11 +1,10 @@
 package com.vehiqon.features.insights.auditLog.dto;
 
-import com.vehiqon.common.dto.ConsumerEvent;
+import com.vehiqon.common.api.dto.ConsumerEvent;
 import com.vehiqon.common.enums.EntityEnum;
 import com.vehiqon.features.insights.auditLog.enums.AuditActionType;
 import com.vehiqon.features.insights.auditLog.enums.AuditStatus;
 import com.vehiqon.features.insights.enums.*;
-import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.Map;
 import java.util.UUID;

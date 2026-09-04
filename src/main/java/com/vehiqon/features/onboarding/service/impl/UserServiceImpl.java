@@ -1,13 +1,11 @@
 package com.vehiqon.features.onboarding.service.impl;
 
-import com.vehiqon.common.enums.RoleEnum;
+import com.vehiqon.security.authorization.enums.RoleEnum;
 import com.vehiqon.common.enums.UserStatus;
 import com.vehiqon.common.exception.BadRequestException;
 import com.vehiqon.common.exception.ResourceAlreadyExistException;
 import com.vehiqon.common.exception.ResourceNotFoundException;
 import com.vehiqon.common.utils.GenerateOrHashTokenUtils;
-import com.vehiqon.features.carmgmt.dto.response.CarDetailsResponse;
-import com.vehiqon.features.carmgmt.enums.CarStatus;
 import com.vehiqon.features.insights.InsightEventPublisher;
 import com.vehiqon.features.insights.Notification.dto.NotificationDto;
 import com.vehiqon.features.insights.Notification.enums.NotificationEvent;
@@ -15,7 +13,6 @@ import com.vehiqon.features.insights.analytics.dto.requestScope.AnalyticsContext
 import com.vehiqon.features.insights.auditLog.dto.requestScope.AuditContext;
 import com.vehiqon.features.insights.enums.PublishAction;
 import com.vehiqon.features.onboarding.dto.UserDto;
-import com.vehiqon.features.onboarding.dto.response.UserResponse;
 import com.vehiqon.features.onboarding.entity.UserEntity;
 import com.vehiqon.features.onboarding.mapper.UserMapper;
 import com.vehiqon.features.onboarding.mapper.VerificationTokenMapper;
@@ -28,9 +25,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;

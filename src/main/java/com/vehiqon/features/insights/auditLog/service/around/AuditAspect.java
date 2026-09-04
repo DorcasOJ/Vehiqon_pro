@@ -12,7 +12,7 @@ import com.vehiqon.features.insights.auditLog.enums.AuditStatus;
 import com.vehiqon.features.insights.auditLog.service.RequestedMetadataService;
 import com.vehiqon.features.insights.enums.PublishAction;
 import com.vehiqon.features.onboarding.service.AuthService;
-import com.vehiqon.security.model.CustomerUserDetails;
+import com.vehiqon.security.authentication.model.CustomerUserDetails;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +22,6 @@ import org.aspectj.lang.annotation.Aspect;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerMapping;
 
-import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;

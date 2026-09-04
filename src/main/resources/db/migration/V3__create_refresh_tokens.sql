@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS refresh_tokens (
     id UUID PRIMARY KEY,
-    token VARCHAR(512) NOT NULL UNIQUE,
+    token_hash VARCHAR(512) NOT NULL UNIQUE,
     jti VARCHAR(512) NOT NULL,
     user_id UUID NOT NULL,
     device_name VARCHAR(255),
@@ -21,8 +21,8 @@ CREATE TABLE IF NOT EXISTS refresh_tokens (
 CREATE INDEX IF NOT EXISTS idx_refresh_token_user
     ON refresh_tokens(user_id);
 
-CREATE UNIQUE INDEX IF NOT EXISTS idx_refresh_token_token
-    ON refresh_tokens(token);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_refresh_token_token_hash
+    ON refresh_tokens(token_hash);
 
 CREATE INDEX IF NOT EXISTS idx_refresh_token_revoked
     ON refresh_tokens(revoked);

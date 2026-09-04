@@ -1,7 +1,7 @@
 package com.vehiqon.features.carmgmt.controller;
 
-import com.vehiqon.common.dto.response.ApiResponse;
-import com.vehiqon.common.dto.mapper.ApiResponseMapper;
+import com.vehiqon.common.api.dto.response.ApiResponse;
+import com.vehiqon.common.api.mapper.ApiResponseMapper;
 import com.vehiqon.features.carmgmt.dto.CarBrandDto;
 import com.vehiqon.features.carmgmt.dto.CarModelDto;
 import com.vehiqon.features.carmgmt.service.CarBrandModelService;

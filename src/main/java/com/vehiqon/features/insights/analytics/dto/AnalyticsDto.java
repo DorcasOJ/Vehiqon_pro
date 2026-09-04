@@ -1,11 +1,8 @@
 package com.vehiqon.features.insights.analytics.dto;
 
-import com.vehiqon.common.dto.ConsumerEvent;
-import com.vehiqon.common.enums.EntityEnum;
+import com.vehiqon.common.api.dto.ConsumerEvent;
 import com.vehiqon.features.insights.analytics.enums.EventType;
-import com.vehiqon.features.insights.analytics.enums.FeatureEnum;
 import com.vehiqon.features.insights.enums.*;
-import jakarta.servlet.http.HttpServletRequest;
 
 import java.time.LocalDateTime;
 import java.util.Map;

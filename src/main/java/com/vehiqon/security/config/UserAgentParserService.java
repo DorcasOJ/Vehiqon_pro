@@ -1,6 +1,6 @@
 package com.vehiqon.security.config;
 
-import com.vehiqon.common.dto.RequestContext;
+import com.vehiqon.common.api.dto.RequestContext;
 import com.vehiqon.common.utils.HttpRequestUtils;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
@@ -10,6 +10,7 @@ import nl.basjes.parse.useragent.UserAgent;
 import nl.basjes.parse.useragent.UserAgentAnalyzer;
 import org.slf4j.MDC;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import java.util.Locale;
 import java.util.UUID;
@@ -46,7 +47,7 @@ public class UserAgentParserService {
         requestContext.setDeviceId(deviceId);
 
         String requestId = request.getHeader("X-Request-Id");
-        if(requestId.isBlank()) {
+        if(!StringUtils.hasText(requestId)) {
             requestId = UUID.randomUUID().toString();
         }
         requestContext.setRequestId(requestId);

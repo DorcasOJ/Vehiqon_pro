@@ -1,6 +1,6 @@
 package com.vehiqon.features.carmgmt.mapper;
 
-import com.vehiqon.common.dto.mapper.DateMapper;
+import com.vehiqon.common.api.mapper.DateMapper;
 import org.mapstruct.*;
 
 @Mapper(componentModel = "spring",

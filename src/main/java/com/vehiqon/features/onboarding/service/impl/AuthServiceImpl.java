@@ -1,8 +1,9 @@
 package com.vehiqon.features.onboarding.service.impl;
 
-import com.vehiqon.common.dto.RequestContext;
+import com.vehiqon.common.api.dto.RequestContext;
 import com.vehiqon.common.enums.EntityEnum;
-import com.vehiqon.common.enums.RoleEnum;
+import com.vehiqon.features.infrastructure.redis.RedisCacheService;
+import com.vehiqon.security.authorization.enums.RoleEnum;
 import com.vehiqon.common.enums.VerificationTokenTypeEnum;
 import com.vehiqon.common.exception.*;
 import com.vehiqon.common.utils.GenerateOrHashTokenUtils;
@@ -20,29 +21,31 @@ import com.vehiqon.features.insights.auditLog.service.AuditLogService;
 import com.vehiqon.features.insights.auditLog.service.RequestedMetadataService;
 import com.vehiqon.features.insights.enums.PublishAction;
 import com.vehiqon.features.onboarding.dto.UserDto;
-import com.vehiqon.features.onboarding.dto.request.AuthDto;
+import com.vehiqon.security.authentication.dto.AuthDto;
 import com.vehiqon.features.onboarding.dto.response.LoginResponse;
 import com.vehiqon.features.onboarding.entity.PasswordResetTokenEntity;
-import com.vehiqon.features.onboarding.entity.RefreshTokenEntity;
+import com.vehiqon.security.session.entity.RefreshTokenEntity;
 import com.vehiqon.features.onboarding.entity.UserEntity;
 import com.vehiqon.features.onboarding.entity.VerificationTokenEntity;
 import com.vehiqon.features.onboarding.mapper.AuthMapper;
 import com.vehiqon.features.onboarding.mapper.UserMapper;
 import com.vehiqon.features.onboarding.repository.PasswordResetTokenRepository;
-import com.vehiqon.features.onboarding.repository.RefreshTokenRepository;
+import com.vehiqon.security.session.repository.RefreshTokenRepository;
 import com.vehiqon.features.onboarding.repository.UserRepository;
 import com.vehiqon.features.onboarding.repository.VerificationTokenRepository;
 import com.vehiqon.features.onboarding.service.AuthService;
-import com.vehiqon.features.onboarding.service.RateLimitService;
+import com.vehiqon.common.api.rateLimit.RateLimitService;
 import com.vehiqon.features.onboarding.service.UserService;
-import com.vehiqon.security.config.JwtProperties;
-import com.vehiqon.security.service.JwtService;
-import com.vehiqon.security.model.CustomerUserDetails;
+import com.vehiqon.security.jwt.JwtProperties;
+import com.vehiqon.security.jwt.JwtService;
+import com.vehiqon.security.authentication.model.CustomerUserDetails;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.*;
 import org.springframework.security.authentication.CredentialsExpiredException;
 import org.springframework.security.core.Authentication;
@@ -90,13 +93,15 @@ public class AuthServiceImpl implements AuthService {
     private final HttpServletRequest httpServletRequest;
     private final RequestedMetadataService metadataService;
     private final JwtProperties jwtProperties;
+    private final StringRedisTemplate redisTemplate;
+    private final RedisCacheService redisService;
     private final AnalyticsMapper analyticsMapper;
 
 
     @Override
     @Transactional
     public UserDto.UserResponse register(UserDto.CreateUserRequest request) {
-        rateLimitService.validateRegister(request.email(),httpRequestUtils.getClientIp(httpServletRequest) );
+//        rateLimitService.validateRegister(request.email(),httpRequestUtils.getClientIp(httpServletRequest) );
         UserDto.UserResponse user = userService.createUser(request);
         Map<String, Object> metadata = metadataService.createMetadata();
         publisher.publish( new AuditLogDto.AuditEvent(user.id(), AuditActionType.USER_REGISTERED, EntityEnum.USER,
@@ -105,9 +110,15 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    @Transactional
     public LoginResponse login(AuthDto.LoginRequest request) {
         String email = request.email();
-        rateLimitService.validateLogin(request.email(),httpRequestUtils.getClientIp(httpServletRequest) );
+        if(isAccountLocked(email)) {
+            throw new BusinessException(HttpStatus.LOCKED, "ACCOUNT_LOCKED",
+                    "Account is temporarily locked due to excessive failed attempts.");
+        }
+
+//        rateLimitService.validateLogin(request.email(),httpRequestUtils.getClientIp(httpServletRequest) );
         Optional<UserEntity> userOpt = userRepository.findByEmailAndDeletedFalse(email);
 
         try {
@@ -117,6 +128,7 @@ public class AuthServiceImpl implements AuthService {
                     )
             );
             UserEntity user = (UserEntity) authenticate.getPrincipal();
+            resetAttempts(email);
             resetLoginAttempts(Objects.requireNonNull(user));
 
             UUID userSessionId = UUID.randomUUID();
@@ -137,9 +149,13 @@ public class AuthServiceImpl implements AuthService {
             return response;
 
         } catch (BadCredentialsException e) {
+
             userOpt.ifPresent(
                     userFound ->
-                        handleFailedLoginAttempt(httpServletRequest, userFound));
+                    {
+                        recordFailedAttempt(userFound.getEmail());
+                        handleFailedLoginAttempt(httpServletRequest, userFound);
+                    });
             throw new InvalidResourceException("Invalid email or password.");
         } catch (LockedException ex) {
             throw new AccountLockedException("Account is temporarily locked. Try again later.");
@@ -153,15 +169,31 @@ public class AuthServiceImpl implements AuthService {
 
 
     @Override
+    @Transactional
     public LoginResponse refresh(AuthDto.RefreshTokenRequest request) {
-        RefreshTokenEntity refreshToken = refreshTokenRepository.findByToken(tokenUtils.hashToken(request.refreshToken()))
+        RefreshTokenEntity refreshToken = refreshTokenRepository.findByTokenHash(tokenUtils.hashToken(request.refreshToken()))
                 .orElseThrow(() -> new InvalidResourceException("Refresh token not found"));
+        String jti, userEmail;
+        try {
+            jti = jwtService.extractJti(request.refreshToken());
+            userEmail = jwtService.extractUsername(request.refreshToken());
+        } catch (Exception ex) {
+            throw new BusinessException(HttpStatus.UNAUTHORIZED, "INVALID_TOKEN", "Refresh token is invalid or expired.");
+        }
+
+        String redisKey = "REFRESH_TOKEN:" + userEmail + ":" + jti;
+        Boolean isValid = redisTemplate.hasKey(redisKey);
+
+        if (Boolean.FALSE.equals(isValid)) {
+            revokeAllUserTokens(userEmail);
+            throw new BusinessException(HttpStatus.UNAUTHORIZED, "TOKEN_REUSE_DETECTED",
+                    "Security warning: Invalid refresh token attempt. All active sessions have been revoked.");
+        }
+
         if(Boolean.TRUE.equals(refreshToken.getRevoked())) {
             throw new InvalidResourceException("Refresh token has been revoked");
         }
-
-        UUID deviceId = jwtService.extractDeviceId(refreshToken.getToken());
-
+        UUID deviceId = jwtService.extractDeviceId(request.refreshToken());
         if(Boolean.TRUE.equals(refreshToken.getExpired())) {
             analyticService.endSessionForLogout(refreshToken.getUserId(), deviceId);
             throw new InvalidResourceException("Refresh token has expired");
@@ -175,11 +207,14 @@ public class AuthServiceImpl implements AuthService {
         }
 
         UserEntity user = userRepository.findById(refreshToken.getUserId()).orElseThrow(() -> new ResourceNotFoundException("user does not exist"));
+
+        redisService.delete(redisKey);
         LoginResponse response = generateTokens(user, httpServletRequest, deviceId);
-        refreshTokenRepository.revokeToken(refreshToken.getToken());
+        refreshTokenRepository.revokeToken(refreshToken.getTokenHash());
         return response;
 
     }
+
 
 
     @Override
@@ -196,7 +231,7 @@ public class AuthServiceImpl implements AuthService {
         UserEntity user = userRepository.findById(verificationToken.getUserId()).orElseThrow(() ->
                 new ResourceNotFoundException("Email Verification Failed, user not found"));
         Map<String, Object> metadata = metadataService.createMetadata();
-        rateLimitService.validateVerifyEmail(user.getEmail(), (String) metadata.get("ip"));
+//        rateLimitService.validateVerifyEmail(user.getEmail(), (String) metadata.get("ip"));
         userRepository.markUserAsIsVerified(user.getId());
         verificationTokenRepository.markAllAsUsed(user.getId(), VerificationTokenTypeEnum.EMAIL_VERIFICATION, LocalDateTime.now());
 
@@ -225,7 +260,7 @@ public class AuthServiceImpl implements AuthService {
                 return "Email is already verified.";
             }
 
-            rateLimitService.validateResendVerificationEmail(user.getEmail(),  httpRequestUtils.getClientIp(httpServletRequest));
+//            rateLimitService.validateResendVerificationEmail(user.getEmail(),  httpRequestUtils.getClientIp(httpServletRequest));
         // invalidate previous unused tokens
             List<VerificationTokenEntity> tokens =
                     verificationTokenRepository.findByUserIdAndTypeAndUsedFalse(
@@ -273,10 +308,19 @@ public class AuthServiceImpl implements AuthService {
 
 
     @Override
+    @Transactional
     public String logout(AuthDto.LogoutRequest request) {
         CustomerUserDetails authenticatedUser = getAuthenticatedUser();
+        if (request.refreshToken() != null && !request.refreshToken().isBlank()) {
+            try {
+                String jti= jwtService.extractJti(request.refreshToken());
+                String userEmail = jwtService.extractUsername(request.refreshToken());
+                String redisKey = "REFRESH_TOKEN:" + userEmail+ ":" + jti;
+                redisService.delete(redisKey);
+            } catch (Exception ignored) { }
+        }
 
-        RefreshTokenEntity refreshToken = refreshTokenRepository.findByToken(request.refreshToken())
+        RefreshTokenEntity refreshToken = refreshTokenRepository.findByTokenHash(request.refreshToken())
                 .orElseThrow(() -> new ResourceNotFoundException( "Token", request.refreshToken()));
         refreshToken.setRevoked(true);
         refreshToken.setExpired(true);
@@ -290,10 +334,12 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     @Transactional
-    public String logoutAll() {
+    public String logoutAll(String bearerToken) {
         CustomerUserDetails authenticatedUser = getAuthenticatedUser();
         UserEntity user = authenticatedUser.user();
+        blacklistAccessToken(bearerToken);
         refreshTokenRepository.revokeAll(user.getId());
+        redisService.deleteByPattern("REFRESH_TOKEN:" + user.getEmail() +":*");
 
 //        log.info("Revoked refresh tokens for user {}",user.getEmail());
 //          publisher.publish( new AuditLogDto.AuditEvent(user.getId(), AuditActionType.USER_LOGGED_OUT_ALL, EntityEnum.USER,
@@ -301,6 +347,22 @@ public class AuthServiceImpl implements AuthService {
         analyticService.endAllSessionWithDeviceId(authenticatedUser.deviceId(), user.getId());
 
         return "Logged out from all devices";
+    }
+
+    private void blacklistAccessToken(String bearerToken) {
+        if(bearerToken != null && bearerToken.startsWith("Bearer ")) {
+            String token = bearerToken.substring(7);
+            try {
+                String jti = jwtService.extractJti(token);
+                Date expiration = jwtService.extractExpiration(token);
+                long remainingMillis = expiration.getTime() - System.currentTimeMillis();
+                if(remainingMillis > 0) {
+                    redisService.set("BLACKLIST:ACCESS_TOKEN:" + jti, "REVOKED", Duration.ofMillis(remainingMillis));
+                }
+            } catch (Exception ignored) {
+
+            }
+        }
     }
 
     @Override
@@ -329,7 +391,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public String forgotPassword(AuthDto.ForgotPasswordRequest request) {
         Optional<UserEntity> userOpt = userRepository.findByEmailAndDeletedFalse(request.email());
-        rateLimitService.validateForgotPassword(request.email(), httpRequestUtils.getClientIp(httpServletRequest) );
+//        rateLimitService.validateForgotPassword(request.email(), httpRequestUtils.getClientIp(httpServletRequest) );
         userOpt.ifPresent(user ->{
             passwordResetTokenRepository.markAllAsUsedByUserId(user.getId());
             String token = tokenUtils.generateSecureToken(32);
@@ -360,8 +422,7 @@ public class AuthServiceImpl implements AuthService {
         UserEntity user = userRepository.findById(token.getUserId()).orElseThrow(() ->
                 new BadRequestException("Password Reset Failed, User not found"));
 
-        rateLimitService.validateResetPassword(user.getEmail(), httpRequestUtils.getClientIp(httpServletRequest));
-        user.setPassword(passwordEncoder.encode(request.newPassword()));
+   user.setPassword(passwordEncoder.encode(request.newPassword()));
         userRepository.save(user);
         passwordResetTokenRepository.markAllAsUsedByUserId(user.getId());
         refreshTokenRepository.revokeAll(user.getId());  // revoking all refresh tokens
@@ -373,29 +434,15 @@ public class AuthServiceImpl implements AuthService {
         return "Password has been successfully updated. You can now log in with your new password.";
     }
 
+    @Transactional
     private LoginResponse generateTokens(UserEntity user, HttpServletRequest request, UUID deviceId) {
         try {
             Map<String, Object> claims = new HashMap<>();
             claims.put("deviceId", deviceId.toString());
 
-            String jti = UUID.randomUUID().toString();
-            String refreshToken = jwtService.generateRefreshToken(user, claims, jti);
-            RefreshTokenEntity refreshTokenEntity = RefreshTokenEntity.builder()
-                    .token(refreshToken)
-                    .userId(user.getId())
-                    .deviceName(requestContext.getDeviceName())
-                    .deviceId(requestContext.getDeviceId())
-                    .ipAddress(requestContext.getIpAddress())
-                    .jti(jti)
-                    .expiresAt(
-                            LocalDateTime.now()
-                                    .plus(Duration.ofMillis(jwtProperties.refreshExpiration()))
-                    )
-                    .revoked(false)
-                    .expired(false)
-                    .build();
 
-            refreshTokenRepository.save(refreshTokenEntity);
+            String refreshToken = jwtService.generateRefreshToken(user, claims);
+
 
             Map<String, Object> metadata = metadataService.createMetadata();
             publisher.publish( new AuditLogDto.AuditEvent(user.getId(), AuditActionType.USER_REFRESHED_TOKEN, EntityEnum.USER,
@@ -434,5 +481,29 @@ public class AuthServiceImpl implements AuthService {
         user.setLockedUntil(null);
         userRepository.save(user);
     }
+
+    private void revokeAllUserTokens(String userEmail) {
+//        Set<String> keys = redisTemplate.keys("REFRESH_TOKEN:" + userEmail + ":*");
+//        if(keys != null && !keys.isEmpty()) {
+//            redisTemplate.delete(keys);
+//        }
+        redisService.deleteByPattern("REFRESH_TOKEN:"+ userEmail + ":*");
+    }
+    public void recordFailedAttempt(String email) {
+        String key = "LOCKOUT:ATTEMPTS:" + email;
+        redisService.incrementAndExpireIfNew(key, Duration.ofMinutes(lockAccountBasedOnFailedAttemptInMinute));
+    }
+
+    public boolean isAccountLocked(String email) {
+        String key = "LOCKOUT:ATTEMPTS:" + email;
+        Object attempts = redisService.get(key);
+        return attempts != null && Integer.parseInt(attempts.toString()) >= maxFailedAttempt;
+    }
+
+    public void resetAttempts(String email) {
+        redisService.delete("LOCKOUT:ATTEMPTS:" + email);
+    }
+
+
 
 }

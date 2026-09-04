@@ -1,9 +1,6 @@
 package com.vehiqon.features.insights.analytics.mapper;
 
-import com.vehiqon.common.dto.RequestContext;
 import com.vehiqon.features.insights.analytics.dto.AnalyticsDto;
-import com.vehiqon.features.insights.analytics.entities.FeatureSessionEntity;
-import com.vehiqon.features.insights.analytics.entities.UserEventEntity;
 import com.vehiqon.features.insights.analytics.entities.UserSessionEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

@@ -5,6 +5,6 @@ import org.springframework.http.HttpStatus;
 public class InvalidResourceException extends BusinessException {
     public InvalidResourceException(String message) {
 
-        super(HttpStatus.NOT_FOUND, "INVALID_REQUEST", message);
+        super(HttpStatus.BAD_REQUEST, "INVALID_REQUEST", message);
     }
 }

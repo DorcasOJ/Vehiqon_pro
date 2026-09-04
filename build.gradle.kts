@@ -21,16 +21,27 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 	implementation("org.springframework.boot:spring-boot-starter-mail")
 	implementation("org.springframework.boot:spring-boot-starter-webmvc")
-	implementation ("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.9")
+	//	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.3")
 	implementation ("org.springframework.boot:spring-boot-starter-validation")
 	implementation ("org.postgresql:postgresql")
 	implementation("org.mapstruct:mapstruct:1.6.3")
 	implementation ("me.paulschwarz:spring-dotenv:4.0.0")
 	implementation("com.github.ben-manes.caffeine:caffeine:3.2.3")
+//	implementation("com.bucket4j:bucket4j-core:8.10.1")
+//	implementation ("com.bucket4j:bucket4j-redis:8.10.1")
 	implementation("com.bucket4j:bucket4j-core:8.10.1")
+	implementation("com.bucket4j:bucket4j-redis:8.10.1")
 	implementation("nl.basjes.parse.useragent:yauaa:8.1.1")
+	implementation ("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.13")
+//	implementation("io.swagger.core.v3:swagger-annotations:2.2.54")
 //	implementation("com.maxmind.geoip2:geoip2:5.1.0")
 //	implementation("org.springframework.boot:spring-boot-starter-actuator:4.1.0")
+
+	implementation("org.springframework.boot:spring-boot-starter-data-redis")
+	implementation("org.springframework.boot:spring-boot-starter-web")
+//	implementation("org.springframework.boot:spring-boot-starter-aop")
+	implementation("org.springframework.boot:spring-boot-starter-aop:4.0.0-M2")
+
 
 	implementation("p6spy:p6spy:3.9.1")
 	implementation("org.springframework.boot:spring-boot-starter-actuator")
@@ -49,9 +60,6 @@ dependencies {
 	runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.7")
 	runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.7")
 
-
-
-
 	compileOnly("org.projectlombok:lombok")
 	runtimeOnly("com.mysql:mysql-connector-j")
 	annotationProcessor("org.projectlombok:lombok")
@@ -66,6 +74,9 @@ dependencies {
 	testCompileOnly("org.projectlombok:lombok")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 	testAnnotationProcessor("org.projectlombok:lombok")
+	testImplementation("org.assertj:assertj-core:3.25.3")
+	testImplementation(platform("org.junit:junit-bom:5.10.0"))
+	testImplementation("org.junit.jupiter:junit-jupiter")
 }
 
 tasks.withType<Test> {

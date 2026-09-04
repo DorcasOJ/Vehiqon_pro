@@ -1,6 +1,6 @@
 package com.vehiqon.features.insights;
 
-import com.vehiqon.common.dto.ConsumerEvent;
+import com.vehiqon.common.api.dto.ConsumerEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;

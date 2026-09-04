@@ -1,20 +1,15 @@
 package com.vehiqon.features.insights.analytics.service.around;
 
-import com.vehiqon.common.dto.RequestContext;
+import com.vehiqon.common.api.dto.RequestContext;
 import com.vehiqon.common.enums.EntityEnum;
 import com.vehiqon.common.exception.BadRequestException;
-import com.vehiqon.common.utils.HttpRequestUtils;
 import com.vehiqon.features.insights.InsightEventPublisher;
 import com.vehiqon.features.insights.analytics.dto.AnalyticsDto;
 import com.vehiqon.features.insights.analytics.dto.requestScope.AnalyticsContext;
 import com.vehiqon.features.insights.analytics.enums.EntityIdSource;
 import com.vehiqon.features.insights.analytics.enums.EventType;
 import com.vehiqon.features.insights.analytics.enums.FeatureEnum;
-import com.vehiqon.features.insights.auditLog.dto.AuditLogDto;
-import com.vehiqon.features.insights.auditLog.enums.AuditActionType;
-import com.vehiqon.features.insights.auditLog.enums.AuditStatus;
 import com.vehiqon.features.insights.auditLog.service.RequestedMetadataService;
-import com.vehiqon.features.insights.auditLog.service.around.AuditAction;
 import com.vehiqon.features.insights.enums.PublishAction;
 import com.vehiqon.features.onboarding.service.AuthService;
 import jakarta.servlet.http.HttpServletRequest;

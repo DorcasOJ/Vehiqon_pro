@@ -1,6 +1,6 @@
 package com.vehiqon.features.insights.Notification.dto;
 
-import com.vehiqon.common.dto.ConsumerEvent;
+import com.vehiqon.common.api.dto.ConsumerEvent;
 import com.vehiqon.features.carmgmt.dto.response.MaintenanceReminderResponse;
 import com.vehiqon.features.insights.Notification.enums.NotificationEvent;
 import com.vehiqon.features.insights.enums.PublishAction;

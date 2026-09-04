@@ -13,7 +13,7 @@ import com.vehiqon.features.wallet.service.VirtualAccountService;
 import com.vehiqon.integrations.nomba.client.NombaClient;
 import com.vehiqon.integrations.nomba.dto.NombaDto;
 import com.vehiqon.integrations.nomba.service.NombaAuthService;
-import com.vehiqon.security.model.CustomerUserDetails;
+import com.vehiqon.security.authentication.model.CustomerUserDetails;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

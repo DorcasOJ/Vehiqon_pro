@@ -1,11 +1,9 @@
 package com.vehiqon.features.onboarding.service;
 
 import com.vehiqon.features.onboarding.dto.UserDto;
-import com.vehiqon.features.onboarding.dto.request.*;
 import com.vehiqon.features.onboarding.dto.response.LoginResponse;
-import com.vehiqon.features.onboarding.dto.response.UserResponse;
-import com.vehiqon.security.model.CustomerUserDetails;
-import jakarta.servlet.http.HttpServletRequest;
+import com.vehiqon.security.authentication.dto.AuthDto;
+import com.vehiqon.security.authentication.model.CustomerUserDetails;
 
 public interface AuthService {
     UserDto.UserResponse register(UserDto.CreateUserRequest request);
@@ -14,7 +12,7 @@ public interface AuthService {
     LoginResponse refresh(AuthDto.RefreshTokenRequest request);
 
     String logout(AuthDto.LogoutRequest request);
-    String logoutAll();
+    String logoutAll(String bearerToken);
 
     String verifyEmail(String token);
 

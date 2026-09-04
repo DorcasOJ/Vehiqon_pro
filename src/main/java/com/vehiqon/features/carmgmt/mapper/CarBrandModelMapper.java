@@ -1,6 +1,6 @@
 package com.vehiqon.features.carmgmt.mapper;
 
-import com.vehiqon.common.dto.mapper.DateMapper;
+import com.vehiqon.common.api.mapper.DateMapper;
 import com.vehiqon.features.carmgmt.dto.CarBrandDto;
 import com.vehiqon.features.carmgmt.dto.CarModelDto;
 import com.vehiqon.features.carmgmt.entities.BrandEntity;

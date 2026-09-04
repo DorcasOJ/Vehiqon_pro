@@ -7,6 +7,12 @@ CREATE TABLE IF NOT EXISTS user_subscriptions (
     renewal_type VARCHAR(30),
     payment_reference VARCHAR(255),
     status VARCHAR(50) NOT NULL,
+
+    started_at TIMESTAMP,
+    current_period_start DATE,
+    current_period_end DATE,
+    cancelled_at TIMESTAMP,
+
     auto_renew BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP,
     updated_at TIMESTAMP,

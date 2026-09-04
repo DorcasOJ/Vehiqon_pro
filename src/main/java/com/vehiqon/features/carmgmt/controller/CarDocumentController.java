@@ -1,8 +1,8 @@
 package com.vehiqon.features.carmgmt.controller;
 
-import com.vehiqon.common.dto.response.ApiResponse;
+import com.vehiqon.common.api.dto.response.ApiResponse;
 import com.vehiqon.common.enums.EntityEnum;
-import com.vehiqon.common.dto.mapper.ApiResponseMapper;
+import com.vehiqon.common.api.mapper.ApiResponseMapper;
 import com.vehiqon.features.carmgmt.dto.CarDocumentDto;
 import com.vehiqon.features.carmgmt.service.CarDocumentService;
 import com.vehiqon.features.insights.analytics.enums.EntityIdSource;

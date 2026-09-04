@@ -1,6 +1,6 @@
 package com.vehiqon.features.onboarding.dto;
 
-import com.vehiqon.common.enums.RoleEnum;
+import com.vehiqon.security.authorization.enums.RoleEnum;
 import com.vehiqon.common.exception.BadRequestException;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
@@ -8,7 +8,6 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 import java.util.UUID;

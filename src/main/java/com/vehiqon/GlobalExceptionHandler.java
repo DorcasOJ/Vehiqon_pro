@@ -1,16 +1,13 @@
 package com.vehiqon;
 
-import com.vehiqon.common.dto.RequestContext;
-import com.vehiqon.common.dto.response.ApiError;
-import com.vehiqon.common.dto.response.ApiResponse;
-import com.vehiqon.common.dto.response.ErrorDetail;
+import com.vehiqon.common.api.dto.RequestContext;
+import com.vehiqon.common.api.dto.response.ApiError;
+import com.vehiqon.common.api.dto.response.ErrorDetail;
 import com.vehiqon.common.exception.BusinessException;
-import com.vehiqon.common.utils.AccountUtils;
-import jakarta.persistence.EntityNotFoundException;
+import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -18,11 +15,11 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.time.DateTimeException;
-import java.time.Instant;
 import java.time.format.DateTimeParseException;
 import java.util.HashMap;
 import java.util.Map;
 
+@Hidden
 @RestControllerAdvice
 @RequiredArgsConstructor
 @Slf4j

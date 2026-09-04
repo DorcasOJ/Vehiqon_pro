@@ -1,6 +1,6 @@
 package com.vehiqon.features.onboarding.dto.response;
 
-import com.vehiqon.common.enums.RoleEnum;
+import com.vehiqon.security.authorization.enums.RoleEnum;
 
 import java.util.Set;
 import java.util.UUID;
